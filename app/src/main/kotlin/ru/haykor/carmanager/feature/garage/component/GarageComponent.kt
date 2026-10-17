@@ -1,12 +1,15 @@
 package ru.haykor.carmanager.feature.garage.component
 
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.value.Value
 import ru.haykor.carmanager.core.domain.CarId
 
 interface GarageComponent {
-    fun onCarClick(carId: CarId)
+    val state: Value<GarageState>
+
+    fun accept(intent: GarageIntent)
 
     fun interface Factory {
-        fun create(ctx: ComponentContext, onOpenCar: (CarId) -> Unit): GarageComponent
+        fun create(ctx: ComponentContext, onOpenCar: (CarId) -> Unit, onAddCar: () -> Unit): GarageComponent
     }
 }

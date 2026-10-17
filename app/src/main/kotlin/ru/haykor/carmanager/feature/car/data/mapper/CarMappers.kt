@@ -6,19 +6,6 @@ import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.domain.model.CarDraft
 
-fun Car.toEntity() = CarEntity(
-    id = id,
-    brand = brand,
-    model = model,
-    year = year,
-    vin = vin,
-    plate = plate,
-    mileage = mileage,
-    photoUri = photoUri,
-    createdAt = createdAt,
-    updatedAt = updatedAt
-)
-
 fun CarEntity.toDomain() = Car(
     id = id,
     brand = brand,

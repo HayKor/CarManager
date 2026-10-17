@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Car Manager</string>
-</resources>
+    <string name="title_garage">Garage</string>
+    <string name="garage_add_car">Add car</string>
+    <string name="garage_empty_title">No cars currently. Add a car?</string>
+    <string name="garage_mileage">%1$d km</string>

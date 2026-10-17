@@ -1,10 +1,13 @@
 package ru.haykor.carmanager.feature.main.ui
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -13,8 +16,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import ru.haykor.carmanager.R
 import ru.haykor.carmanager.feature.garage.ui.GarageScreen
 import ru.haykor.carmanager.feature.main.component.MainComponent
 import ru.haykor.carmanager.feature.main.component.MainTab
@@ -56,14 +62,19 @@ fun MainScreen(component: MainComponent, modifier: Modifier = Modifier) {
     }
 }
 
-internal data class TopLevelDestination(val tab: MainTab, val title: String)
+internal data class TopLevelDestination(
+    val tab: MainTab,
+    @field:StringRes val title: Int,
+    @field:DrawableRes val icon: Int
+)
 
 internal val topLevelDestinations: List<TopLevelDestination>
     @Composable
     get() = listOf(
         TopLevelDestination(
             tab = MainTab.Garage,
-            title = "Garage"
+            title = R.string.title_garage,
+            icon = R.drawable.garage_home
         )
     )
 
@@ -76,10 +87,15 @@ internal fun AppBottomBar(selected: MainTab, onClick: (MainTab) -> Unit, modifie
             NavigationBarItem(
                 selected = destination.tab == selected,
                 onClick = { onClick(destination.tab) },
-                icon = { },
+                icon = {
+                    Icon(
+                        painter = painterResource(destination.icon),
+                        contentDescription = stringResource(destination.title)
+                    )
+                },
                 label = {
                     Text(
-                        text = destination.title,
+                        text = stringResource(destination.title),
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
