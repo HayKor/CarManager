@@ -12,10 +12,3 @@ interface CarComponent {
         fun create(ctx: ComponentContext, carId: CarId, onBack: () -> Unit): CarComponent
     }
 }
-
-class DefaultCarComponent(componentContext: ComponentContext, override val id: CarId, val onBack: () -> Unit) :
-    CarComponent,
-    ComponentContext by componentContext {
-
-    override fun onBackClicked() = onBack()
-}

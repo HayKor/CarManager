@@ -10,10 +10,3 @@ interface GarageComponent {
         fun create(ctx: ComponentContext, onOpenCar: (CarId) -> Unit): GarageComponent
     }
 }
-
-class DefaultGarageComponent(componentContext: ComponentContext, private val onOpenCar: (CarId) -> Unit) :
-    GarageComponent,
-    ComponentContext by componentContext {
-
-    override fun onCarClick(carId: CarId) = onOpenCar(carId)
-}
