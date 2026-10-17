@@ -10,6 +10,7 @@ import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.feature.car.component.CarComponent
+import ru.haykor.carmanager.feature.car.component.CarEditorComponent
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.main.component.MainComponent
 
@@ -17,7 +18,8 @@ class DefaultRootComponent(
     componentContext: ComponentContext,
     private val mainFactory: MainComponent.Factory,
     private val garageFactory: GarageComponent.Factory,
-    private val carFactory: CarComponent.Factory
+    private val carFactory: CarComponent.Factory,
+    private val carEditorFactory: CarEditorComponent.Factory
 ) : RootComponent,
     ComponentContext by componentContext {
 
@@ -45,6 +47,9 @@ class DefaultRootComponent(
                         ctx = c,
                         onOpenCar = { id ->
                             navigation.pushNew(Config.Car(id))
+                        },
+                        onAddCar = {
+                            navigation.pushNew(Config.CarEditor(null))
                         }
                     )
                 }
@@ -58,6 +63,14 @@ class DefaultRootComponent(
                 onBack = { navigation.pop() }
             )
         )
+
+        is Config.CarEditor -> RootComponent.Child.CarEditor(
+            carEditorFactory.create(
+                ctx = ctx,
+                id = config.carId,
+                onBack = { navigation.pop() }
+            )
+        )
     }
 
     @Serializable
@@ -67,5 +80,8 @@ class DefaultRootComponent(
 
         @Serializable
         data class Car(val carId: CarId) : Config
+
+        @Serializable
+        data class CarEditor(val carId: CarId? = null) : Config
     }
 }
