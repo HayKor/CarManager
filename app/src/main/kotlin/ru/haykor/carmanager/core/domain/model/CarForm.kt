@@ -1,4 +1,6 @@
-package ru.haykor.carmanager.core.domain
+package ru.haykor.carmanager.core.domain.model
+
+import ru.haykor.carmanager.core.domain.PlateCountry
 
 enum class Field {
     BRAND,

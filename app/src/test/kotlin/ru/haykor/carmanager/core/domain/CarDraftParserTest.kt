@@ -5,6 +5,9 @@ import kotlin.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import ru.haykor.carmanager.core.domain.model.CarFormInput
+import ru.haykor.carmanager.core.domain.model.Field
+import ru.haykor.carmanager.core.domain.model.FieldError
 
 class CarDraftParserTest {
 
