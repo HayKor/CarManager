@@ -11,7 +11,7 @@ data class CarEntity(
     val model: String,
     val year: Int?,
     val vin: String?,
-    val plates: String?,
+    val plate: String?,
     val mileage: Long,
     val photoUri: String?,
     val createdAt: Long,
