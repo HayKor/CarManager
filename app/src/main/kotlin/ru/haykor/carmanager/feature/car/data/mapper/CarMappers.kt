@@ -1,7 +1,10 @@
 package ru.haykor.carmanager.feature.car.data.mapper
 
+import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.feature.car.data.local.entity.CarEntity
+import ru.haykor.carmanager.feature.car.data.local.entity.CarUpdate
 import ru.haykor.carmanager.feature.car.domain.model.Car
+import ru.haykor.carmanager.feature.car.domain.model.CarDraft
 
 fun Car.toEntity() = CarEntity(
     id = id,
@@ -27,4 +30,29 @@ fun CarEntity.toDomain() = Car(
     photoUri = photoUri,
     createdAt = createdAt,
     updatedAt = updatedAt
+)
+
+fun CarDraft.toEntity(id: CarId, createdAt: Long, updatedAt: Long) = CarEntity(
+    id = id,
+    brand = brand,
+    model = model,
+    year = year,
+    vin = vin,
+    plate = plate,
+    mileage = mileage,
+    photoUri = photoUri,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun CarDraft.toUpdate(id: CarId, now: Long) = CarUpdate(
+    id = id,
+    brand = brand,
+    model = model,
+    year = year,
+    vin = vin,
+    plate = plate,
+    mileage = mileage,
+    photoUri = photoUri,
+    updatedAt = now
 )
