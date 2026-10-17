@@ -5,8 +5,8 @@ import androidx.room3.Delete
 import androidx.room3.Query
 import androidx.room3.Upsert
 import kotlinx.coroutines.flow.Flow
+import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.feature.car.data.local.entity.CarEntity
-import ru.haykor.carmanager.feature.car.domain.CarId
 import ru.haykor.carmanager.feature.car.domain.model.Car
 
 @Dao

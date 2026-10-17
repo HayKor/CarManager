@@ -1,4 +1,4 @@
-package ru.haykor.carmanager.feature.car.domain
+package ru.haykor.carmanager.core.domain
 
 import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable

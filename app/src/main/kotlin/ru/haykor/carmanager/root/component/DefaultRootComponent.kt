@@ -8,8 +8,8 @@ import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
+import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.feature.car.component.CarComponent
-import ru.haykor.carmanager.feature.car.domain.CarId
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.main.component.MainComponent
 

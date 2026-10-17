@@ -4,7 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
-import ru.haykor.carmanager.feature.car.domain.CarId
+import ru.haykor.carmanager.core.domain.CarId
 
 @ContributesBinding(AppScope::class)
 @Inject

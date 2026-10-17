@@ -5,10 +5,10 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.feature.car.data.local.dao.CarDao
 import ru.haykor.carmanager.feature.car.data.mapper.toDomain
 import ru.haykor.carmanager.feature.car.data.mapper.toEntity
-import ru.haykor.carmanager.feature.car.domain.CarId
 import ru.haykor.carmanager.feature.car.domain.model.Car
 import ru.haykor.carmanager.feature.car.domain.repository.CarRepository
 

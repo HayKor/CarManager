@@ -2,7 +2,7 @@ package ru.haykor.carmanager.feature.car.data.local.entity
 
 import androidx.room3.Entity
 import androidx.room3.PrimaryKey
-import ru.haykor.carmanager.feature.car.domain.CarId
+import ru.haykor.carmanager.core.domain.CarId
 
 @Entity(tableName = "cars")
 data class CarEntity(

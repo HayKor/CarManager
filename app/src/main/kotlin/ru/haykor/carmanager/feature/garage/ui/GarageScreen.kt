@@ -8,7 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import ru.haykor.carmanager.feature.car.domain.CarId
+import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 
 @Composable

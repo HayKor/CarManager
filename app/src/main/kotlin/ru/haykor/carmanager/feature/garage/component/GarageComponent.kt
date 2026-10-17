@@ -1,7 +1,7 @@
 package ru.haykor.carmanager.feature.garage.component
 
 import com.arkivanov.decompose.ComponentContext
-import ru.haykor.carmanager.feature.car.domain.CarId
+import ru.haykor.carmanager.core.domain.CarId
 
 interface GarageComponent {
     fun onCarClick(carId: CarId)

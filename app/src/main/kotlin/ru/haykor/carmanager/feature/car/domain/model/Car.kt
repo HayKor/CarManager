@@ -1,6 +1,6 @@
 package ru.haykor.carmanager.feature.car.domain.model
 
-import ru.haykor.carmanager.feature.car.domain.CarId
+import ru.haykor.carmanager.core.domain.CarId
 
 data class Car(
     val id: CarId,
