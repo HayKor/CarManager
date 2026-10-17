@@ -26,7 +26,7 @@ class DefaultCarRepository(private val carDao: CarDao, private val clock: Clock)
         return id
     }
 
-    override suspend fun upsert(id: CarId, draft: CarDraft) {
+    override suspend fun update(id: CarId, draft: CarDraft) {
         carDao.update(draft.toUpdate(id, clock.now().toEpochMilliseconds()))
     }
 
