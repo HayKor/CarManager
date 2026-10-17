@@ -2,7 +2,7 @@ package ru.haykor.carmanager.feature.car.component
 
 import com.arkivanov.decompose.ComponentContext
 import ru.haykor.carmanager.core.domain.CarId
-import ru.haykor.carmanager.feature.car.domain.repository.CarRepository
+import ru.haykor.carmanager.core.domain.repository.CarRepository
 
 class DefaultCarComponent(
     componentContext: ComponentContext,

@@ -1,9 +1,9 @@
-package ru.haykor.carmanager.feature.car.domain.repository
+package ru.haykor.carmanager.core.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import ru.haykor.carmanager.core.domain.CarId
-import ru.haykor.carmanager.feature.car.domain.model.Car
-import ru.haykor.carmanager.feature.car.domain.model.CarDraft
+import ru.haykor.carmanager.core.domain.model.Car
+import ru.haykor.carmanager.core.domain.model.CarDraft
 
 interface CarRepository {
     suspend fun create(draft: CarDraft): CarId

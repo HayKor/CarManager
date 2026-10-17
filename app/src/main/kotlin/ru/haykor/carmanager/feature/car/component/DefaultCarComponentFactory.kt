@@ -5,7 +5,7 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import ru.haykor.carmanager.core.domain.CarId
-import ru.haykor.carmanager.feature.car.domain.repository.CarRepository
+import ru.haykor.carmanager.core.domain.repository.CarRepository
 
 @ContributesBinding(AppScope::class)
 @Inject

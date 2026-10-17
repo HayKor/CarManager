@@ -1,6 +1,7 @@
-package ru.haykor.carmanager.feature.car.domain.model
+package ru.haykor.carmanager.core.domain.model
 
 import ru.haykor.carmanager.core.domain.CarId
+import ru.haykor.carmanager.core.domain.PlateCountry
 
 data class Car(
     val id: CarId,
@@ -8,6 +9,7 @@ data class Car(
     val model: String,
     val year: Int?,
     val vin: String?,
+    val plateCountry: PlateCountry?,
     val plate: String?,
     val mileage: Long,
     val photoUri: String?,
