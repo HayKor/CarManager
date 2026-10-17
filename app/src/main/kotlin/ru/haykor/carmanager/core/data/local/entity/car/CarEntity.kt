@@ -1,4 +1,4 @@
-package ru.haykor.carmanager.feature.car.data.local.entity
+package ru.haykor.carmanager.core.data.local.entity.car
 
 import androidx.room3.Entity
 import androidx.room3.PrimaryKey

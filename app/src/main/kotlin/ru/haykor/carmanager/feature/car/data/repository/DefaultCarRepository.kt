@@ -6,8 +6,8 @@ import dev.zacsweers.metro.Inject
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import ru.haykor.carmanager.core.data.local.dao.CarDao
 import ru.haykor.carmanager.core.domain.CarId
-import ru.haykor.carmanager.feature.car.data.local.dao.CarDao
 import ru.haykor.carmanager.feature.car.data.mapper.toDomain
 import ru.haykor.carmanager.feature.car.data.mapper.toEntity
 import ru.haykor.carmanager.feature.car.data.mapper.toUpdate

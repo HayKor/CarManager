@@ -1,13 +1,13 @@
-package ru.haykor.carmanager.feature.car.data.local.dao
+package ru.haykor.carmanager.core.data.local.dao
 
 import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.Query
 import androidx.room3.Update
 import kotlinx.coroutines.flow.Flow
+import ru.haykor.carmanager.core.data.local.entity.car.CarEntity
+import ru.haykor.carmanager.core.data.local.entity.car.CarUpdate
 import ru.haykor.carmanager.core.domain.CarId
-import ru.haykor.carmanager.feature.car.data.local.entity.CarEntity
-import ru.haykor.carmanager.feature.car.data.local.entity.CarUpdate
 
 @Dao
 interface CarDao {

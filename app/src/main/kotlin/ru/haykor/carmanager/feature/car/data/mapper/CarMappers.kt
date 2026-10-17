@@ -1,8 +1,8 @@
 package ru.haykor.carmanager.feature.car.data.mapper
 
+import ru.haykor.carmanager.core.data.local.entity.car.CarEntity
+import ru.haykor.carmanager.core.data.local.entity.car.CarUpdate
 import ru.haykor.carmanager.core.domain.CarId
-import ru.haykor.carmanager.feature.car.data.local.entity.CarEntity
-import ru.haykor.carmanager.feature.car.data.local.entity.CarUpdate
 import ru.haykor.carmanager.feature.car.domain.model.Car
 import ru.haykor.carmanager.feature.car.domain.model.CarDraft
 

@@ -9,7 +9,7 @@ import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.Dispatchers
 import ru.haykor.carmanager.core.data.local.AppDatabase
-import ru.haykor.carmanager.feature.car.data.local.dao.CarDao
+import ru.haykor.carmanager.core.data.local.dao.CarDao
 
 @ContributesTo(AppScope::class)
 interface DatabaseModule {
