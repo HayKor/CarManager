@@ -4,3 +4,36 @@
     <string name="garage_add_car">Add car</string>
     <string name="garage_empty_title">No cars currently. Add a car?</string>
     <string name="garage_mileage">%1$d km</string>
+    <string name="car_editor_title">Create or edit</string>
+    <string name="go_back">Go back</string>
+    <string name="car_not_found">Car not found</string>
+    <string name="car_not_found_description">It may have been deleted.</string>
+    <string name="save">Save</string>
+
+    <!-- Car editor -->
+    <string name="car_editor_section_car">Car</string>
+    <string name="car_editor_section_registration">Registration</string>
+    <string name="car_editor_country">Country</string>
+    <string name="unit_km">km</string>
+    <string name="hint_optional">Optional</string>
+    <string name="hint_vin">17 characters · optional</string>
+
+    <string name="field_brand">Brand</string>
+    <string name="field_model">Model</string>
+    <string name="field_year">Year</string>
+    <string name="field_mileage">Mileage</string>
+    <string name="field_vin">VIN</string>
+    <string name="field_plate">License plate</string>
+
+    <string name="error_required">Required</string>
+    <string name="error_invalid">Invalid value</string>
+    <string name="error_too_long">At most %1$d characters</string>
+    <string name="error_invalid_year">Enter a valid year</string>
+    <string name="error_invalid_mileage">Enter mileage in whole kilometers</string>
+    <string name="error_invalid_vin">17 letters and digits, no I, O or Q</string>
+    <string name="error_invalid_plate">Format: %1$s</string>
+
+    <string name="country_ru">Russia</string>
+    <string name="create_car_title">Create</string>
+    <string name="edit_car_title">Edit</string>
+</resources>
