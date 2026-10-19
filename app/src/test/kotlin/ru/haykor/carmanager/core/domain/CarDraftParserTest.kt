@@ -1,21 +1,15 @@
 package ru.haykor.carmanager.core.domain
 
-import kotlin.time.Clock
-import kotlin.time.Instant
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.junit.Test
+import ru.haykor.carmanager.core.domain.fixtures.allRequiredErrors
+import ru.haykor.carmanager.core.domain.fixtures.parser
 import ru.haykor.carmanager.core.domain.model.CarFormInput
 import ru.haykor.carmanager.core.domain.model.Field
 import ru.haykor.carmanager.core.domain.model.FieldError
 
 class CarDraftParserTest {
-
-    private val clock = object : Clock {
-        override fun now(): Instant = Instant.parse("2026-06-15T12:00:00Z")
-    }
-
-    private val parser = CarDraftParser(PlateFormats(setOf(RussianPlateFormat())), clock)
 
     private val validInput = CarFormInput(
         brand = "Toyota",
@@ -29,11 +23,11 @@ class CarDraftParserTest {
         val result = parser.parse(validInput.copy(brand = "  Toyota ", plate = "a123bc 77"))
 
         result as CarParseResult.Valid
-        assertEquals("Toyota", result.data.brand)
-        assertEquals(2018, result.data.year)
-        assertEquals(120_000L, result.data.mileage)
-        assertEquals("А123ВС77", result.data.plate)
-        assertEquals(null, result.data.vin)
+        assertEquals("Toyota", result.draft.brand)
+        assertEquals(2018, result.draft.year)
+        assertEquals(120_000L, result.draft.mileage)
+        assertEquals("А123ВС77", result.draft.plate)
+        assertEquals(null, result.draft.vin)
     }
 
     @Test
@@ -41,44 +35,63 @@ class CarDraftParserTest {
         val errors = parser.validate(CarFormInput())
 
         assertEquals(
-            mapOf(
-                Field.BRAND to FieldError.Required,
-                Field.MODEL to FieldError.Required,
-                Field.YEAR to FieldError.Required,
-                Field.MILEAGE to FieldError.Required
-            ),
+            allRequiredErrors,
             errors
         )
     }
 
     @Test
     fun `whitespace only brand is required`() {
-        assertEquals(FieldError.Required, parser.validate(validInput.copy(brand = "   "))[Field.BRAND])
+        assertEquals(
+            FieldError.Required,
+            parser.validate(validInput.copy(brand = "   "))[Field.BRAND]
+        )
     }
 
     @Test
     fun `too long brand`() {
-        assertEquals(FieldError.TooLong(30), parser.validate(validInput.copy(brand = "x".repeat(31)))[Field.BRAND])
+        assertEquals(
+            FieldError.TooLong(30),
+            parser.validate(validInput.copy(brand = "x".repeat(31)))[Field.BRAND]
+        )
     }
 
     @Test
     fun `year range depends on clock`() {
         assertTrue(Field.YEAR !in parser.validate(validInput.copy(year = "2027")))
-        assertEquals(FieldError.Invalid, parser.validate(validInput.copy(year = "2028"))[Field.YEAR])
-        assertEquals(FieldError.Invalid, parser.validate(validInput.copy(year = "1899"))[Field.YEAR])
-        assertEquals(FieldError.Invalid, parser.validate(validInput.copy(year = "abc"))[Field.YEAR])
+        assertEquals(
+            FieldError.Invalid,
+            parser.validate(validInput.copy(year = "2028"))[Field.YEAR]
+        )
+        assertEquals(
+            FieldError.Invalid,
+            parser.validate(validInput.copy(year = "1899"))[Field.YEAR]
+        )
+        assertEquals(
+            FieldError.Invalid,
+            parser.validate(validInput.copy(year = "abc"))[Field.YEAR]
+        )
     }
 
     @Test
     fun `negative mileage is invalid`() {
-        assertEquals(FieldError.Invalid, parser.validate(validInput.copy(mileage = "-1"))[Field.MILEAGE])
+        assertEquals(
+            FieldError.Invalid,
+            parser.validate(validInput.copy(mileage = "-1"))[Field.MILEAGE]
+        )
     }
 
     @Test
     fun `vin rejects I O Q`() {
         assertTrue(Field.VIN !in parser.validate(validInput.copy(vin = "jtdbe32k920123456")))
-        assertEquals(FieldError.Invalid, parser.validate(validInput.copy(vin = "JTDBE32K92012345O"))[Field.VIN])
-        assertEquals(FieldError.Invalid, parser.validate(validInput.copy(vin = "JTDBE32K"))[Field.VIN])
+        assertEquals(
+            FieldError.Invalid,
+            parser.validate(validInput.copy(vin = "JTDBE32K92012345O"))[Field.VIN]
+        )
+        assertEquals(
+            FieldError.Invalid,
+            parser.validate(validInput.copy(vin = "JTDBE32K"))[Field.VIN]
+        )
     }
 
     @Test
@@ -89,7 +102,13 @@ class CarDraftParserTest {
 
     @Test
     fun `plate rejects letters without lookalikes`() {
-        assertEquals(FieldError.Invalid, parser.validate(validInput.copy(plate = "Д123ВС77"))[Field.PLATE])
-        assertEquals(FieldError.Invalid, parser.validate(validInput.copy(plate = "A12BC77"))[Field.PLATE])
+        assertEquals(
+            FieldError.Invalid,
+            parser.validate(validInput.copy(plate = "Д123ВС77"))[Field.PLATE]
+        )
+        assertEquals(
+            FieldError.Invalid,
+            parser.validate(validInput.copy(plate = "A12BC77"))[Field.PLATE]
+        )
     }
 }
