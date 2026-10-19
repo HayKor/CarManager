@@ -85,7 +85,7 @@ class CarDraftParser(private val plateFormats: PlateFormats, private val clock: 
 }
 
 sealed interface CarParseResult {
-    data class Valid(val data: CarDraft) : CarParseResult
+    data class Valid(val draft: CarDraft) : CarParseResult
     data class Invalid(val errors: Map<Field, FieldError>) : CarParseResult
 }
 
