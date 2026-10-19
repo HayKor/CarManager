@@ -50,7 +50,6 @@ internal fun GarageContent(state: GarageState, onIntent: (GarageIntent) -> Unit,
                 Icon(painterResource(R.drawable.plus), contentDescription = stringResource(R.string.garage_add_car))
             }
         },
-        contentWindowInsets = WindowInsets(),
         modifier = modifier
     ) { padding ->
         when (val content = state.content) {

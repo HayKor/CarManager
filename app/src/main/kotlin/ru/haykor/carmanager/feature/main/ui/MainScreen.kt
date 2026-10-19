@@ -46,6 +46,7 @@ fun MainScreen(component: MainComponent, modifier: Modifier = Modifier) {
             pager = { modifier, state, key, pageContent ->
                 HorizontalPager(
                     state = state,
+                    modifier = modifier,
                     key = key,
                     userScrollEnabled = false,
                     pageContent = pageContent
