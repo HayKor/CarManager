@@ -1,8 +1,10 @@
 package ru.haykor.carmanager.feature.car.component
 
+import androidx.sqlite.SQLiteException
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import java.io.IOException
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
@@ -10,6 +12,8 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -18,6 +22,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import ru.haykor.carmanager.core.domain.CarId
+import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.fixtures.FakeCarRepository
 import ru.haykor.carmanager.core.domain.fixtures.aCar
 import ru.haykor.carmanager.core.domain.fixtures.allRequiredErrors
@@ -35,7 +40,6 @@ class DefaultCarEditorComponentTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        closeCount = 0
     }
 
     @After
@@ -79,6 +83,57 @@ class DefaultCarEditorComponentTest {
     }
 
     @Test
+    fun `save on new form calls create & onBack`() = runTest(dispatcher) {
+        val component = createComponent(id = null)
+        fillForm(component)
+        component.accept(CarEditorIntent.SaveClicked)
+
+        assertEquals(1, carRepository.created.size)
+        assertEquals(1, closeCount)
+        assertEquals(0, carRepository.updated.size)
+    }
+
+    @Test
+    fun `save on an old form calls update & onBack`() = runTest(dispatcher) {
+        val component = createComponent(id = defaultCar.id)
+        fillForm(component)
+        component.accept(CarEditorIntent.SaveClicked)
+
+        assertEquals(1, carRepository.updated.size)
+        assertEquals(1, closeCount)
+        assertEquals(0, carRepository.created.size)
+    }
+
+    @Test
+    fun `no errors without blur`() = runTest(dispatcher) {
+        val component = createComponent(id = null)
+        component.accept(CarEditorIntent.FieldChanged(Field.BRAND, ""))
+        val state = component.state.value
+        assertIs<CarEditorState.Form>(state)
+        assertEquals(0, state.errors.size)
+    }
+
+    @Test
+    fun `only related errors after blur`() = runTest(dispatcher) {
+        val component = createComponent(id = null)
+        component.accept(CarEditorIntent.FieldBlurred(Field.BRAND))
+        val state = component.state.value
+        assertIs<CarEditorState.Form>(state)
+        assertContains(state.errors, Field.BRAND)
+        assertFalse(Field.MODEL in state.errors)
+    }
+
+    @Test
+    fun `changing value in error field fixes error`() = runTest(dispatcher) {
+        val component = createComponent(id = null)
+        component.accept(CarEditorIntent.FieldBlurred(Field.BRAND))
+        component.accept(CarEditorIntent.FieldChanged(Field.BRAND, "Aaaa"))
+        val state = component.state.value
+        assertIs<CarEditorState.Form>(state)
+        assertFalse(Field.BRAND in state.errors)
+    }
+
+    @Test
     fun `double tap on Save creates car once`() = runTest(dispatcher) {
         // Arrange
         val gate = CompletableDeferred<Unit>()
@@ -110,10 +165,13 @@ class DefaultCarEditorComponentTest {
     @Test
     fun `component handles error thrown in repo`() = runTest(dispatcher) {
         // Arrange
-        val someThrowable = IOException("dick too big")
-        carRepository.saveError = someThrowable
+        val dataError = DataError.Local.Unknown
+        carRepository.saveError = dataError
         val component = createComponent(id = null)
         fillForm(component)
+
+        val events = mutableListOf<CarEditorEvent>()
+        backgroundScope.launch { component.events.toList(events) }
 
         // Act
         component.accept(CarEditorIntent.SaveClicked)
@@ -123,6 +181,7 @@ class DefaultCarEditorComponentTest {
         assertIs<CarEditorState.Form>(state)
         assertFalse(state.isSaving)
         assertEquals(0, closeCount)
+        assertEquals<List<CarEditorEvent>>(listOf(CarEditorEvent.SaveFailed(DataError.Local.Unknown)), events)
     }
 
     private fun fillForm(component: CarEditorComponent) {

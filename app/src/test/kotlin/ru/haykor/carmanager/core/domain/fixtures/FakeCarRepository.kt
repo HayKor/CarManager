@@ -6,9 +6,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import ru.haykor.carmanager.core.domain.CarId
+import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.domain.model.CarDraft
 import ru.haykor.carmanager.core.domain.repository.CarRepository
+import ru.haykor.carmanager.core.result.DataResult
+import ru.haykor.carmanager.core.result.EmptyResult
 
 internal class FakeCarRepository(initial: List<Car>) : CarRepository {
 
@@ -17,29 +20,31 @@ internal class FakeCarRepository(initial: List<Car>) : CarRepository {
     val created = mutableListOf<CarDraft>()
     val updated = mutableListOf<Pair<CarId, CarDraft>>()
     var saveGate: CompletableDeferred<Unit>? = null
-    var saveError: Throwable? = null
+    var saveError: DataError? = null
 
-    override suspend fun create(draft: CarDraft): CarId {
+    override suspend fun create(draft: CarDraft): DataResult<CarId, DataError> {
         created.add(draft)
         saveGate?.await()
-        saveError?.let { throw it }
+        saveError?.let { return DataResult.Failure(it) }
 
         val car = draft.toCar()
         cars.update { it + (car.id to car) }
-        return car.id
+        return DataResult.Success(car.id)
     }
 
-    override suspend fun update(id: CarId, draft: CarDraft) {
+    override suspend fun update(id: CarId, draft: CarDraft): EmptyResult<DataError> {
         updated.add(id to draft)
         saveGate?.await()
-        saveError?.let { throw it }
+        saveError?.let { return DataResult.Failure(it) }
 
         val car = draft.toCar(id)
         cars.update { it + (id to car) }
+        return DataResult.Success(Unit)
     }
 
-    override suspend fun delete(id: CarId) {
+    override suspend fun delete(id: CarId): EmptyResult<DataError> {
         cars.update { it - id }
+        return DataResult.Success(Unit)
     }
 
     override fun observeCars(): Flow<List<Car>> = cars.map { it.values.toList() }
