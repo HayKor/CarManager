@@ -4,7 +4,10 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.haykor.carmanager.core.domain.CarDraftParser
 import ru.haykor.carmanager.core.domain.CarId
@@ -13,6 +16,7 @@ import ru.haykor.carmanager.core.domain.mapper.toFormInput
 import ru.haykor.carmanager.core.domain.model.CarDraft
 import ru.haykor.carmanager.core.domain.repository.CarRepository
 import ru.haykor.carmanager.core.presentation.component.createComponentScope
+import ru.haykor.carmanager.core.result.DataResult
 import ru.haykor.carmanager.feature.car.component.CarEditorMutation.FieldBlurred
 import ru.haykor.carmanager.feature.car.component.CarEditorMutation.FieldChanged
 import ru.haykor.carmanager.feature.car.component.CarEditorMutation.FormInputLoaded
@@ -32,6 +36,9 @@ class DefaultCarEditorComponent(
 
     private val _state = MutableValue<CarEditorState>(CarEditorState.Loading)
     override val state: Value<CarEditorState> = _state
+
+    private val _events = Channel<CarEditorEvent>(Channel.BUFFERED)
+    override val events = _events.receiveAsFlow()
 
     init {
         loadInitialForm()
@@ -84,12 +91,7 @@ class DefaultCarEditorComponent(
             is CarParseResult.Valid -> {
                 reduce(CarEditorMutation.SetSaving(true))
                 scope.launch {
-                    try {
-                        saveOrUpdateCar(result.draft)
-                        onBack()
-                    } finally {
-                        reduce(CarEditorMutation.SetSaving(false))
-                    }
+                    saveOrUpdateCar(result.draft)
                 }
             }
         }
@@ -97,9 +99,27 @@ class DefaultCarEditorComponent(
 
     private suspend fun saveOrUpdateCar(draft: CarDraft) {
         if (id != null) {
-            carRepository.update(id, draft)
+            when (val result = carRepository.update(id, draft)) {
+                is DataResult.Failure -> {
+                    reduce(CarEditorMutation.SetSaving(false))
+                    _events.send(CarEditorEvent.SaveFailed(result.error))
+                }
+
+                is DataResult.Success -> {
+                    onBack()
+                }
+            }
         } else {
-            carRepository.create(draft)
+            when (val result = carRepository.create(draft)) {
+                is DataResult.Failure -> {
+                    reduce(CarEditorMutation.SetSaving(false))
+                    _events.send(CarEditorEvent.SaveFailed(result.error))
+                }
+
+                is DataResult.Success -> {
+                    onBack()
+                }
+            }
         }
     }
 

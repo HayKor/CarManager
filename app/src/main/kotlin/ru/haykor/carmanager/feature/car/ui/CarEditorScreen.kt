@@ -1,6 +1,7 @@
 package ru.haykor.carmanager.feature.car.ui
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,6 +63,7 @@ import ru.haykor.carmanager.core.domain.model.Field
 import ru.haykor.carmanager.core.domain.model.FieldError
 import ru.haykor.carmanager.core.presentation.ui.FormTextField
 import ru.haykor.carmanager.feature.car.component.CarEditorComponent
+import ru.haykor.carmanager.feature.car.component.CarEditorEvent
 import ru.haykor.carmanager.feature.car.component.CarEditorIntent
 import ru.haykor.carmanager.feature.car.component.CarEditorState
 import ru.haykor.carmanager.ui.theme.AppTheme
@@ -67,6 +71,17 @@ import ru.haykor.carmanager.ui.theme.AppTheme
 @Composable
 fun CarEditorScreen(component: CarEditorComponent, modifier: Modifier = Modifier) {
     val state by component.state.subscribeAsState()
+
+    val context = LocalContext.current
+    LaunchedEffect(component.events) {
+        component.events.collect { event ->
+            when (event) {
+                is CarEditorEvent.SaveFailed -> {
+                    Toast.makeText(context, event.error.toUiText(), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     CarEditorContent(
         state = state,

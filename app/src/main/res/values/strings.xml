@@ -36,4 +36,5 @@
     <string name="country_ru">Russia</string>
     <string name="create_car_title">Create</string>
     <string name="edit_car_title">Edit</string>
+    <string name="error_unknown">Unknown error occurred</string>
 </resources>

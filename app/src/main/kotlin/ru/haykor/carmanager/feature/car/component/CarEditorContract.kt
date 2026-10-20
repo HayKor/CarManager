@@ -2,6 +2,7 @@ package ru.haykor.carmanager.feature.car.component
 
 import androidx.compose.runtime.Stable
 import ru.haykor.carmanager.core.domain.PlateCountry
+import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.CarFormInput
 import ru.haykor.carmanager.core.domain.model.Field
 import ru.haykor.carmanager.core.domain.model.FieldError
@@ -26,6 +27,10 @@ sealed interface CarEditorIntent {
     data class PlateCountryChanged(val plateCountry: PlateCountry) : CarEditorIntent
     data object SaveClicked : CarEditorIntent
     data object BackClicked : CarEditorIntent
+}
+
+sealed interface CarEditorEvent {
+    data class SaveFailed(val error: DataError) : CarEditorEvent
 }
 
 sealed interface CarEditorMutation {
