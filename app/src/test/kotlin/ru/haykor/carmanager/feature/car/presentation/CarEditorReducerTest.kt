@@ -9,9 +9,9 @@ import ru.haykor.carmanager.core.domain.fixtures.aCar
 import ru.haykor.carmanager.core.domain.mapper.toFormInput
 import ru.haykor.carmanager.core.domain.model.CarFormInput
 import ru.haykor.carmanager.core.domain.model.Field
-import ru.haykor.carmanager.feature.car.component.CarEditorMutation
-import ru.haykor.carmanager.feature.car.component.CarEditorReducer
-import ru.haykor.carmanager.feature.car.component.CarEditorState
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorMutation
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorReducer
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorState
 
 class CarEditorReducerTest {
 

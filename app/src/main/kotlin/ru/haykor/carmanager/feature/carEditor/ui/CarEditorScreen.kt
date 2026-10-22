@@ -1,4 +1,4 @@
-package ru.haykor.carmanager.feature.car.ui
+package ru.haykor.carmanager.feature.carEditor.ui
 
 import android.content.res.Configuration
 import android.widget.Toast
@@ -62,10 +62,11 @@ import ru.haykor.carmanager.core.domain.model.CarFormInput
 import ru.haykor.carmanager.core.domain.model.Field
 import ru.haykor.carmanager.core.domain.model.FieldError
 import ru.haykor.carmanager.core.presentation.ui.FormTextField
-import ru.haykor.carmanager.feature.car.component.CarEditorComponent
-import ru.haykor.carmanager.feature.car.component.CarEditorEvent
-import ru.haykor.carmanager.feature.car.component.CarEditorIntent
-import ru.haykor.carmanager.feature.car.component.CarEditorState
+import ru.haykor.carmanager.core.presentation.ui.toUiText
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorEvent
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorIntent
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorState
 import ru.haykor.carmanager.ui.theme.AppTheme
 
 @Composable

@@ -5,7 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import ru.haykor.carmanager.feature.car.component.CarComponent
-import ru.haykor.carmanager.feature.car.component.CarEditorComponent
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
 import ru.haykor.carmanager.feature.main.component.MainComponent
 
 interface RootComponent : BackHandlerOwner {

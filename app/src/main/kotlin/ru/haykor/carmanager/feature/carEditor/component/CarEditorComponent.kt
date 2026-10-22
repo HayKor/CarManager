@@ -1,4 +1,4 @@
-package ru.haykor.carmanager.feature.car.component
+package ru.haykor.carmanager.feature.carEditor.component
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.Value

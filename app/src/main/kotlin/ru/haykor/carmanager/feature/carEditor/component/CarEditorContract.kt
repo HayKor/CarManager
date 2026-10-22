@@ -1,4 +1,4 @@
-package ru.haykor.carmanager.feature.car.component
+package ru.haykor.carmanager.feature.carEditor.component
 
 import androidx.compose.runtime.Stable
 import ru.haykor.carmanager.core.domain.PlateCountry
@@ -6,7 +6,6 @@ import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.CarFormInput
 import ru.haykor.carmanager.core.domain.model.Field
 import ru.haykor.carmanager.core.domain.model.FieldError
-import ru.haykor.carmanager.feature.car.component.CarEditorState.Form
 
 @Stable
 sealed interface CarEditorState {
@@ -49,27 +48,27 @@ sealed interface CarEditorMutation {
 object CarEditorReducer {
     fun reduce(state: CarEditorState, mutation: CarEditorMutation): CarEditorState = when (mutation) {
         is CarEditorMutation.FieldChanged -> {
-            (state as? Form)?.let { it.copy(input = it.input.change(mutation.field, mutation.value)) }
+            (state as? CarEditorState.Form)?.let { it.copy(input = it.input.change(mutation.field, mutation.value)) }
                 ?: state
         }
 
         is CarEditorMutation.FieldBlurred -> {
-            (state as? Form)?.let { it.copy(touched = it.touched + mutation.field) } ?: state
+            (state as? CarEditorState.Form)?.let { it.copy(touched = it.touched + mutation.field) } ?: state
         }
 
         CarEditorMutation.AllFieldsTouched -> {
-            (state as? Form)?.copy(touched = Field.entries.toSet()) ?: state
+            (state as? CarEditorState.Form)?.copy(touched = Field.entries.toSet()) ?: state
         }
 
         is CarEditorMutation.PlateCountryChanged -> {
-            (state as? Form)?.let {
+            (state as? CarEditorState.Form)?.let {
                 it.copy(input = it.input.copy(plateCountry = mutation.plateCountry))
             }
                 ?: state
         }
 
         is CarEditorMutation.SetSaving -> {
-            (state as? Form)?.copy(isSaving = mutation.value) ?: state
+            (state as? CarEditorState.Form)?.copy(isSaving = mutation.value) ?: state
         }
 
         CarEditorMutation.SetLoading -> CarEditorState.Loading
@@ -77,15 +76,15 @@ object CarEditorReducer {
         CarEditorMutation.SetNotFound -> CarEditorState.NotFound
 
         is CarEditorMutation.FormInputLoaded -> {
-            Form(input = mutation.input)
+            CarEditorState.Form(input = mutation.input)
         }
 
         CarEditorMutation.FormInputNew -> {
-            Form(isNew = true)
+            CarEditorState.Form(isNew = true)
         }
 
         is CarEditorMutation.ErrorsUpdated -> {
-            (state as? Form)?.copy(errors = mutation.errors) ?: state
+            (state as? CarEditorState.Form)?.copy(errors = mutation.errors) ?: state
         }
     }
 }

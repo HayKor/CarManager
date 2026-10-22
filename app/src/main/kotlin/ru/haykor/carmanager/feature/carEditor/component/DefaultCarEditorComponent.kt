@@ -1,11 +1,13 @@
-package ru.haykor.carmanager.feature.car.component
+package ru.haykor.carmanager.feature.carEditor.component
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -17,11 +19,6 @@ import ru.haykor.carmanager.core.domain.model.CarDraft
 import ru.haykor.carmanager.core.domain.repository.CarRepository
 import ru.haykor.carmanager.core.presentation.component.createComponentScope
 import ru.haykor.carmanager.core.result.DataResult
-import ru.haykor.carmanager.feature.car.component.CarEditorMutation.FieldBlurred
-import ru.haykor.carmanager.feature.car.component.CarEditorMutation.FieldChanged
-import ru.haykor.carmanager.feature.car.component.CarEditorMutation.FormInputLoaded
-import ru.haykor.carmanager.feature.car.component.CarEditorMutation.PlateCountryChanged
-import ru.haykor.carmanager.feature.car.component.CarEditorMutation.SetNotFound
 
 class DefaultCarEditorComponent(
     componentContext: ComponentContext,
@@ -46,17 +43,17 @@ class DefaultCarEditorComponent(
 
     override fun accept(intent: CarEditorIntent) = when (intent) {
         is CarEditorIntent.FieldBlurred -> {
-            reduce(FieldBlurred(intent.field))
+            reduce(CarEditorMutation.FieldBlurred(intent.field))
             refreshErrors()
         }
 
         is CarEditorIntent.FieldChanged -> {
-            reduce(FieldChanged(intent.field, intent.value))
+            reduce(CarEditorMutation.FieldChanged(intent.field, intent.value))
             refreshErrors()
         }
 
         is CarEditorIntent.PlateCountryChanged -> {
-            reduce(PlateCountryChanged(intent.plateCountry))
+            reduce(CarEditorMutation.PlateCountryChanged(intent.plateCountry))
             refreshErrors()
         }
 
@@ -77,8 +74,8 @@ class DefaultCarEditorComponent(
         }
 
         carRepository.observeCar(id).first()?.let { car ->
-            reduce(FormInputLoaded(car.toFormInput()))
-        } ?: reduce(SetNotFound)
+            reduce(CarEditorMutation.FormInputLoaded(car.toFormInput()))
+        } ?: reduce(CarEditorMutation.SetNotFound)
     }
 
     private fun trySaveCar() {
@@ -132,4 +129,18 @@ class DefaultCarEditorComponent(
         val all = parser.validate(form.input)
         reduce(CarEditorMutation.ErrorsUpdated(all.filterKeys { it in form.touched }))
     }
+}
+
+@ContributesBinding(AppScope::class)
+@Inject
+class DefaultCarEditorComponentFactory(private val carRepository: CarRepository, private val parser: CarDraftParser) :
+    CarEditorComponent.Factory {
+
+    override fun create(ctx: ComponentContext, id: CarId?, onBack: () -> Unit) = DefaultCarEditorComponent(
+        componentContext = ctx,
+        id = id,
+        carRepository = carRepository,
+        parser = parser,
+        onBack = onBack
+    )
 }

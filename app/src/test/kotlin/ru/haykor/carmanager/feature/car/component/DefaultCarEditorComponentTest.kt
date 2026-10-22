@@ -1,9 +1,7 @@
 package ru.haykor.carmanager.feature.car.component
 
-import androidx.sqlite.SQLiteException
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import java.io.IOException
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -29,6 +27,11 @@ import ru.haykor.carmanager.core.domain.fixtures.allRequiredErrors
 import ru.haykor.carmanager.core.domain.fixtures.parser
 import ru.haykor.carmanager.core.domain.mapper.toFormInput
 import ru.haykor.carmanager.core.domain.model.Field
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorEvent
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorIntent
+import ru.haykor.carmanager.feature.carEditor.component.CarEditorState
+import ru.haykor.carmanager.feature.carEditor.component.DefaultCarEditorComponent
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultCarEditorComponentTest {
