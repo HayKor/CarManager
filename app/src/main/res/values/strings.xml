@@ -37,4 +37,13 @@
     <string name="create_car_title">Create</string>
     <string name="edit_car_title">Edit</string>
     <string name="error_unknown">Unknown error occurred</string>
+    <string name="description_edit">Edit</string>
+    <string name="car_info_title">Car info</string>
+
+    <!-- Car details -->
+    <string name="car_section_details">Details</string>
+    <string name="car_section_service_history">Service history</string>
+    <string name="car_service_history_empty">No service records yet</string>
+    <string name="mileage_km">%1$s km</string>
+    <string name="not_specified">Not specified</string>
 </resources>
