@@ -1,4 +1,4 @@
-package ru.haykor.carmanager.feature.car.data.mapper
+package ru.haykor.carmanager.core.data.mapper
 
 import ru.haykor.carmanager.core.data.local.entity.car.CarEntity
 import ru.haykor.carmanager.core.data.local.entity.car.CarUpdate

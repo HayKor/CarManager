@@ -1,4 +1,4 @@
-package ru.haykor.carmanager.feature.car.ui
+package ru.haykor.carmanager.core.presentation.ui
 
 import ru.haykor.carmanager.R
 import ru.haykor.carmanager.core.domain.error.DataError
