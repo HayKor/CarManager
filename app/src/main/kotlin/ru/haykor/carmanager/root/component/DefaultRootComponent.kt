@@ -7,6 +7,9 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.Value
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.serialization.Serializable
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.feature.car.component.CarComponent
@@ -60,7 +63,8 @@ class DefaultRootComponent(
             carFactory.create(
                 ctx = ctx,
                 carId = config.carId,
-                onBack = { navigation.pop() }
+                onBack = { navigation.pop() },
+                onOpenEdit = { carId -> navigation.pushNew(Config.CarEditor(carId)) }
             )
         )
 
@@ -84,4 +88,21 @@ class DefaultRootComponent(
         @Serializable
         data class CarEditor(val carId: CarId? = null) : Config
     }
+}
+
+@ContributesBinding(AppScope::class)
+@Inject
+class DefaultRootComponentFactory(
+    private val mainFactory: MainComponent.Factory,
+    private val garageFactory: GarageComponent.Factory,
+    private val carFactory: CarComponent.Factory,
+    private val carEditorFactory: CarEditorComponent.Factory
+) : RootComponent.Factory {
+    override fun create(ctx: ComponentContext): RootComponent = DefaultRootComponent(
+        componentContext = ctx,
+        mainFactory = mainFactory,
+        garageFactory = garageFactory,
+        carFactory = carFactory,
+        carEditorFactory = carEditorFactory
+    )
 }

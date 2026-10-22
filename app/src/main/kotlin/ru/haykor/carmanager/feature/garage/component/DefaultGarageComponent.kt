@@ -4,6 +4,9 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.launch
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.repository.CarRepository
@@ -46,4 +49,11 @@ class DefaultGarageComponent(
     private fun reduce(mutation: GarageMutation) {
         _state.update { state -> GarageReducer.reduce(state, mutation) }
     }
+}
+
+@ContributesBinding(AppScope::class)
+@Inject
+class DefaultGarageComponentFactory(private val carRepository: CarRepository) : GarageComponent.Factory {
+    override fun create(ctx: ComponentContext, onOpenCar: (CarId) -> Unit, onAddCar: () -> Unit): GarageComponent =
+        DefaultGarageComponent(ctx, carRepository, onOpenCar, onAddCar)
 }
