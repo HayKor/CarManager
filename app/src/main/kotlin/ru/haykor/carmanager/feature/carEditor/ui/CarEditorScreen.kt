@@ -37,7 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +60,7 @@ import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.model.CarFormInput
 import ru.haykor.carmanager.core.domain.model.Field
 import ru.haykor.carmanager.core.domain.model.FieldError
+import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
 import ru.haykor.carmanager.core.presentation.ui.FormTextField
 import ru.haykor.carmanager.core.presentation.ui.toUiText
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
@@ -74,12 +74,10 @@ fun CarEditorScreen(component: CarEditorComponent, modifier: Modifier = Modifier
     val state by component.state.subscribeAsState()
 
     val context = LocalContext.current
-    LaunchedEffect(component.events) {
-        component.events.collect { event ->
-            when (event) {
-                is CarEditorEvent.SaveFailed -> {
-                    Toast.makeText(context, event.error.toUiText(), Toast.LENGTH_SHORT).show()
-                }
+    ObserveAsEvents(component.events) { event ->
+        when (event) {
+            is CarEditorEvent.SaveFailed -> {
+                Toast.makeText(context, event.error.toUiText(), Toast.LENGTH_SHORT).show()
             }
         }
     }
