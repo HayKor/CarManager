@@ -58,11 +58,12 @@ class DefaultCarComponent(
 
 @ContributesBinding(AppScope::class)
 @Inject
-class DefaultCarComponentFactory(private val repository: CarRepository) : CarComponent.Factory {
+class DefaultCarComponentFactory(private val repository: CarRepository, private val deleteCar: DeleteCarUseCase) :
+    CarComponent.Factory {
     override fun create(
         ctx: ComponentContext,
         carId: CarId,
         onBack: () -> Unit,
         onOpenEdit: (CarId) -> Unit
-    ): CarComponent = DefaultCarComponent(ctx, repository, carId, onBack, onOpenEdit)
+    ): CarComponent = DefaultCarComponent(ctx, repository, deleteCar, carId, onBack, onOpenEdit)
 }
