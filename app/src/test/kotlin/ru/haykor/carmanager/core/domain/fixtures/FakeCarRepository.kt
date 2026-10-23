@@ -19,8 +19,12 @@ internal class FakeCarRepository(initial: List<Car>) : CarRepository {
 
     val created = mutableListOf<CarDraft>()
     val updated = mutableListOf<Pair<CarId, CarDraft>>()
+    val deleted = mutableListOf<CarId>()
+
     var saveGate: CompletableDeferred<Unit>? = null
+    var deleteGate: CompletableDeferred<Unit>? = null
     var saveError: DataError? = null
+    var deleteError: DataError? = null
 
     override suspend fun create(draft: CarDraft): DataResult<CarId, DataError> {
         created.add(draft)
@@ -43,6 +47,10 @@ internal class FakeCarRepository(initial: List<Car>) : CarRepository {
     }
 
     override suspend fun delete(id: CarId): EmptyResult<DataError> {
+        deleted.add(id)
+        deleteGate?.await()
+        deleteError?.let { return DataResult.Failure(it) }
+
         cars.update { it - id }
         return DataResult.Success(Unit)
     }
