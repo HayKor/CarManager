@@ -1,4 +1,4 @@
-package ru.haykor.carmanager.feature.car.presentation
+package ru.haykor.carmanager.feature.carEditor.presentation
 
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

@@ -1,4 +1,4 @@
-package ru.haykor.carmanager.feature.car.component
+package ru.haykor.carmanager.feature.carEditor.component
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
@@ -27,11 +27,6 @@ import ru.haykor.carmanager.core.domain.fixtures.allRequiredErrors
 import ru.haykor.carmanager.core.domain.fixtures.parser
 import ru.haykor.carmanager.core.domain.mapper.toFormInput
 import ru.haykor.carmanager.core.domain.model.Field
-import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
-import ru.haykor.carmanager.feature.carEditor.component.CarEditorEvent
-import ru.haykor.carmanager.feature.carEditor.component.CarEditorIntent
-import ru.haykor.carmanager.feature.carEditor.component.CarEditorState
-import ru.haykor.carmanager.feature.carEditor.component.DefaultCarEditorComponent
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultCarEditorComponentTest {
