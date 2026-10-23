@@ -46,4 +46,8 @@
     <string name="car_service_history_empty">No service records yet</string>
     <string name="mileage_km">%1$s km</string>
     <string name="not_specified">Not specified</string>
+    <string name="delete_car_title">Delete the car?</string>
+    <string name="delete_car_text">Are you sure you want to delete the car with its service history?</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
 </resources>

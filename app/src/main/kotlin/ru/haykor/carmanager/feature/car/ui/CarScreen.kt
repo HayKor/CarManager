@@ -1,6 +1,7 @@
 package ru.haykor.carmanager.feature.car.ui
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,8 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -25,14 +29,18 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -48,7 +56,10 @@ import ru.haykor.carmanager.R
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.model.Car
+import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
+import ru.haykor.carmanager.core.presentation.ui.toUiText
 import ru.haykor.carmanager.feature.car.component.CarComponent
+import ru.haykor.carmanager.feature.car.component.CarEvent
 import ru.haykor.carmanager.feature.car.component.CarIntent
 import ru.haykor.carmanager.feature.car.component.CarState
 import ru.haykor.carmanager.ui.theme.AppTheme
@@ -57,22 +68,25 @@ import ru.haykor.carmanager.ui.theme.AppTheme
 fun CarScreen(component: CarComponent, modifier: Modifier = Modifier) {
     val state by component.state.subscribeAsState()
 
+    val context = LocalContext.current
+    ObserveAsEvents(component.events) { event ->
+        when (event) {
+            is CarEvent.DeleteFailed -> {
+                Toast.makeText(context, event.error.toUiText(), Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     CarContent(
         state = state,
-        onBackClick = { component.accept(CarIntent.BackClicked) },
-        onEditClick = { component.accept(CarIntent.EditCarClicked) },
+        onIntent = component::accept,
         modifier = modifier
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun CarContent(
-    state: CarState,
-    onBackClick: () -> Unit,
-    onEditClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+internal fun CarContent(state: CarState, onIntent: (CarIntent) -> Unit, modifier: Modifier = Modifier) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -86,7 +100,7 @@ internal fun CarContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { onIntent(CarIntent.BackClicked) }) {
                         Icon(
                             painter = painterResource(R.drawable.chevron_left),
                             contentDescription = stringResource(R.string.go_back)
@@ -95,10 +109,41 @@ internal fun CarContent(
                 },
                 actions = {
                     if (state is CarState.Content) {
-                        IconButton(onClick = onEditClick) {
+                        IconButton(onClick = { onIntent(CarIntent.EditCarClicked) }) {
                             Icon(
                                 painter = painterResource(R.drawable.edit),
                                 contentDescription = stringResource(R.string.description_edit)
+                            )
+                        }
+                        var expanded by remember { mutableStateOf(false) }
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(
+                                painter = painterResource(R.drawable.more_vert),
+                                contentDescription = "Show more options"
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                onClick = {
+                                    expanded = false
+                                    onIntent(CarIntent.DeleteClicked)
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.delete),
+                                        tint = MaterialTheme.colorScheme.error,
+                                        contentDescription = null
+                                    )
+                                },
+                                text = {
+                                    Text(
+                                        text = stringResource(R.string.delete),
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
                             )
                         }
                     }
@@ -115,12 +160,13 @@ internal fun CarContent(
             CarState.Loading -> Unit
 
             CarState.NotFound -> CarNotFound(
-                onBackClick = onBackClick,
+                onBackClick = { onIntent(CarIntent.BackClicked) },
                 modifier = Modifier.padding(innerPadding)
             )
 
             is CarState.Content -> CarDetails(
-                car = state.car,
+                state = state,
+                onIntent = onIntent,
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -129,19 +175,52 @@ internal fun CarContent(
 
 /** A lazy list from the start: service records will be appended below the car info. */
 @Composable
-private fun CarDetails(car: Car, modifier: Modifier = Modifier) {
+private fun CarDetails(state: CarState.Content, onIntent: (CarIntent) -> Unit, modifier: Modifier = Modifier) {
+    DeleteDialog(
+        isShow = state.isShowDialog,
+        onDismiss = { onIntent(CarIntent.DeleteDismissed) },
+        onConfirm = { onIntent(CarIntent.DeleteConfirmed) }
+    )
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item(key = "summary") { CarSummaryCard(car) }
+        item(key = "summary") { CarSummaryCard(state.car) }
 
         item(key = "details_header") { SectionHeader(stringResource(R.string.car_section_details)) }
-        item(key = "details") { CarDetailsCard(car) }
+        item(key = "details") { CarDetailsCard(state.car) }
 
         item(key = "history_header") { SectionHeader(stringResource(R.string.car_section_service_history)) }
         item(key = "history_empty") { ServiceHistoryEmpty() }
+    }
+}
+
+@Composable
+private fun DeleteDialog(isShow: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, modifier: Modifier = Modifier) {
+    if (isShow) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = {
+                Text(stringResource(R.string.delete_car_title))
+            },
+            text = {
+                Text(stringResource(R.string.delete_car_text))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = onConfirm
+                ) {
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            modifier = modifier
+        )
     }
 }
 
@@ -346,7 +425,13 @@ private val previewCar = Car(
 @Preview(name = "Content · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun CarContentPreview() = AppTheme {
-    CarContent(state = CarState.Content(previewCar), onBackClick = {}, onEditClick = {})
+    CarContent(state = CarState.Content(previewCar), onIntent = {})
+}
+
+@Preview(name = "Delete dialog", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun CarContentDeleteDialogPreview() = AppTheme {
+    CarContent(state = CarState.Content(previewCar, isShowDialog = true), onIntent = {})
 }
 
 @Preview(name = "Optional fields missing", showBackground = true)
@@ -354,15 +439,14 @@ private fun CarContentPreview() = AppTheme {
 private fun CarContentMinimalPreview() = AppTheme {
     CarContent(
         state = CarState.Content(previewCar.copy(vin = null, plate = null)),
-        onBackClick = {},
-        onEditClick = {}
+        onIntent = {}
     )
 }
 
 @Preview(name = "Not found", showBackground = true)
 @Composable
 private fun CarNotFoundPreview() = AppTheme {
-    CarContent(state = CarState.NotFound, onBackClick = {}, onEditClick = {})
+    CarContent(state = CarState.NotFound, onIntent = {})
 }
 
 // endregion
