@@ -182,6 +182,15 @@ class DefaultCarEditorComponentTest {
         assertEquals<List<CarEditorEvent>>(listOf(CarEditorEvent.SaveFailed(DataError.Local.Unknown)), events)
     }
 
+    @Test
+    fun `car loaded correctly`() = runTest(dispatcher) {
+        val component = createComponent(id = defaultCar.id)
+        val state = component.state.value
+        assertIs<CarEditorState.Form>(state)
+        val form = state.input
+        assertEquals(defaultCar.toFormInput(), form)
+    }
+
     private fun fillForm(component: CarEditorComponent) {
         component.run {
             accept(CarEditorIntent.FieldChanged(Field.BRAND, "Nissan"))
