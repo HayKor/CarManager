@@ -2,7 +2,10 @@ package ru.haykor.carmanager.feature.car.ui
 
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,19 +14,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.OutlinedButton
@@ -31,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -188,8 +195,14 @@ private fun CarDetails(state: CarState.Content, onIntent: (CarIntent) -> Unit, m
     ) {
         item(key = "summary") { CarSummaryCard(state.car) }
 
-        item(key = "details_header") { SectionHeader(stringResource(R.string.car_section_details)) }
-        item(key = "details") { CarDetailsCard(state.car) }
+        state.car.note?.let { note ->
+            item(key = "note") { CarNoteCard(note) }
+        }
+
+        state.car.vin?.let {
+            item(key = "details_header") { SectionHeader(stringResource(R.string.car_section_details)) }
+            item(key = "details") { CarDetailsCard(state.car) }
+        }
 
         item(key = "history_header") { SectionHeader(stringResource(R.string.car_section_service_history)) }
         item(key = "history_empty") { ServiceHistoryEmpty() }
@@ -228,24 +241,14 @@ private fun DeleteDialog(isShow: Boolean, onDismiss: () -> Unit, onConfirm: () -
 private fun CarSummaryCard(car: Car) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 32.dp, bottomStart = 8.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = car.year.toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                car.plate?.let { LicensePlate(it) }
-            }
+            car.plate?.let { LicensePlate(it) }
 
             Column {
                 Text(
@@ -284,6 +287,72 @@ private fun CarDetailsCard(car: Car, modifier: Modifier = Modifier) {
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         ) {
             Text(car.vin ?: stringResource(R.string.not_specified))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun CarNoteCard(note: String, modifier: Modifier = Modifier) {
+    var expanded by remember { mutableStateOf(false) }
+    var overflows by remember { mutableStateOf(false) }
+
+    Card(
+        onClick = { expanded = !expanded },
+        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 32.dp, bottomEnd = 32.dp, bottomStart = 32.dp),
+        enabled = overflows || expanded,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            disabledContentColor = MaterialTheme.colorScheme.onTertiaryContainer
+        ),
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize()
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(20.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(MaterialShapes.Cookie6Sided.toShape())
+                        .background(MaterialTheme.colorScheme.tertiary)
+                ) {
+                    Icon(
+                        painterResource(R.drawable.notes),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Text(
+                    text = "Note",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
+            Text(
+                text = note,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = if (expanded) Int.MAX_VALUE else 2,
+                overflow = TextOverflow.Ellipsis,
+                onTextLayout = { overflows = it.hasVisualOverflow }
+            )
+            if (overflows || expanded) {
+                Text(
+                    text = stringResource(if (expanded) R.string.show_less else R.string.show_more),
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.align(Alignment.End)
+                )
+            }
         }
     }
 }
@@ -346,6 +415,7 @@ private val previewCar = Car(
     brand = "Nissan",
     model = "Qashqai",
     year = 2010,
+    note = "My family car",
     vin = "SJNFAAJ10U1234567",
     plateCountry = PlateCountry.RU,
     plate = "С123ОМ77",

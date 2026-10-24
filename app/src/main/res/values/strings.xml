@@ -34,8 +34,8 @@
     <string name="error_invalid_plate">Format: %1$s</string>
 
     <string name="country_ru">Russia</string>
-    <string name="create_car_title">Create</string>
-    <string name="edit_car_title">Edit</string>
+    <string name="create_car_title">New car</string>
+    <string name="edit_car_title">Edit car</string>
     <string name="error_unknown">Unknown error occurred</string>
     <string name="description_edit">Edit</string>
     <string name="car_info_title">Car info</string>
@@ -50,4 +50,9 @@
     <string name="delete_car_text">Are you sure you want to delete the car with its service history?</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
+    <string name="field_note">Note</string>
+    <string name="car_editor_section_note">Note</string>
+    <string name="car_section_note">Note</string>
+    <string name="show_less">Show less</string>
+    <string name="show_more">Show more</string>
 </resources>

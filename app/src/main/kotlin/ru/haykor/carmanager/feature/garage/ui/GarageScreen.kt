@@ -133,8 +133,7 @@ private fun CarCard(car: Car, onClick: () -> Unit, modifier: Modifier = Modifier
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "${car.year} · " +
-                        stringResource(R.string.mileage_km, formatMileage(car.mileage)),
+                    text = stringResource(R.string.mileage_km, formatMileage(car.mileage)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -175,6 +174,7 @@ private val previewCar = Car(
     brand = "Nissan",
     model = "Qashqai",
     year = 2010,
+    note = "My family car",
     vin = "SJNFAAJ10U1234567",
     plateCountry = PlateCountry.RU,
     plate = "С123ОМ77",

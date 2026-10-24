@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,6 +37,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -46,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -158,7 +160,6 @@ private fun CarEditorForm(
     modifier: Modifier = Modifier
 ) {
     val input = form.input
-    val focusManager = LocalFocusManager.current
 
     Column(
         modifier = modifier
@@ -166,65 +167,97 @@ private fun CarEditorForm(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        SectionHeader(stringResource(R.string.car_editor_section_car))
+        FormSection(stringResource(R.string.car_editor_section_car)) {
+            CarField(Field.BRAND, input.brand, form, onIntent, keyboardOptions = TextKeyboard)
+            CarField(Field.MODEL, input.model, form, onIntent, keyboardOptions = TextKeyboard)
 
-        CarField(Field.BRAND, input.brand, form, onIntent, keyboardOptions = TextKeyboard)
-        CarField(Field.MODEL, input.model, form, onIntent, keyboardOptions = TextKeyboard)
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                CarField(
+                    field = Field.YEAR,
+                    value = input.year,
+                    form = form,
+                    onIntent = onIntent,
+                    inputFilter = ::digitsOnly,
+                    keyboardOptions = NumberKeyboard,
+                    modifier = Modifier.weight(1f)
+                )
+                CarField(
+                    field = Field.MILEAGE,
+                    value = input.mileage,
+                    form = form,
+                    onIntent = onIntent,
+                    suffix = stringResource(R.string.unit_km),
+                    inputFilter = ::digitsOnly,
+                    keyboardOptions = NumberKeyboard,
+                    modifier = Modifier.weight(1.4f)
+                )
+            }
+        }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Spacer(Modifier.height(8.dp))
+        FormSection(stringResource(R.string.car_editor_section_registration)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                PlateCountryPicker(
+                    selected = input.plateCountry,
+                    onSelect = { onIntent(CarEditorIntent.PlateCountryChanged(it)) },
+                    enabled = !form.isSaving,
+                    modifier = Modifier.width(120.dp)
+                )
+                CarField(
+                    field = Field.PLATE,
+                    value = input.plate,
+                    form = form,
+                    onIntent = onIntent,
+                    hint = stringResource(R.string.hint_optional),
+                    placeholder = input.plateCountry.example,
+                    keyboardOptions = CodeKeyboard,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
             CarField(
-                field = Field.YEAR,
-                value = input.year,
+                field = Field.VIN,
+                value = input.vin,
                 form = form,
                 onIntent = onIntent,
-                inputFilter = ::digitsOnly,
-                keyboardOptions = NumberKeyboard,
-                modifier = Modifier.weight(1f)
-            )
-            CarField(
-                field = Field.MILEAGE,
-                value = input.mileage,
-                form = form,
-                onIntent = onIntent,
-                suffix = stringResource(R.string.unit_km),
-                inputFilter = ::digitsOnly,
-                keyboardOptions = NumberKeyboard,
-                modifier = Modifier.weight(1.4f)
+                hint = stringResource(R.string.hint_vin),
+                keyboardOptions = CodeKeyboard
             )
         }
 
         Spacer(Modifier.height(8.dp))
-        SectionHeader(stringResource(R.string.car_editor_section_registration))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            PlateCountryPicker(
-                selected = input.plateCountry,
-                onSelect = { onIntent(CarEditorIntent.PlateCountryChanged(it)) },
-                enabled = !form.isSaving,
-                modifier = Modifier.width(120.dp)
-            )
+        FormSection(stringResource(R.string.car_editor_section_note)) {
             CarField(
-                field = Field.PLATE,
-                value = input.plate,
+                field = Field.NOTE,
+                value = input.note,
                 form = form,
                 onIntent = onIntent,
+                singleLine = false,
+                minLines = 1,
+                maxLines = 6,
                 hint = stringResource(R.string.hint_optional),
-                placeholder = input.plateCountry.example,
-                keyboardOptions = CodeKeyboard,
-                modifier = Modifier.weight(1f)
+                keyboardOptions = NoteKeyboard
             )
         }
 
-        CarField(
-            field = Field.VIN,
-            value = input.vin,
-            form = form,
-            onIntent = onIntent,
-            hint = stringResource(R.string.hint_vin),
-            keyboardOptions = CodeKeyboard.copy(imeAction = ImeAction.Done),
-            // Clearing focus fires onFocusLost, so the last field gets validated too
-            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
-        )
+        Spacer(Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun FormSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionHeader(title)
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainer
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                content = content
+            )
+        }
     }
 }
 
@@ -236,6 +269,9 @@ private fun CarField(
     form: CarEditorState.Form,
     onIntent: (CarEditorIntent) -> Unit,
     modifier: Modifier = Modifier,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     hint: String? = null,
     placeholder: String? = null,
     suffix: String? = null,
@@ -252,6 +288,9 @@ private fun CarField(
         hint = hint,
         placeholder = placeholder,
         suffix = suffix,
+        singleLine = singleLine,
+        minLines = minLines,
+        maxLines = maxLines,
         enabled = !form.isSaving,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
@@ -280,6 +319,7 @@ private fun PlateCountryPicker(
             readOnly = true,
             singleLine = true,
             enabled = enabled,
+            shape = MaterialTheme.shapes.medium,
             label = { Text(stringResource(R.string.car_editor_country)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled)
@@ -318,6 +358,8 @@ private fun SaveBar(isSaving: Boolean, onClick: () -> Unit) {
         Button(
             onClick = onClick,
             enabled = !isSaving,
+            shapes = ButtonDefaults.shapes(),
+            contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
@@ -384,6 +426,11 @@ private val CodeKeyboard = KeyboardOptions(
     imeAction = ImeAction.Next
 )
 
+private val NoteKeyboard = KeyboardOptions(
+    capitalization = KeyboardCapitalization.Sentences,
+    imeAction = ImeAction.Default // Enter inserts a newline
+)
+
 private fun digitsOnly(value: String): String = value.filter(Char::isDigit)
 
 @Composable
@@ -392,6 +439,7 @@ private fun Field.label(): String = stringResource(
         Field.BRAND -> R.string.field_brand
         Field.MODEL -> R.string.field_model
         Field.YEAR -> R.string.field_year
+        Field.NOTE -> R.string.field_note
         Field.MILEAGE -> R.string.field_mileage
         Field.VIN -> R.string.field_vin
         Field.PLATE -> R.string.field_plate
@@ -409,7 +457,7 @@ private fun FieldError.message(field: Field, plateCountry: PlateCountry): String
         Field.MILEAGE -> stringResource(R.string.error_invalid_mileage)
         Field.VIN -> stringResource(R.string.error_invalid_vin)
         Field.PLATE -> stringResource(R.string.error_invalid_plate, plateCountry.example)
-        Field.BRAND, Field.MODEL -> stringResource(R.string.error_invalid)
+        Field.BRAND, Field.MODEL, Field.NOTE -> stringResource(R.string.error_invalid)
     }
 }
 

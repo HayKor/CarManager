@@ -2,8 +2,10 @@ package ru.haykor.carmanager.core.presentation.ui
 
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +30,9 @@ fun FormTextField(
     placeholder: String? = null,
     suffix: String? = null,
     enabled: Boolean = true,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
@@ -43,7 +48,10 @@ fun FormTextField(
         suffix = suffix?.let { { Text(it) } },
         isError = error != null,
         enabled = enabled,
-        singleLine = true,
+        shape = MaterialTheme.shapes.medium,
+        singleLine = singleLine,
+        minLines = minLines,
+        maxLines = maxLines,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         modifier = modifier.onFocusChanged { state ->
