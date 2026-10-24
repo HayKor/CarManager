@@ -13,12 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -101,7 +101,7 @@ private fun GarageEmpty(onAddClick: () -> Unit, modifier: Modifier = Modifier) {
     ) {
         Text(stringResource(R.string.garage_empty_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(16.dp))
-        Button(onClick = onAddClick) { Text(stringResource(R.string.garage_add_car)) }
+        OutlinedButton(onClick = onAddClick) { Text(stringResource(R.string.garage_add_car)) }
     }
 }
 
@@ -191,4 +191,10 @@ private fun CarCardPreview() = AppTheme {
         car = previewCar,
         onClick = {}
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GarageEmptyPreview() = AppTheme {
+    GarageEmpty(onAddClick = {}, modifier = Modifier.fillMaxSize())
 }

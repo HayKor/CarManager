@@ -13,16 +13,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,11 +38,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -88,7 +91,7 @@ internal fun CarContent(state: CarState, onIntent: (CarIntent) -> Unit, modifier
 
     Scaffold(
         topBar = {
-            LargeTopAppBar(
+            MediumTopAppBar(
                 title = {
                     Text(
                         text = (state as? CarState.Content)?.car?.title ?: stringResource(R.string.car_info_title),
@@ -262,60 +265,27 @@ private fun CarSummaryCard(car: Car) {
 }
 
 @Composable
-private fun CarDetailsCard(car: Car) {
-    val notSpecified = stringResource(R.string.not_specified)
-
-    Card(modifier = Modifier.fillMaxWidth()) {
-        DetailRow(stringResource(R.string.field_brand), car.brand)
-        RowDivider()
-        DetailRow(stringResource(R.string.field_model), car.model)
-        RowDivider()
-        DetailRow(stringResource(R.string.field_year), car.year.toString())
-        RowDivider()
-        DetailRow(stringResource(R.string.field_plate), car.plate ?: notSpecified, isMissing = car.plate == null)
-        RowDivider()
-        DetailRow(
-            label = stringResource(R.string.field_vin),
-            value = car.vin ?: notSpecified,
-            isMissing = car.vin == null,
-            monospace = car.vin != null
-        )
-    }
-}
-
-@Composable
-private fun DetailRow(label: String, value: String, isMissing: Boolean = false, monospace: Boolean = false) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+private fun CarDetailsCard(car: Car, modifier: Modifier = Modifier) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
+        modifier = modifier.fillMaxWidth()
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            fontFamily = if (monospace) FontFamily.Monospace else null,
-            color = if (isMissing) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.End,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
+        ListItem(
+            leadingContent = {
+                Icon(
+                    painter = painterResource(R.drawable.pin),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            overlineContent = { Text(stringResource(R.string.field_vin)) },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+        ) {
+            Text(car.vin ?: stringResource(R.string.not_specified))
+        }
     }
-}
-
-@Composable
-private fun RowDivider() {
-    HorizontalDivider(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        color = MaterialTheme.colorScheme.outlineVariant
-    )
 }
 
 @Composable
