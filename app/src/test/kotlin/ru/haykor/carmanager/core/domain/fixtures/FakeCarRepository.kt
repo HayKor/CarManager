@@ -64,6 +64,7 @@ internal class FakeCarRepository(initial: List<Car>) : CarRepository {
         brand = brand,
         model = model,
         year = year,
+        note = note,
         vin = vin,
         plateCountry = plateCountry,
         plate = plate,

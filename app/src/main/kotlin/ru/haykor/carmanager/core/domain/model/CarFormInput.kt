@@ -7,6 +7,7 @@ enum class Field {
     MODEL,
     YEAR,
     MILEAGE,
+    NOTE,
     VIN,
     PLATE
 }
@@ -15,6 +16,7 @@ data class CarFormInput(
     val brand: String = "",
     val model: String = "",
     val year: String = "",
+    val note: String = "",
     val mileage: String = "",
     val vin: String = "",
     val plate: String = "",

@@ -8,6 +8,7 @@ data class Car(
     val brand: String,
     val model: String,
     val year: Int,
+    val note: String?,
     val vin: String?,
     val plateCountry: PlateCountry?,
     val plate: String?,

@@ -21,6 +21,7 @@ class CarDraftParser(private val plateFormats: PlateFormats, private val clock: 
             Field.MODEL to (required() + maxLength(MODEL_MAX_LENGTH)),
             Field.YEAR to (required() + matches { it.toIntOrNull() in MIN_YEAR..maxYear() }),
             Field.MILEAGE to (required() + matches { it.toLongOrNull() in 0..MAX_MILEAGE }),
+            Field.NOTE to optional(maxLength(NOTE_MAX_LENGTH)),
             Field.VIN to optional(matches(VIN_REGEX::matches)),
             Field.PLATE to optional(matches(plateFormat::isValid))
         )
@@ -46,6 +47,7 @@ class CarDraftParser(private val plateFormats: PlateFormats, private val clock: 
                 plateCountry = normalized.plateCountry,
                 plate = normalized.plate.ifEmpty { null },
                 mileage = normalized.mileage.toLong(),
+                note = normalized.note.ifEmpty { null },
                 photoUri = normalized.photoUri
             )
         )
@@ -57,6 +59,7 @@ class CarDraftParser(private val plateFormats: PlateFormats, private val clock: 
         model = model.trim(),
         year = year.trim(),
         mileage = mileage.trim(),
+        note = note.trim(),
         vin = vin.trim().uppercase(),
         plate = plateFormats.of(plateCountry).normalize(plate)
     )
@@ -65,6 +68,7 @@ class CarDraftParser(private val plateFormats: PlateFormats, private val clock: 
         Field.BRAND -> brand
         Field.MODEL -> model
         Field.YEAR -> year
+        Field.NOTE -> note
         Field.MILEAGE -> mileage
         Field.VIN -> vin
         Field.PLATE -> plate
@@ -76,6 +80,7 @@ class CarDraftParser(private val plateFormats: PlateFormats, private val clock: 
     private companion object {
         const val BRAND_MAX_LENGTH = 30
         const val MODEL_MAX_LENGTH = 40
+        const val NOTE_MAX_LENGTH = 50
         const val MIN_YEAR = 1900
         const val MAX_MILEAGE = 9_999_999L
 

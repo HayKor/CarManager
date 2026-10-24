@@ -93,6 +93,7 @@ private fun CarFormInput.change(field: Field, value: String): CarFormInput = whe
     Field.BRAND -> copy(brand = value)
     Field.MODEL -> copy(model = value)
     Field.YEAR -> copy(year = value)
+    Field.NOTE -> copy(note = value)
     Field.MILEAGE -> copy(mileage = value)
     Field.VIN -> copy(vin = value)
     Field.PLATE -> copy(plate = value)

@@ -8,6 +8,7 @@ fun Car.toFormInput() = CarFormInput(
     brand = brand,
     model = model,
     year = year.toString(),
+    note = note.orEmpty(),
     mileage = mileage.toString(),
     vin = vin.orEmpty(),
     plate = plate.orEmpty(),
