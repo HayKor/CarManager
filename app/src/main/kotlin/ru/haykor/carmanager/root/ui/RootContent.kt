@@ -12,6 +12,7 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback
 import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import ru.haykor.carmanager.feature.car.ui.CarScreen
+import ru.haykor.carmanager.feature.carEditor.ui.CarEditorScreen
 import ru.haykor.carmanager.feature.main.ui.MainScreen
 import ru.haykor.carmanager.root.component.RootComponent
 
@@ -38,6 +39,10 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
 
                 is RootComponent.Child.Car -> {
                     CarScreen(child.component)
+                }
+
+                is RootComponent.Child.CarEditor -> {
+                    CarEditorScreen(child.component)
                 }
             }
         }

@@ -1,21 +1,18 @@
 package ru.haykor.carmanager.feature.car.component
 
 import com.arkivanov.decompose.ComponentContext
-import ru.haykor.carmanager.feature.car.domain.CarId
+import com.arkivanov.decompose.value.Value
+import kotlinx.coroutines.flow.Flow
+import ru.haykor.carmanager.core.domain.CarId
 
 interface CarComponent {
     val id: CarId
+    val state: Value<CarState>
+    val events: Flow<CarEvent>
 
-    fun onBackClicked()
+    fun accept(intent: CarIntent)
 
     fun interface Factory {
-        fun create(ctx: ComponentContext, carId: CarId, onBack: () -> Unit): CarComponent
+        fun create(ctx: ComponentContext, carId: CarId, onBack: () -> Unit, onOpenEdit: (CarId) -> Unit): CarComponent
     }
-}
-
-class DefaultCarComponent(componentContext: ComponentContext, override val id: CarId, val onBack: () -> Unit) :
-    CarComponent,
-    ComponentContext by componentContext {
-
-    override fun onBackClicked() = onBack()
 }

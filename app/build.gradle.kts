@@ -39,6 +39,12 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-XXLanguage:+ExplicitBackingFields")
+    }
+}
+
 room3 {
     schemaDirectory("$projectDir/schemas")
 }
@@ -52,6 +58,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+
+    implementation(libs.kotlinx.datetime)
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
@@ -69,6 +77,8 @@ dependencies {
     implementation(libs.metro.runtime)
 
     testImplementation(libs.junit)
+    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
