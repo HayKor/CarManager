@@ -2,7 +2,6 @@ package ru.haykor.carmanager.feature.car.ui
 
 import android.content.res.Configuration
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,7 +25,6 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -38,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -49,14 +45,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import java.text.NumberFormat
 import ru.haykor.carmanager.R
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
+import ru.haykor.carmanager.core.presentation.ui.LicensePlate
+import ru.haykor.carmanager.core.presentation.ui.formatMileage
+import ru.haykor.carmanager.core.presentation.ui.title
 import ru.haykor.carmanager.core.presentation.ui.toUiText
 import ru.haykor.carmanager.feature.car.component.CarComponent
 import ru.haykor.carmanager.feature.car.component.CarEvent
@@ -264,26 +261,6 @@ private fun CarSummaryCard(car: Car) {
     }
 }
 
-/** Real plates are white with black characters regardless of the app theme. */
-@Composable
-private fun LicensePlate(plate: String) {
-    Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = Color.White,
-        contentColor = Color.Black,
-        border = BorderStroke(1.5.dp, Color.Black)
-    ) {
-        Text(
-            text = plate,
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-            letterSpacing = 1.sp,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-        )
-    }
-}
-
 @Composable
 private fun CarDetailsCard(car: Car) {
     val notSpecified = stringResource(R.string.not_specified)
@@ -391,19 +368,6 @@ private fun CarNotFound(onBackClick: () -> Unit, modifier: Modifier = Modifier) 
         }
     }
 }
-
-// region util
-
-private val Car.title: String
-    get() = "$brand $model"
-
-/** Grouped by the current locale: 120000 → "120 000" / "120,000". */
-@Composable
-private fun formatMileage(mileage: Long): String = remember(mileage) {
-    NumberFormat.getIntegerInstance().format(mileage)
-}
-
-// endregion
 
 // region Previews
 
