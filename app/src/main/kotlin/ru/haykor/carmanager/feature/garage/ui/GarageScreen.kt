@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,15 +15,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.input.clearText
-import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material3.AppBarWithSearch
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -32,22 +29,23 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SearchBarScrollBehavior
-import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSearchBarState
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,8 +53,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
 import ru.haykor.carmanager.R
 import ru.haykor.carmanager.core.common.ComprehensionDebt
 import ru.haykor.carmanager.core.domain.CarId
@@ -84,16 +80,16 @@ fun GarageScreen(component: GarageComponent, modifier: Modifier = Modifier) {
 
 @Composable
 internal fun GarageContent(state: GarageState, onIntent: (GarageIntent) -> Unit, modifier: Modifier = Modifier) {
-    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     Scaffold(
         topBar = {
             if (state.content !is GarageState.Content.EmptyGarage) {
-                GarageSearchBar(
+                GarageTopBar(
                     query = state.query,
                     onQueryChange = { onIntent(GarageIntent.QueryChanged(it)) },
-                    onQueryCleared = { onIntent(GarageIntent.ClearQueryClicked) },
-                    scrollBehavior = scrollBehavior,
-                    results = { GarageBody(state, onIntent, PaddingValues()) }
+                    onClearQuery = { onIntent(GarageIntent.ClearQueryClicked) },
+                    scrollBehavior = scrollBehavior
                 )
             }
         },
@@ -110,68 +106,109 @@ internal fun GarageContent(state: GarageState, onIntent: (GarageIntent) -> Unit,
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GarageSearchBar(
+fun GarageTopBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    onQueryCleared: () -> Unit,
-    scrollBehavior: SearchBarScrollBehavior,
-    modifier: Modifier = Modifier,
-    results: @Composable ColumnScope.() -> Unit
+    onClearQuery: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior,
+    modifier: Modifier = Modifier
 ) {
-    val searchBarState = rememberSearchBarState()
-    val textFieldState = rememberTextFieldState(initialText = query)
-    val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+    var isFocused by remember { mutableStateOf(false) }
+    val isActive = isFocused || query.isNotEmpty()
 
-    LaunchedEffect(textFieldState) {
-        snapshotFlow { textFieldState.text.toString() }
-            .distinctUntilChanged()
-            .collect(onQueryChange)
-    }
-
-    val inputField = @Composable {
-        SearchBarDefaults.InputField(
-            textFieldState = textFieldState,
-            searchBarState = searchBarState,
-            onSearch = { scope.launch { searchBarState.animateToCollapsed() } },
-            placeholder = { Text("Search") },
-            leadingIcon = {
-                if (searchBarState.currentValue == SearchBarValue.Expanded) {
-                    IconButton(onClick = { scope.launch { searchBarState.animateToCollapsed() } }) {
-                        Icon(painterResource(R.drawable.chevron_left), null)
-                    }
-                } else {
-                    Icon(painterResource(R.drawable.search), contentDescription = null)
-                }
-            },
-            trailingIcon = {
-                if (textFieldState.text.isNotEmpty()) {
-                    IconButton(onClick = {
-                        textFieldState.clearText()
-                        onQueryCleared()
-                    }) {
-                        Icon(painterResource(R.drawable.close), null)
-                    }
-                }
-            }
-        )
-    }
-
-    AppBarWithSearch(
-        state = searchBarState,
-        inputField = inputField,
-        scrollBehavior = scrollBehavior,
-        modifier = modifier
+    val horizontalPadding by animateDpAsState(
+        targetValue = if (isActive) 4.dp else 16.dp,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "SearchPadding"
     )
-    ExpandedFullScreenSearchBar(
-        state = searchBarState,
-        inputField = inputField,
-        colors = SearchBarDefaults.colors(
+
+    TopAppBar(
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
-            dividerColor = Color.Transparent
+            scrolledContainerColor = MaterialTheme.colorScheme.background
         ),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        content = results
+        title = {
+            BasicTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = horizontalPadding)
+                    .onFocusChanged { isFocused = it.isFocused },
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                decorationBox = { innerTextField ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clip(MaterialTheme.shapes.extraLarge)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                            .padding(horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (isActive) {
+                            IconButton(
+                                onClick = {
+                                    onClearQuery()
+                                    focusManager.clearFocus()
+                                },
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.chevron_left),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.search),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.width(4.dp))
+
+                        Box(modifier = Modifier.weight(1f)) {
+                            if (query.isEmpty()) {
+                                Text(
+                                    text = "Search",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            innerTextField()
+                        }
+
+                        if (query.isNotEmpty()) {
+                            IconButton(
+                                onClick = onClearQuery,
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.close),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            )
+        },
+        modifier = modifier
     )
 }
 
@@ -338,13 +375,6 @@ private fun CarAvatar(modifier: Modifier = Modifier) {
 
 // region util
 
-// Стандартная выразительная пружина M3 Expressive для изменения формы и размеров
-@ComprehensionDebt
-val ExpressiveShapeSpring = spring<Dp>(
-    dampingRatio = Spring.DampingRatioMediumBouncy, // Дает фирменный легкий отскок M3
-    stiffness = Spring.StiffnessMediumLow
-)
-
 @ComprehensionDebt
 @Composable
 fun rememberAnimatedCardShape(
@@ -359,22 +389,22 @@ fun rememberAnimatedCardShape(
     // Каждая пара углов интерполируется независимо по спецификации Expressive Spring
     val animatedTopStart by animateDpAsState(
         targetValue = targetTop,
-        animationSpec = ExpressiveShapeSpring,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "TopStartCorner"
     )
     val animatedTopEnd by animateDpAsState(
         targetValue = targetTop,
-        animationSpec = ExpressiveShapeSpring,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "TopEndCorner"
     )
     val animatedBottomEnd by animateDpAsState(
         targetValue = targetBottom,
-        animationSpec = ExpressiveShapeSpring,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "BottomEndCorner"
     )
     val animatedBottomStart by animateDpAsState(
         targetValue = targetBottom,
-        animationSpec = ExpressiveShapeSpring,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "BottomStartCorner"
     )
 
