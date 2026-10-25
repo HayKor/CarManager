@@ -15,4 +15,6 @@ interface CarRepository {
 
     fun observeCars(): Flow<List<Car>>
     fun observeCar(id: CarId): Flow<Car?>
+
+    fun searchCars(query: String): Flow<List<Car>>
 }
