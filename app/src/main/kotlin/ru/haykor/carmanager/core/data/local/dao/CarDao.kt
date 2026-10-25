@@ -17,6 +17,16 @@ interface CarDao {
     @Query("SELECT * FROM cars ORDER BY createdAt")
     fun observeCars(): Flow<List<CarEntity>>
 
+    @Query(
+        """
+        SELECT cars.*
+        FROM cars
+        JOIN cars_fts ON cars.rowid = cars_fts.rowid
+        WHERE cars_fts MATCH :sanitizedQuery
+        """
+    )
+    fun searchCars(sanitizedQuery: String): Flow<List<CarEntity>>
+
     @Insert
     suspend fun insert(entity: CarEntity)
 

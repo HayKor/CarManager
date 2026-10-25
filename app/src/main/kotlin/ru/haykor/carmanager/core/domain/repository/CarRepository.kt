@@ -12,6 +12,7 @@ interface CarRepository {
     suspend fun create(draft: CarDraft): DataResult<CarId, DataError>
     suspend fun update(id: CarId, draft: CarDraft): EmptyResult<DataError>
     suspend fun delete(id: CarId): EmptyResult<DataError>
+
     fun observeCars(): Flow<List<Car>>
     fun observeCar(id: CarId): Flow<Car?>
 }
