@@ -20,11 +20,10 @@ class SearchCarsUseCase(private val carRepository: CarRepository) {
 
     @ComprehensionDebt
     private fun sanitizeQuery(query: String): String {
-        // Strip characters that break SQLite FTS tokenizers
-        val cleaned = query.replace(Regex("[^a-zA-Z0-9가-힣äöüÄÖÜß ]"), " ").trim()
+        // Оставляет любые буквы (\p{L}), цифры (\p{N}) и пробелы
+        val cleaned = query.replace(Regex("[^\\p{L}\\p{N} ]"), " ").trim()
         if (cleaned.isEmpty()) return ""
 
-        // Append '*' to each token so "cor" matches "Corolla" or "Corvette"
         return cleaned
             .split(Regex("\\s+"))
             .filter { it.isNotBlank() }
