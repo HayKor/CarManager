@@ -55,4 +55,5 @@
     <string name="car_section_note">Note</string>
     <string name="show_less">Show less</string>
     <string name="show_more">Show more</string>
+    <string name="garage_empty_on_query">Query \"%1$s\" didn\'t show any results</string>
 </resources>
