@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.haykor.carmanager.core.domain.CarId
+import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.repository.CarRepository
 import ru.haykor.carmanager.core.domain.repository.ServiceRecordRepository
 import ru.haykor.carmanager.core.domain.usecase.DeleteCarUseCase
@@ -21,12 +22,13 @@ import ru.haykor.carmanager.core.result.DataResult
 
 class DefaultCarComponent(
     componentContext: ComponentContext,
+    override val id: CarId,
     private val carRepository: CarRepository,
     private val recordRepository: ServiceRecordRepository,
     private val deleteCar: DeleteCarUseCase,
-    override val id: CarId,
     private val onBack: () -> Unit,
-    private val onOpenEdit: (CarId) -> Unit
+    private val onOpenEdit: (CarId) -> Unit,
+    private val onOpenEditService: (ServiceRecordId) -> Unit
 ) : CarComponent,
     ComponentContext by componentContext {
 
@@ -42,6 +44,8 @@ class DefaultCarComponent(
         CarIntent.BackClicked -> onBack()
 
         CarIntent.EditCarClicked -> onOpenEdit(id)
+
+        is CarIntent.EditServiceClicked -> onOpenEditService(intent.recordId)
 
         CarIntent.DeleteClicked -> {
             reduce(CarMutation.SetShowDialog(true))
@@ -106,10 +110,21 @@ class DefaultCarComponentFactory(
     private val recordRepository: ServiceRecordRepository,
     private val deleteCar: DeleteCarUseCase
 ) : CarComponent.Factory {
+
     override fun create(
         ctx: ComponentContext,
         carId: CarId,
         onBack: () -> Unit,
-        onOpenEdit: (CarId) -> Unit
-    ): CarComponent = DefaultCarComponent(ctx, carRepository, recordRepository, deleteCar, carId, onBack, onOpenEdit)
+        onOpenEdit: (CarId) -> Unit,
+        onOpenEditService: (ServiceRecordId) -> Unit
+    ): CarComponent = DefaultCarComponent(
+        ctx,
+        carId,
+        carRepository,
+        recordRepository,
+        deleteCar,
+        onBack,
+        onOpenEdit,
+        onOpenEditService
+    )
 }

@@ -16,13 +16,16 @@ import ru.haykor.carmanager.feature.car.component.CarComponent
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.main.component.MainComponent
+import ru.haykor.carmanager.feature.serviceEditor.component.EditorMode
+import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
 
 class DefaultRootComponent(
     componentContext: ComponentContext,
     private val mainFactory: MainComponent.Factory,
     private val garageFactory: GarageComponent.Factory,
     private val carFactory: CarComponent.Factory,
-    private val carEditorFactory: CarEditorComponent.Factory
+    private val carEditorFactory: CarEditorComponent.Factory,
+    private val serviceEditorFactory: ServiceEditorComponent.Factory
 ) : RootComponent,
     ComponentContext by componentContext {
 
@@ -64,7 +67,8 @@ class DefaultRootComponent(
                 ctx = ctx,
                 carId = config.carId,
                 onBack = { navigation.pop() },
-                onOpenEdit = { carId -> navigation.pushNew(Config.CarEditor(carId)) }
+                onOpenEdit = { carId -> navigation.pushNew(Config.CarEditor(carId)) },
+                onOpenEditService = { recordId -> navigation.pushNew(Config.ServiceEditor(EditorMode.Edit(recordId))) }
             )
         )
 
@@ -72,6 +76,14 @@ class DefaultRootComponent(
             carEditorFactory.create(
                 ctx = ctx,
                 id = config.carId,
+                onBack = { navigation.pop() }
+            )
+        )
+
+        is Config.ServiceEditor -> RootComponent.Child.ServiceEditor(
+            serviceEditorFactory.create(
+                ctx = ctx,
+                mode = config.mode,
                 onBack = { navigation.pop() }
             )
         )
@@ -87,6 +99,9 @@ class DefaultRootComponent(
 
         @Serializable
         data class CarEditor(val carId: CarId? = null) : Config
+
+        @Serializable
+        data class ServiceEditor(val mode: EditorMode) : Config
     }
 }
 
@@ -96,13 +111,15 @@ class DefaultRootComponentFactory(
     private val mainFactory: MainComponent.Factory,
     private val garageFactory: GarageComponent.Factory,
     private val carFactory: CarComponent.Factory,
-    private val carEditorFactory: CarEditorComponent.Factory
+    private val carEditorFactory: CarEditorComponent.Factory,
+    private val serviceEditorFactory: ServiceEditorComponent.Factory
 ) : RootComponent.Factory {
     override fun create(ctx: ComponentContext): RootComponent = DefaultRootComponent(
         componentContext = ctx,
         mainFactory = mainFactory,
         garageFactory = garageFactory,
         carFactory = carFactory,
-        carEditorFactory = carEditorFactory
+        carEditorFactory = carEditorFactory,
+        serviceEditorFactory = serviceEditorFactory
     )
 }

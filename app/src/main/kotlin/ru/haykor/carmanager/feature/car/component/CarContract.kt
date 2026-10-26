@@ -1,6 +1,7 @@
 package ru.haykor.carmanager.feature.car.component
 
 import androidx.compose.runtime.Immutable
+import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
@@ -26,6 +27,7 @@ sealed interface RecordsSection {
 
 sealed interface CarIntent {
     data object EditCarClicked : CarIntent
+    data class EditServiceClicked(val recordId: ServiceRecordId) : CarIntent
     data object BackClicked : CarIntent
 
     data object DeleteClicked : CarIntent

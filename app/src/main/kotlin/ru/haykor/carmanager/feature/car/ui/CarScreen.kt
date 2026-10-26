@@ -224,11 +224,14 @@ private fun CarDetails(
             item(key = "details") { CarDetailsCard(car) }
         }
 
-        recordsDetails(recordsSection = recordsSection)
+        recordsDetails(
+            recordsSection = recordsSection,
+            onEditService = { onIntent(CarIntent.EditServiceClicked(it)) }
+        )
     }
 }
 
-fun LazyListScope.recordsDetails(recordsSection: RecordsSection) {
+fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onEditService: (ServiceRecordId) -> Unit) {
     item(key = "history_header") { SectionHeader(stringResource(R.string.car_section_service_history)) }
 
     when (recordsSection) {
@@ -251,7 +254,7 @@ fun LazyListScope.recordsDetails(recordsSection: RecordsSection) {
                     ServiceRecordCard(
                         record = record,
                         shape = shape,
-                        onClick = {},
+                        onClick = { onEditService(record.record.id) },
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
