@@ -59,6 +59,10 @@ internal class FakeCarRepository(initial: List<Car>) : CarRepository {
 
     override fun observeCar(id: CarId): Flow<Car?> = cars.map { it[id] }
 
+    override fun searchCars(query: String): Flow<List<Car>> {
+        TODO("Not yet implemented")
+    }
+
     private fun CarDraft.toCar(id: CarId = CarId.random()) = Car(
         id = id,
         brand = brand,

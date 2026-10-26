@@ -184,7 +184,7 @@ fun GarageTopBar(
                         Box(modifier = Modifier.weight(1f)) {
                             if (query.isEmpty()) {
                                 Text(
-                                    text = "Search",
+                                    text = stringResource(R.string.garage_search_title),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -386,33 +386,22 @@ fun rememberAnimatedCardShape(
     val targetTop = if (isFirst) largeRadius else smallRadius
     val targetBottom = if (isLast) largeRadius else smallRadius
 
-    // Каждая пара углов интерполируется независимо по спецификации Expressive Spring
-    val animatedTopStart by animateDpAsState(
-        targetValue = targetTop,
-        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
-        label = "TopStartCorner"
-    )
-    val animatedTopEnd by animateDpAsState(
+    val animatedTop by animateDpAsState(
         targetValue = targetTop,
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "TopEndCorner"
     )
-    val animatedBottomEnd by animateDpAsState(
-        targetValue = targetBottom,
-        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
-        label = "BottomEndCorner"
-    )
-    val animatedBottomStart by animateDpAsState(
+    val animatedBottom by animateDpAsState(
         targetValue = targetBottom,
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "BottomStartCorner"
     )
 
     return RoundedCornerShape(
-        topStart = animatedTopStart,
-        topEnd = animatedTopEnd,
-        bottomEnd = animatedBottomEnd,
-        bottomStart = animatedBottomStart
+        topStart = animatedTop,
+        topEnd = animatedTop,
+        bottomEnd = animatedBottom,
+        bottomStart = animatedBottom
     )
 }
 
