@@ -10,6 +10,8 @@ import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.Dispatchers
 import ru.haykor.carmanager.core.data.local.AppDatabase
 import ru.haykor.carmanager.core.data.local.dao.CarDao
+import ru.haykor.carmanager.core.data.local.dao.ServiceCategoryDao
+import ru.haykor.carmanager.core.data.local.dao.ServiceRecordDao
 
 @ContributesTo(AppScope::class)
 interface DatabaseModule {
@@ -29,4 +31,10 @@ interface DatabaseModule {
 
     @Provides
     fun provideCarDao(database: AppDatabase): CarDao = database.carDao()
+
+    @Provides
+    fun provideServiceRecordDao(database: AppDatabase): ServiceRecordDao = database.serviceRecordDao()
+
+    @Provides
+    fun provideServiceCategoryDao(database: AppDatabase): ServiceCategoryDao = database.serviceCategoryDao()
 }
