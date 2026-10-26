@@ -2,11 +2,14 @@ package ru.haykor.carmanager.core.data.local.dao
 
 import androidx.room3.Dao
 import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import androidx.room3.Transaction
 import androidx.room3.Update
 import kotlinx.coroutines.flow.Flow
 import ru.haykor.carmanager.core.data.local.entity.car.CarEntity
 import ru.haykor.carmanager.core.data.local.entity.car.CarUpdate
+import ru.haykor.carmanager.core.data.local.entity.car.CarWithRecords
 import ru.haykor.carmanager.core.domain.CarId
 
 @Dao
@@ -16,6 +19,14 @@ interface CarDao {
 
     @Query("SELECT * FROM cars ORDER BY createdAt")
     fun observeCars(): Flow<List<CarEntity>>
+
+    @Transaction
+    @Query("SELECT * FROM cars WHERE id = :carId")
+    fun observeCarWithRecords(carId: CarId): Flow<CarWithRecords?>
+
+    @Transaction
+    @Query("SELECT * FROM cars")
+    fun observeAllWithRecords(): Flow<List<CarWithRecords>>
 
     @Query(
         """
@@ -29,6 +40,12 @@ interface CarDao {
 
     @Insert
     suspend fun insert(entity: CarEntity)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(entities: List<CarEntity>)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM cars LIMIT 1)")
+    suspend fun hasAny(): Boolean
 
     @Update(entity = CarEntity::class)
     suspend fun update(update: CarUpdate)

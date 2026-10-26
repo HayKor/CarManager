@@ -69,15 +69,17 @@ internal class FakeCarRepository(initial: List<Car>) : CarRepository {
 
     override fun searchCars(query: String): Flow<List<Car>> = flow {
         searchedQueries += query
-        emitAll(cars.map { currentCars ->
-            val terms = query.split(' ').map { it.removeSuffix("*") }.filter(String::isNotBlank)
-            currentCars.values.filter { car ->
-                val searchableText = listOfNotNull(car.brand, car.model, car.plate, car.note)
-                    .joinToString(" ")
-                    .lowercase()
-                terms.all { term -> searchableText.split(Regex("\\s+")).any { it.startsWith(term.lowercase()) } }
+        emitAll(
+            cars.map { currentCars ->
+                val terms = query.split(' ').map { it.removeSuffix("*") }.filter(String::isNotBlank)
+                currentCars.values.filter { car ->
+                    val searchableText = listOfNotNull(car.brand, car.model, car.plate, car.note)
+                        .joinToString(" ")
+                        .lowercase()
+                    terms.all { term -> searchableText.split(Regex("\\s+")).any { it.startsWith(term.lowercase()) } }
+                }
             }
-        })
+        )
     }
 
     private fun CarDraft.toCar(id: CarId = CarId.random()) = Car(
