@@ -19,6 +19,7 @@ import ru.haykor.carmanager.core.domain.repository.ServiceRecordRepository
 import ru.haykor.carmanager.core.domain.usecase.DeleteCarUseCase
 import ru.haykor.carmanager.core.presentation.component.createComponentScope
 import ru.haykor.carmanager.core.result.DataResult
+import ru.haykor.carmanager.feature.car.component.CarMutation.*
 
 class DefaultCarComponent(
     componentContext: ComponentContext,
@@ -29,6 +30,7 @@ class DefaultCarComponent(
     private val onBack: () -> Unit,
     private val onOpenEdit: () -> Unit,
     private val onOpenRecord: (ServiceRecordId) -> Unit,
+    private val onOpenCreateRecord: () -> Unit
 ) : CarComponent,
     ComponentContext by componentContext {
 
@@ -45,14 +47,16 @@ class DefaultCarComponent(
 
         CarIntent.EditCarClicked -> onOpenEdit()
 
+        CarIntent.CreateRecordClicked -> onOpenCreateRecord()
+
         is CarIntent.RecordClicked -> onOpenRecord(intent.recordId)
 
         CarIntent.DeleteClicked -> {
-            reduce(CarMutation.SetShowDialog(true))
+            reduce(SetShowDialog(true))
         }
 
         CarIntent.DeleteDismissed -> {
-            reduce(CarMutation.SetShowDialog(false))
+            reduce(SetShowDialog(false))
         }
 
         CarIntent.DeleteConfirmed -> {
@@ -117,6 +121,7 @@ class DefaultCarComponentFactory(
         onBack: () -> Unit,
         onOpenEdit: () -> Unit,
         onOpenRecord: (ServiceRecordId) -> Unit,
+        onOpenCreateRecord: () -> Unit
     ): CarComponent = DefaultCarComponent(
         ctx,
         carId,
@@ -126,5 +131,6 @@ class DefaultCarComponentFactory(
         onBack,
         onOpenEdit,
         onOpenRecord,
+        onOpenCreateRecord
     )
 }

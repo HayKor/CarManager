@@ -20,6 +20,7 @@ interface CarComponent {
             onBack: () -> Unit,
             onOpenEdit: () -> Unit,
             onOpenRecord: (ServiceRecordId) -> Unit,
+            onOpenCreateRecord: () -> Unit
         ): CarComponent
     }
 }

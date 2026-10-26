@@ -27,6 +27,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -83,6 +84,7 @@ import ru.haykor.carmanager.feature.car.component.CarState
 import ru.haykor.carmanager.feature.car.component.RecordsSection
 import ru.haykor.carmanager.ui.theme.AppTheme
 
+// region composables
 @Composable
 fun CarScreen(component: CarComponent, modifier: Modifier = Modifier) {
     val state by component.state.subscribeAsState()
@@ -170,6 +172,18 @@ internal fun CarContent(state: CarState, onIntent: (CarIntent) -> Unit, modifier
                     }
                 },
                 scrollBehavior = scrollBehavior
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { onIntent(CarIntent.CreateRecordClicked) },
+                text = { Text("Record") },
+                icon = {
+                    Icon(
+                        painterResource(R.drawable.plus),
+                        contentDescription = null
+                    )
+                }
             )
         },
         modifier = modifier

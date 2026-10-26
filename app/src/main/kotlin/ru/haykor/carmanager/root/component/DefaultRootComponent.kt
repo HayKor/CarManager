@@ -69,6 +69,7 @@ class DefaultRootComponent(
                 onBack = { navigation.pop() },
                 onOpenEdit = { navigation.pushNew(Config.CarEditor(config.carId)) },
                 onOpenRecord = { recordId -> navigation.pushNew(Config.ServiceEditor(EditorMode.Edit(recordId))) },
+                onOpenCreateRecord = { navigation.pushNew(Config.ServiceEditor(EditorMode.Create(config.carId))) }
             )
         )
 

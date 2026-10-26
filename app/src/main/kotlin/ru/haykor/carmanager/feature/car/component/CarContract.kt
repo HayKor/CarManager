@@ -28,6 +28,7 @@ sealed interface RecordsSection {
 sealed interface CarIntent {
     data object EditCarClicked : CarIntent
     data class RecordClicked(val recordId: ServiceRecordId) : CarIntent
+    data object CreateRecordClicked : CarIntent
     data object BackClicked : CarIntent
 
     data object DeleteClicked : CarIntent
