@@ -102,10 +102,7 @@ class DefaultGarageComponentTest {
         assertEquals(listOf(car.id), openedIds)
     }
 
-    private fun createComponent(
-        onOpenCar: (CarId) -> Unit = {},
-        onAddCar: () -> Unit = {}
-    ) = DefaultGarageComponent(
+    private fun createComponent(onOpenCar: (CarId) -> Unit = {}, onAddCar: () -> Unit = {}) = DefaultGarageComponent(
         componentContext = DefaultComponentContext(LifecycleRegistry()),
         carRepository = repository,
         searchCars = SearchCarsUseCase(repository),
