@@ -32,7 +32,7 @@ data class ServiceRecordEntity(
     @PrimaryKey val id: ServiceRecordId,
     val carId: CarId,
     val atMileage: Long,
-    val price: Long,
+    val price: Long?,
     val categoryId: ServiceCategoryId,
     val note: String?,
     val photoUri: String?,

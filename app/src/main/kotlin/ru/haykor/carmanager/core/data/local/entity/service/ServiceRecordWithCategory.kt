@@ -6,5 +6,5 @@ import androidx.room3.Relation
 data class ServiceRecordWithCategory(
     @Embedded val record: ServiceRecordEntity,
     @Relation(parentColumns = ["categoryId"], entityColumns = ["id"])
-    val categoryEntity: ServiceCategoryEntity
+    val category: ServiceCategoryEntity
 )
