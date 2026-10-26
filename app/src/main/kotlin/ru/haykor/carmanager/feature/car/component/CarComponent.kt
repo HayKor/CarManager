@@ -18,8 +18,8 @@ interface CarComponent {
             ctx: ComponentContext,
             carId: CarId,
             onBack: () -> Unit,
-            onOpenEdit: (CarId) -> Unit,
-            onOpenEditService: (ServiceRecordId) -> Unit
+            onOpenEdit: () -> Unit,
+            onOpenRecord: (ServiceRecordId) -> Unit,
         ): CarComponent
     }
 }

@@ -67,8 +67,8 @@ class DefaultRootComponent(
                 ctx = ctx,
                 carId = config.carId,
                 onBack = { navigation.pop() },
-                onOpenEdit = { carId -> navigation.pushNew(Config.CarEditor(carId)) },
-                onOpenEditService = { recordId -> navigation.pushNew(Config.ServiceEditor(EditorMode.Edit(recordId))) }
+                onOpenEdit = { navigation.pushNew(Config.CarEditor(config.carId)) },
+                onOpenRecord = { recordId -> navigation.pushNew(Config.ServiceEditor(EditorMode.Edit(recordId))) },
             )
         )
 

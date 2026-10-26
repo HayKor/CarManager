@@ -27,8 +27,8 @@ class DefaultCarComponent(
     private val recordRepository: ServiceRecordRepository,
     private val deleteCar: DeleteCarUseCase,
     private val onBack: () -> Unit,
-    private val onOpenEdit: (CarId) -> Unit,
-    private val onOpenEditService: (ServiceRecordId) -> Unit
+    private val onOpenEdit: () -> Unit,
+    private val onOpenRecord: (ServiceRecordId) -> Unit,
 ) : CarComponent,
     ComponentContext by componentContext {
 
@@ -43,9 +43,9 @@ class DefaultCarComponent(
     override fun accept(intent: CarIntent) = when (intent) {
         CarIntent.BackClicked -> onBack()
 
-        CarIntent.EditCarClicked -> onOpenEdit(id)
+        CarIntent.EditCarClicked -> onOpenEdit()
 
-        is CarIntent.EditServiceClicked -> onOpenEditService(intent.recordId)
+        is CarIntent.RecordClicked -> onOpenRecord(intent.recordId)
 
         CarIntent.DeleteClicked -> {
             reduce(CarMutation.SetShowDialog(true))
@@ -115,8 +115,8 @@ class DefaultCarComponentFactory(
         ctx: ComponentContext,
         carId: CarId,
         onBack: () -> Unit,
-        onOpenEdit: (CarId) -> Unit,
-        onOpenEditService: (ServiceRecordId) -> Unit
+        onOpenEdit: () -> Unit,
+        onOpenRecord: (ServiceRecordId) -> Unit,
     ): CarComponent = DefaultCarComponent(
         ctx,
         carId,
@@ -125,6 +125,6 @@ class DefaultCarComponentFactory(
         deleteCar,
         onBack,
         onOpenEdit,
-        onOpenEditService
+        onOpenRecord,
     )
 }

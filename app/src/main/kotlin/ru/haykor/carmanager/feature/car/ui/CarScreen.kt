@@ -226,12 +226,12 @@ private fun CarDetails(
 
         recordsDetails(
             recordsSection = recordsSection,
-            onEditService = { onIntent(CarIntent.EditServiceClicked(it)) }
+            onRecordClick = { onIntent(CarIntent.RecordClicked(it)) }
         )
     }
 }
 
-fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onEditService: (ServiceRecordId) -> Unit) {
+fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onRecordClick: (ServiceRecordId) -> Unit) {
     item(key = "history_header") { SectionHeader(stringResource(R.string.car_section_service_history)) }
 
     when (recordsSection) {
@@ -254,7 +254,7 @@ fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onEditService: 
                     ServiceRecordCard(
                         record = record,
                         shape = shape,
-                        onClick = { onEditService(record.record.id) },
+                        onClick = { onRecordClick(record.record.id) },
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
@@ -546,6 +546,8 @@ private fun CarNotFound(onBackClick: () -> Unit, modifier: Modifier = Modifier) 
         }
     }
 }
+
+// endregion
 
 // region Previews
 
