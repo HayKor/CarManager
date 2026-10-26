@@ -4,9 +4,10 @@ import androidx.room3.Database
 import androidx.room3.RoomDatabase
 import ru.haykor.carmanager.core.data.local.dao.CarDao
 import ru.haykor.carmanager.core.data.local.entity.car.CarEntity
+import ru.haykor.carmanager.core.data.local.entity.car.CarFtsEntity
 
 @Database(
-    entities = [CarEntity::class],
+    entities = [CarEntity::class, CarFtsEntity::class],
     version = 1,
     exportSchema = true
 )

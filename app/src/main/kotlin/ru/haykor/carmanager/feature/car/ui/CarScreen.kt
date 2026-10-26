@@ -241,7 +241,7 @@ private fun DeleteDialog(isShow: Boolean, onDismiss: () -> Unit, onConfirm: () -
 private fun CarSummaryCard(car: Car) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 32.dp, bottomStart = 8.dp),
+        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 8.dp, bottomStart = 8.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -299,7 +299,7 @@ private fun CarNoteCard(note: String, modifier: Modifier = Modifier) {
 
     Card(
         onClick = { expanded = !expanded },
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 32.dp, bottomEnd = 32.dp, bottomStart = 32.dp),
+        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomEnd = 32.dp, bottomStart = 32.dp),
         enabled = overflows || expanded,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiaryContainer,

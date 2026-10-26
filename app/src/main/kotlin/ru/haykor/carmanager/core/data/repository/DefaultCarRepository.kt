@@ -44,4 +44,8 @@ class DefaultCarRepository(private val carDao: CarDao, private val clock: Clock)
     override fun observeCar(id: CarId): Flow<Car?> = carDao.observeCar(id).map { entity ->
         entity?.toDomain()
     }
+
+    override fun searchCars(query: String): Flow<List<Car>> = carDao.searchCars(query).map { entities ->
+        entities.map { it.toDomain() }
+    }
 }

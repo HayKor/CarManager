@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a51eb667eb4cfacc16e001ace2dd1218",
+    "identityHash": "b95ef8854646f64f31dda9adad228542",
     "entities": [
       {
         "tableName": "cars",
@@ -82,11 +82,63 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "cars_fts",
+        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS5(`brand`, `model`, `plate`, `note`, tokenize=`unicode61`, content=`cars`)",
+        "fields": [
+          {
+            "fieldPath": "brand",
+            "columnName": "brand",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "model",
+            "columnName": "model",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "plate",
+            "columnName": "plate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": []
+        },
+        "ftsVersion": "FTS5",
+        "ftsOptions": {
+          "tokenizer": "unicode61",
+          "tokenizerArgs": [],
+          "contentTable": "cars",
+          "languageIdColumnName": "",
+          "matchInfo": "FTS4",
+          "notIndexedColumns": [],
+          "prefixSizes": [],
+          "preferredOrder": "ASC",
+          "contentRowId": "",
+          "columnSize": true,
+          "detail": "FULL"
+        },
+        "contentSyncTriggers": [
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_cars_fts_BEFORE_UPDATE BEFORE UPDATE ON `cars` BEGIN DELETE FROM `cars_fts` WHERE `rowid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_cars_fts_BEFORE_DELETE BEFORE DELETE ON `cars` BEGIN DELETE FROM `cars_fts` WHERE `rowid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_cars_fts_AFTER_UPDATE AFTER UPDATE ON `cars` BEGIN INSERT INTO `cars_fts`(`rowid`, `brand`, `model`, `plate`, `note`) VALUES (NEW.`rowid`, NEW.`brand`, NEW.`model`, NEW.`plate`, NEW.`note`); END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_cars_fts_AFTER_INSERT AFTER INSERT ON `cars` BEGIN INSERT INTO `cars_fts`(`rowid`, `brand`, `model`, `plate`, `note`) VALUES (NEW.`rowid`, NEW.`brand`, NEW.`model`, NEW.`plate`, NEW.`note`); END"
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a51eb667eb4cfacc16e001ace2dd1218')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b95ef8854646f64f31dda9adad228542')"
     ]
   }
 }
