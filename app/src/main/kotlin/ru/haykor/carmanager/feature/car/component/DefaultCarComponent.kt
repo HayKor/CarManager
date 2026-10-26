@@ -8,19 +8,21 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.repository.CarRepository
+import ru.haykor.carmanager.core.domain.repository.ServiceRecordRepository
 import ru.haykor.carmanager.core.domain.usecase.DeleteCarUseCase
 import ru.haykor.carmanager.core.presentation.component.createComponentScope
 import ru.haykor.carmanager.core.result.DataResult
 
 class DefaultCarComponent(
     componentContext: ComponentContext,
-    private val repository: CarRepository,
+    private val carRepository: CarRepository,
+    private val recordRepository: ServiceRecordRepository,
     private val deleteCar: DeleteCarUseCase,
     override val id: CarId,
     private val onBack: () -> Unit,
@@ -31,7 +33,8 @@ class DefaultCarComponent(
     private val scope = createComponentScope()
 
     override val state: Value<CarState>
-        field = MutableValue<CarState>(CarState.Loading)
+        field = MutableValue<CarState>(CarState())
+
     private val _events = Channel<CarEvent>(Channel.BUFFERED)
     override val events = _events.receiveAsFlow()
 
@@ -54,26 +57,24 @@ class DefaultCarComponent(
     }
 
     init {
-        loadCar()
+        loadCarWithRecords()
     }
 
-    private fun loadCar() {
+    private fun loadCarWithRecords() {
         scope.launch {
-            repository.observeCar(id)
-                .onStart { reduce(CarMutation.LoadingStarted) }
-                .collectLatest { car ->
-                    if (car == null) {
-                        reduce(CarMutation.NotFound)
-                    } else {
-                        reduce(CarMutation.CarLoaded(car))
-                    }
-                }
+            merge(
+                carRepository.observeCar(id).map { car ->
+                    if (car == null) CarMutation.CarNotFound else CarMutation.CarLoaded(car)
+                },
+                recordRepository.observeByCar(id).map(CarMutation::RecordsLoaded)
+            ).collect { mutation ->
+                reduce(mutation)
+            }
         }
     }
 
     private fun delete() {
-        val content = (state.value as? CarState.Content) ?: return
-        if (content.isDeleting) return
+        if (state.value.isDeleting) return
 
         reduce(CarMutation.SetIsDeleting(true))
         reduce(CarMutation.SetShowDialog(false))
@@ -100,12 +101,15 @@ class DefaultCarComponent(
 
 @ContributesBinding(AppScope::class)
 @Inject
-class DefaultCarComponentFactory(private val repository: CarRepository, private val deleteCar: DeleteCarUseCase) :
-    CarComponent.Factory {
+class DefaultCarComponentFactory(
+    private val carRepository: CarRepository,
+    private val recordRepository: ServiceRecordRepository,
+    private val deleteCar: DeleteCarUseCase
+) : CarComponent.Factory {
     override fun create(
         ctx: ComponentContext,
         carId: CarId,
         onBack: () -> Unit,
         onOpenEdit: (CarId) -> Unit
-    ): CarComponent = DefaultCarComponent(ctx, repository, deleteCar, carId, onBack, onOpenEdit)
+    ): CarComponent = DefaultCarComponent(ctx, carRepository, recordRepository, deleteCar, carId, onBack, onOpenEdit)
 }
