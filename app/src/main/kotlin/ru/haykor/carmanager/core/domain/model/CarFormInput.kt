@@ -2,7 +2,7 @@ package ru.haykor.carmanager.core.domain.model
 
 import ru.haykor.carmanager.core.domain.PlateCountry
 
-enum class Field {
+enum class CarField {
     BRAND,
     MODEL,
     YEAR,

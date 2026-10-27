@@ -37,7 +37,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -60,8 +59,8 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import ru.haykor.carmanager.R
 import ru.haykor.carmanager.core.domain.PlateCountry
+import ru.haykor.carmanager.core.domain.model.CarField
 import ru.haykor.carmanager.core.domain.model.CarFormInput
-import ru.haykor.carmanager.core.domain.model.Field
 import ru.haykor.carmanager.core.domain.model.FieldError
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
 import ru.haykor.carmanager.core.presentation.ui.FormTextField
@@ -168,12 +167,12 @@ private fun CarEditorForm(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         FormSection(stringResource(R.string.car_editor_section_car)) {
-            CarField(Field.BRAND, input.brand, form, onIntent, keyboardOptions = TextKeyboard)
-            CarField(Field.MODEL, input.model, form, onIntent, keyboardOptions = TextKeyboard)
+            CarField(CarField.BRAND, input.brand, form, onIntent, keyboardOptions = TextKeyboard)
+            CarField(CarField.MODEL, input.model, form, onIntent, keyboardOptions = TextKeyboard)
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 CarField(
-                    field = Field.YEAR,
+                    field = CarField.YEAR,
                     value = input.year,
                     form = form,
                     onIntent = onIntent,
@@ -182,7 +181,7 @@ private fun CarEditorForm(
                     modifier = Modifier.weight(1f)
                 )
                 CarField(
-                    field = Field.MILEAGE,
+                    field = CarField.MILEAGE,
                     value = input.mileage,
                     form = form,
                     onIntent = onIntent,
@@ -204,7 +203,7 @@ private fun CarEditorForm(
                     modifier = Modifier.width(120.dp)
                 )
                 CarField(
-                    field = Field.PLATE,
+                    field = CarField.PLATE,
                     value = input.plate,
                     form = form,
                     onIntent = onIntent,
@@ -216,7 +215,7 @@ private fun CarEditorForm(
             }
 
             CarField(
-                field = Field.VIN,
+                field = CarField.VIN,
                 value = input.vin,
                 form = form,
                 onIntent = onIntent,
@@ -228,7 +227,7 @@ private fun CarEditorForm(
         Spacer(Modifier.height(8.dp))
         FormSection(stringResource(R.string.car_editor_section_note)) {
             CarField(
-                field = Field.NOTE,
+                field = CarField.NOTE,
                 value = input.note,
                 form = form,
                 onIntent = onIntent,
@@ -261,10 +260,10 @@ private fun FormSection(title: String, content: @Composable ColumnScope.() -> Un
     }
 }
 
-/** Binds a [FormTextField] to one [Field] of the form: value, error, events. */
+/** Binds a [FormTextField] to one [CarField] of the form: value, error, events. */
 @Composable
 private fun CarField(
-    field: Field,
+    field: CarField,
     value: String,
     form: CarEditorState.Form,
     onIntent: (CarEditorIntent) -> Unit,
@@ -434,30 +433,30 @@ private val NoteKeyboard = KeyboardOptions(
 private fun digitsOnly(value: String): String = value.filter(Char::isDigit)
 
 @Composable
-private fun Field.label(): String = stringResource(
+private fun CarField.label(): String = stringResource(
     when (this) {
-        Field.BRAND -> R.string.field_brand
-        Field.MODEL -> R.string.field_model
-        Field.YEAR -> R.string.field_year
-        Field.NOTE -> R.string.field_note
-        Field.MILEAGE -> R.string.field_mileage
-        Field.VIN -> R.string.field_vin
-        Field.PLATE -> R.string.field_plate
+        CarField.BRAND -> R.string.field_brand
+        CarField.MODEL -> R.string.field_model
+        CarField.YEAR -> R.string.field_year
+        CarField.NOTE -> R.string.field_note
+        CarField.MILEAGE -> R.string.field_mileage
+        CarField.VIN -> R.string.field_vin
+        CarField.PLATE -> R.string.field_plate
     }
 )
 
 @Composable
-private fun FieldError.message(field: Field, plateCountry: PlateCountry): String = when (this) {
+private fun FieldError.message(field: CarField, plateCountry: PlateCountry): String = when (this) {
     FieldError.Required -> stringResource(R.string.error_required)
 
     is FieldError.TooLong -> stringResource(R.string.error_too_long, maxLength)
 
     FieldError.Invalid -> when (field) {
-        Field.YEAR -> stringResource(R.string.error_invalid_year)
-        Field.MILEAGE -> stringResource(R.string.error_invalid_mileage)
-        Field.VIN -> stringResource(R.string.error_invalid_vin)
-        Field.PLATE -> stringResource(R.string.error_invalid_plate, plateCountry.example)
-        Field.BRAND, Field.MODEL, Field.NOTE -> stringResource(R.string.error_invalid)
+        CarField.YEAR -> stringResource(R.string.error_invalid_year)
+        CarField.MILEAGE -> stringResource(R.string.error_invalid_mileage)
+        CarField.VIN -> stringResource(R.string.error_invalid_vin)
+        CarField.PLATE -> stringResource(R.string.error_invalid_plate, plateCountry.example)
+        CarField.BRAND, CarField.MODEL, CarField.NOTE -> stringResource(R.string.error_invalid)
     }
 }
 
@@ -499,11 +498,11 @@ private fun CarEditorErrorsPreview() {
         CarEditorContent(
             state = CarEditorState.Form(
                 input = CarFormInput(brand = "Toyota", year = "1850", mileage = "120000", plate = "Д12ВС"),
-                touched = Field.entries.toSet(),
+                touched = CarField.entries.toSet(),
                 errors = mapOf(
-                    Field.MODEL to FieldError.Required,
-                    Field.YEAR to FieldError.Invalid,
-                    Field.PLATE to FieldError.Invalid
+                    CarField.MODEL to FieldError.Required,
+                    CarField.YEAR to FieldError.Invalid,
+                    CarField.PLATE to FieldError.Invalid
                 )
             ),
             onIntent = {}

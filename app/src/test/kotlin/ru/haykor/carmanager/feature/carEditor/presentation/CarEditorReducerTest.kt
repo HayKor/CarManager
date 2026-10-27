@@ -7,8 +7,8 @@ import kotlin.test.assertTrue
 import org.junit.Test
 import ru.haykor.carmanager.core.domain.fixtures.aCar
 import ru.haykor.carmanager.core.domain.mapper.toFormInput
+import ru.haykor.carmanager.core.domain.model.CarField
 import ru.haykor.carmanager.core.domain.model.CarFormInput
-import ru.haykor.carmanager.core.domain.model.Field
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorMutation
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorReducer
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorState
@@ -17,7 +17,7 @@ class CarEditorReducerTest {
 
     private val loading: CarEditorState = CarEditorState.Loading
     private val form: CarEditorState = CarEditorState.Form(input = aCar().toFormInput())
-    private val allFieldsSet: Set<Field> = Field.entries.toSet()
+    private val allFieldsSet: Set<CarField> = CarField.entries.toSet()
 
     @Test
     fun `new form has isNew=true`() {
@@ -48,7 +48,7 @@ class CarEditorReducerTest {
 
     @Test
     fun `mutating a field changes only its value`() {
-        val state = CarEditorReducer.reduce(form, CarEditorMutation.FieldChanged(Field.BRAND, "BMW"))
+        val state = CarEditorReducer.reduce(form, CarEditorMutation.FieldChanged(CarField.BRAND, "BMW"))
         assertIs<CarEditorState.Form>(state)
         assertEquals("BMW", state.input.brand)
         assertEquals("Qashqai", state.input.model)
