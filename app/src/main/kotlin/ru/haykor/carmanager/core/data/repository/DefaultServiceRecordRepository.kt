@@ -43,4 +43,9 @@ class DefaultServiceRecordRepository(private val recordDao: ServiceRecordDao, pr
         recordDao.observeByCar(carId).map { records ->
             records.map { it.toDetails() }
         }
+
+    override fun observeById(id: ServiceRecordId): Flow<ServiceRecordDetails?> =
+        recordDao.observeWithCategory(id).map { withCategory ->
+            withCategory?.toDetails()
+        }
 }

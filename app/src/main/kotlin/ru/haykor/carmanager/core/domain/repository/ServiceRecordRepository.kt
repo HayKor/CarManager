@@ -15,4 +15,5 @@ interface ServiceRecordRepository {
     suspend fun delete(id: ServiceRecordId): EmptyResult<DataError>
 
     fun observeByCar(carId: CarId): Flow<List<ServiceRecordDetails>>
+    fun observeById(id: ServiceRecordId): Flow<ServiceRecordDetails?>
 }
