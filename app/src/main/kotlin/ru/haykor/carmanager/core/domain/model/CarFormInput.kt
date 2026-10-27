@@ -23,9 +23,3 @@ data class CarFormInput(
     val plateCountry: PlateCountry = PlateCountry.RU,
     val photoUri: String? = null
 )
-
-sealed interface FieldError {
-    data object Required : FieldError
-    data object Invalid : FieldError
-    data class TooLong(val maxLength: Int) : FieldError
-}
