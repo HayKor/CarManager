@@ -7,6 +7,7 @@
     <string name="go_back">Go back</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
     <string name="delete">Delete</string>
     <string name="not_specified">Not specified</string>
     <string name="unit_km">km</string>
@@ -29,6 +30,19 @@
     <string name="car_editor_section_note">Note</string>
     <string name="car_editor_country">Country</string>
 
+    <!-- Service record editor -->
+    <string name="create_service_record_title">New service record</string>
+    <string name="edit_service_record_title">Edit service record</string>
+    <string name="service_editor_section_car">Car</string>
+    <string name="service_editor_section_record">Service details</string>
+    <string name="service_editor_section_note">Note</string>
+    <string name="service_editor_car">Car</string>
+    <string name="service_editor_category">Category</string>
+    <string name="service_editor_date">Date</string>
+    <string name="service_editor_price">Price</string>
+    <string name="service_editor_unavailable">Editor data unavailable</string>
+    <string name="service_editor_unavailable_description">The selected car or service record may have been deleted.</string>
+
     <!-- Car fields -->
     <string name="field_brand">Brand</string>
     <string name="field_model">Model</string>
@@ -48,6 +62,7 @@
     <string name="error_too_long">At most %1$d characters</string>
     <string name="error_invalid_year">Enter a valid year</string>
     <string name="error_invalid_mileage">Enter mileage in whole kilometers</string>
+    <string name="error_invalid_price">Enter a non-negative whole amount</string>
     <string name="error_invalid_vin">17 letters and digits, no I, O or Q</string>
     <string name="error_invalid_plate">Format: %1$s</string>
     <string name="error_unknown">Unknown error occurred</string>
