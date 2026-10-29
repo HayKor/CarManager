@@ -31,7 +31,8 @@ class GetInitialServiceEditorDataUseCase(
                     input = ServiceRecordFormInput(
                         carId = car.id,
                         categoryId = allCategories.first().id,
-                        date = clock.now().toEpochMilliseconds()
+                        date = clock.now().toEpochMilliseconds(),
+                        atMileage = car.mileage.toString()
                     ),
                     car = car,
                     categories = allCategories
