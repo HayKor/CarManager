@@ -390,7 +390,7 @@ private fun CarSummaryCard(car: Car) {
         shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 8.dp, bottomStart = 8.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 12.dp)
+            .padding(bottom = 4.dp)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
