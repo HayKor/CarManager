@@ -24,7 +24,7 @@ import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.fixtures.FakeCarRepository
 import ru.haykor.carmanager.core.domain.fixtures.aCar
 import ru.haykor.carmanager.core.domain.fixtures.allRequiredErrors
-import ru.haykor.carmanager.core.domain.fixtures.parser
+import ru.haykor.carmanager.core.domain.fixtures.carParser
 import ru.haykor.carmanager.core.domain.mapper.toFormInput
 import ru.haykor.carmanager.core.domain.model.CarField
 
@@ -205,7 +205,7 @@ class DefaultCarEditorComponentTest {
             componentContext = DefaultComponentContext(lifecycleRegistry),
             id = id,
             carRepository = carRepository,
-            parser = parser,
+            parser = carParser,
             onBack = { closeCount++ }
         )
 
