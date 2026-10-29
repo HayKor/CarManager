@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -156,8 +157,48 @@ internal fun ServiceEditorContent(
 }
 
 @Composable
+private fun ConfirmationDialog(
+    isShow: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (isShow) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = {
+                Text("Confirm stuff")
+            },
+            text = {
+                Text("Are you sure you want to update car's mileage?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = onConfirm
+                ) {
+                    Text("CONFirm", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            modifier = modifier
+
+        )
+    }
+}
+
+@Composable
 private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Unit, modifier: Modifier = Modifier) {
     val input = form.input
+
+    ConfirmationDialog(
+        isShow = form.isShowConfirmation,
+        onConfirm = { onIntent(ServiceEditorIntent.ConfirmSaveClicked) },
+        onDismiss = { onIntent(ServiceEditorIntent.DismissSaveClicked) }
+    )
 
     Column(
         modifier = modifier

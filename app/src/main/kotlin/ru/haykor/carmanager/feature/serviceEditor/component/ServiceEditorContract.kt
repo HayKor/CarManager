@@ -17,7 +17,8 @@ sealed interface ServiceEditorState {
         val categories: List<ServiceCategory>,
         val touched: Set<RecordField> = emptySet(),
         val errors: Map<RecordField, FieldError> = emptyMap(),
-        val isSaving: Boolean = false
+        val isSaving: Boolean = false,
+        val isShowConfirmation: Boolean = false
     ) : ServiceEditorState
 }
 
@@ -29,6 +30,8 @@ sealed interface ServiceEditorIntent {
     data class DatePicked(val date: Long) : ServiceEditorIntent
 
     data object SaveClicked : ServiceEditorIntent
+    data object ConfirmSaveClicked : ServiceEditorIntent
+    data object DismissSaveClicked : ServiceEditorIntent
     data object BackClicked : ServiceEditorIntent
 }
 
@@ -42,11 +45,13 @@ sealed interface ServiceEditorMutation {
     data class FieldChanged(val field: RecordField, val value: String) : ServiceEditorMutation
     data class FieldBlurred(val field: RecordField) : ServiceEditorMutation
     data object AllFieldsTouched : ServiceEditorMutation
+    data class ErrorsUpdated(val errors: Map<RecordField, FieldError>) : ServiceEditorMutation
 
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorMutation
     data class DatePicked(val date: Long) : ServiceEditorMutation
 
     data class SetIsSaving(val value: Boolean) : ServiceEditorMutation
+    data class SetShowConfirmation(val value: Boolean) : ServiceEditorMutation
     data object SetNotFound : ServiceEditorMutation
 }
 
@@ -75,6 +80,10 @@ object ServiceEditorReducer {
             (state as? Form)?.let { it.copy(touched = it.touched + mutation.field) } ?: state
         }
 
+        is ServiceEditorMutation.ErrorsUpdated -> {
+            (state as? Form)?.copy(errors = mutation.errors) ?: state
+        }
+
         is ServiceEditorMutation.CategoryPicked -> {
             (state as? Form)?.let {
                 it.copy(input = it.input.copy(categoryId = mutation.categoryId))
@@ -89,6 +98,10 @@ object ServiceEditorReducer {
 
         is ServiceEditorMutation.SetIsSaving -> {
             (state as? Form)?.copy(isSaving = mutation.value) ?: state
+        }
+
+        is ServiceEditorMutation.SetShowConfirmation -> {
+            (state as? Form)?.copy(isShowConfirmation = mutation.value) ?: state
         }
 
         ServiceEditorMutation.SetNotFound -> ServiceEditorState.NotFound
