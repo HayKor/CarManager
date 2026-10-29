@@ -17,6 +17,7 @@ import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDraft
 import ru.haykor.carmanager.core.domain.repository.ServiceRecordRepository
+import ru.haykor.carmanager.core.result.DataResult
 import ru.haykor.carmanager.core.result.EmptyResult
 
 @Inject
@@ -38,6 +39,30 @@ class DefaultServiceRecordRepository(private val recordDao: ServiceRecordDao, pr
     override suspend fun delete(id: ServiceRecordId): EmptyResult<DataError> = safeCall {
         recordDao.delete(id)
     }
+
+    override suspend fun createWithMileage(draft: ServiceRecordDraft, newCarMileage: Long?): EmptyResult<DataError> =
+        safeCall {
+            val id = ServiceRecordId.random()
+            val now = clock.now().toEpochMilliseconds()
+            recordDao.insertWithCarMileage(
+                draft.toEntity(id, createdAt = now, updatedAt = now),
+                newCarMileage = newCarMileage
+            )
+        }
+
+    override suspend fun updateWithMileage(
+        id: ServiceRecordId,
+        draft: ServiceRecordDraft,
+        newCarMileage: Long?
+    ): EmptyResult<DataError> = safeCall {
+        val now = clock.now().toEpochMilliseconds()
+        recordDao.updateWithCarMileage(draft.toUpdate(id = id, updatedAt = now), newCarMileage = newCarMileage)
+    }
+
+    override suspend fun latestDate(carId: CarId, excludeId: ServiceRecordId?): DataResult<Long?, DataError> =
+        safeCall {
+            recordDao.latestDate(carId, excludeId)
+        }
 
     override fun observeByCar(carId: CarId): Flow<List<ServiceRecordDetails>> =
         recordDao.observeByCar(carId).map { records ->
