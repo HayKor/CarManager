@@ -22,6 +22,8 @@ import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.fixtures.FakeCarRepository
 import ru.haykor.carmanager.core.domain.fixtures.FakeServiceRecordRepository
 import ru.haykor.carmanager.core.domain.fixtures.aCar
+import ru.haykor.carmanager.core.domain.fixtures.aCategory
+import ru.haykor.carmanager.core.domain.fixtures.aRecord
 import ru.haykor.carmanager.core.domain.usecase.DeleteCarUseCase
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -29,7 +31,7 @@ class DefaultCarComponentTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val carRepository = FakeCarRepository(listOf(defaultCar))
-    private val recordRepository = FakeServiceRecordRepository()
+    private val recordRepository = FakeServiceRecordRepository(listOf(defaultRecord), defaultCategory)
     private val deleteCar = DeleteCarUseCase(carRepository)
     private var closeCount: Int = 0
 
@@ -135,10 +137,14 @@ class DefaultCarComponentTest {
             deleteCar = deleteCar,
             id = id,
             onBack = { closeCount++ },
-            onOpenEdit = {}
+            onOpenEdit = {},
+            onOpenRecord = {},
+            onOpenCreateRecord = {}
         )
 
     private companion object {
         val defaultCar = aCar()
+        val defaultCategory = aCategory()
+        val defaultRecord = aRecord(carId = defaultCar.id)
     }
 }
