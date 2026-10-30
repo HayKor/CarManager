@@ -16,14 +16,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -46,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -59,18 +64,27 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import ru.haykor.carmanager.R
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
+import ru.haykor.carmanager.core.domain.ServiceCategoryId
+import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.model.Car
+import ru.haykor.carmanager.core.domain.model.ServiceCategory
+import ru.haykor.carmanager.core.domain.model.ServiceRecord
+import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
 import ru.haykor.carmanager.core.presentation.ui.LicensePlate
 import ru.haykor.carmanager.core.presentation.ui.formatMileage
+import ru.haykor.carmanager.core.presentation.ui.rememberAnimatedCardShape
 import ru.haykor.carmanager.core.presentation.ui.title
 import ru.haykor.carmanager.core.presentation.ui.toUiText
 import ru.haykor.carmanager.feature.car.component.CarComponent
 import ru.haykor.carmanager.feature.car.component.CarEvent
 import ru.haykor.carmanager.feature.car.component.CarIntent
+import ru.haykor.carmanager.feature.car.component.CarSection
 import ru.haykor.carmanager.feature.car.component.CarState
+import ru.haykor.carmanager.feature.car.component.RecordsSection
 import ru.haykor.carmanager.ui.theme.AppTheme
 
+// region composables
 @Composable
 fun CarScreen(component: CarComponent, modifier: Modifier = Modifier) {
     val state by component.state.subscribeAsState()
@@ -101,7 +115,9 @@ internal fun CarContent(state: CarState, onIntent: (CarIntent) -> Unit, modifier
             MediumTopAppBar(
                 title = {
                     Text(
-                        text = (state as? CarState.Content)?.car?.title ?: stringResource(R.string.car_info_title),
+                        text =
+                            (state.carSection as? CarSection.Loaded)?.car?.title
+                                ?: stringResource(R.string.car_info_title),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -115,7 +131,7 @@ internal fun CarContent(state: CarState, onIntent: (CarIntent) -> Unit, modifier
                     }
                 },
                 actions = {
-                    if (state is CarState.Content) {
+                    if (state.carSection is CarSection.Loaded) {
                         IconButton(onClick = { onIntent(CarIntent.EditCarClicked) }) {
                             Icon(
                                 painter = painterResource(R.drawable.edit),
@@ -158,21 +174,35 @@ internal fun CarContent(state: CarState, onIntent: (CarIntent) -> Unit, modifier
                 scrollBehavior = scrollBehavior
             )
         },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { onIntent(CarIntent.CreateRecordClicked) },
+                text = { Text("Record") },
+                icon = {
+                    Icon(
+                        painterResource(R.drawable.plus),
+                        contentDescription = null
+                    )
+                }
+            )
+        },
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { innerPadding ->
-        when (state) {
+        when (val carSection = state.carSection) {
             // Room answers in milliseconds, a spinner would only flicker
-            CarState.Loading -> Unit
+            CarSection.Loading -> Unit
 
-            CarState.NotFound -> CarNotFound(
+            CarSection.NotFound -> CarNotFound(
                 onBackClick = { onIntent(CarIntent.BackClicked) },
                 modifier = Modifier.padding(innerPadding)
             )
 
-            is CarState.Content -> CarDetails(
-                state = state,
+            is CarSection.Loaded -> CarDetails(
+                car = carSection.car,
+                recordsSection = state.recordsSection,
+                isShowDialog = state.isShowDialog,
                 onIntent = onIntent,
                 modifier = Modifier.padding(innerPadding)
             )
@@ -180,32 +210,148 @@ internal fun CarContent(state: CarState, onIntent: (CarIntent) -> Unit, modifier
     }
 }
 
-/** A lazy list from the start: service records will be appended below the car info. */
 @Composable
-private fun CarDetails(state: CarState.Content, onIntent: (CarIntent) -> Unit, modifier: Modifier = Modifier) {
+private fun CarDetails(
+    car: Car,
+    recordsSection: RecordsSection,
+    isShowDialog: Boolean,
+    onIntent: (CarIntent) -> Unit,
+    modifier: Modifier = Modifier
+) {
     DeleteDialog(
-        isShow = state.isShowDialog,
+        isShow = isShowDialog,
         onDismiss = { onIntent(CarIntent.DeleteDismissed) },
         onConfirm = { onIntent(CarIntent.DeleteConfirmed) }
     )
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        item(key = "summary") { CarSummaryCard(state.car) }
+        item(key = "summary") { CarSummaryCard(car) }
 
-        state.car.note?.let { note ->
+        car.note?.let { note ->
             item(key = "note") { CarNoteCard(note) }
         }
 
-        state.car.vin?.let {
+        car.vin?.let {
             item(key = "details_header") { SectionHeader(stringResource(R.string.car_section_details)) }
-            item(key = "details") { CarDetailsCard(state.car) }
+            item(key = "details") { CarDetailsCard(car) }
         }
 
-        item(key = "history_header") { SectionHeader(stringResource(R.string.car_section_service_history)) }
-        item(key = "history_empty") { ServiceHistoryEmpty() }
+        recordsDetails(
+            recordsSection = recordsSection,
+            onRecordClick = { onIntent(CarIntent.RecordClicked(it)) }
+        )
+    }
+}
+
+fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onRecordClick: (ServiceRecordId) -> Unit) {
+    item(key = "history_header") { SectionHeader(stringResource(R.string.car_section_service_history)) }
+
+    when (recordsSection) {
+        is RecordsSection.Loaded -> {
+            if (recordsSection.records.isEmpty()) {
+                item(key = "history_empty") { ServiceHistoryEmpty() }
+            } else {
+                itemsIndexed(recordsSection.records, key = { _, record -> record.record.id.value }) { index, record ->
+
+                    val isFirst = index == 0
+                    val isLast = index == recordsSection.records.lastIndex
+
+                    val shape = rememberAnimatedCardShape(
+                        isFirst = isFirst,
+                        isLast = isLast,
+                        smallRadius = 8.dp,
+                        largeRadius = 32.dp
+                    )
+
+                    ServiceRecordCard(
+                        record = record,
+                        shape = shape,
+                        onClick = { onRecordClick(record.record.id) },
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+            }
+        }
+
+        RecordsSection.Loading -> {
+            // TODO: shimmer ?
+        }
+    }
+}
+
+@Composable
+private fun ServiceRecordCard(
+    record: ServiceRecordDetails,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    shape: Shape = CardDefaults.elevatedShape
+) {
+    ElevatedCard(
+        onClick = onClick,
+        shape = shape,
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            ServiceAvatar()
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = record.category.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = stringResource(R.string.mileage_km, formatMileage(record.record.atMileage)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                record.record.note?.takeIf { it.isNotBlank() }?.let { note ->
+                    Text(
+                        text = note,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Icon(
+                painter = painterResource(R.drawable.keyboard_arrow_right),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun ServiceAvatar(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.secondaryContainer),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.build),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer
+        )
     }
 }
 
@@ -242,7 +388,9 @@ private fun CarSummaryCard(car: Car) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 8.dp, bottomStart = 8.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 4.dp)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -273,7 +421,9 @@ private fun CarDetailsCard(car: Car, modifier: Modifier = Modifier) {
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp)
     ) {
         ListItem(
             leadingContent = {
@@ -309,11 +459,14 @@ private fun CarNoteCard(note: String, modifier: Modifier = Modifier) {
         ),
         modifier = modifier
             .fillMaxWidth()
+            .padding(bottom = 12.dp)
             .animateContentSize()
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth().padding(20.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -363,7 +516,7 @@ private fun SectionHeader(text: String) {
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp)
+        modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
     )
 }
 
@@ -408,6 +561,8 @@ private fun CarNotFound(onBackClick: () -> Unit, modifier: Modifier = Modifier) 
     }
 }
 
+// endregion
+
 // region Previews
 
 private val previewCar = Car(
@@ -425,24 +580,49 @@ private val previewCar = Car(
     updatedAt = 0L
 )
 
+private val previewRecord = ServiceRecordDetails(
+    record = ServiceRecord(
+        id = ServiceRecordId.random(),
+        carId = previewCar.id,
+        atMileage = 120_000,
+        price = 1500,
+        categoryId = ServiceCategoryId.random(),
+        note = "Replaced oil and oil filter",
+        photoUri = null,
+        date = 0L,
+        createdAt = 0L,
+        updatedAt = 0L
+    ),
+    category = ServiceCategory(
+        id = ServiceCategoryId.random(),
+        name = "Oil Change"
+    )
+)
+
 @Preview(name = "Content", showBackground = true)
 @Preview(name = "Content · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun CarContentPreview() = AppTheme {
-    CarContent(state = CarState.Content(previewCar), onIntent = {})
+    CarContent(
+        state = CarState(
+            carSection = CarSection.Loaded(previewCar),
+            recordsSection = RecordsSection.Loaded(listOf(previewRecord))
+        ),
+        onIntent = {}
+    )
 }
 
 @Preview(name = "Delete dialog", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun CarContentDeleteDialogPreview() = AppTheme {
-    CarContent(state = CarState.Content(previewCar, isShowDialog = true), onIntent = {})
+    CarContent(state = CarState(carSection = CarSection.Loaded(previewCar), isShowDialog = true), onIntent = {})
 }
 
 @Preview(name = "Optional fields missing", showBackground = true)
 @Composable
 private fun CarContentMinimalPreview() = AppTheme {
     CarContent(
-        state = CarState.Content(previewCar.copy(vin = null, plate = null)),
+        state = CarState(carSection = CarSection.Loaded(previewCar.copy(vin = null, plate = null))),
         onIntent = {}
     )
 }
@@ -450,7 +630,7 @@ private fun CarContentMinimalPreview() = AppTheme {
 @Preview(name = "Not found", showBackground = true)
 @Composable
 private fun CarNotFoundPreview() = AppTheme {
-    CarContent(state = CarState.NotFound, onIntent = {})
+    CarContent(state = CarState(carSection = CarSection.NotFound), onIntent = {})
 }
 
 // endregion

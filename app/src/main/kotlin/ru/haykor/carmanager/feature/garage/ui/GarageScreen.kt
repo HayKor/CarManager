@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -50,16 +49,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import ru.haykor.carmanager.R
-import ru.haykor.carmanager.core.common.ComprehensionDebt
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.presentation.ui.LicensePlate
 import ru.haykor.carmanager.core.presentation.ui.formatMileage
+import ru.haykor.carmanager.core.presentation.ui.rememberAnimatedCardShape
 import ru.haykor.carmanager.core.presentation.ui.title
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.garage.component.GarageIntent
@@ -369,40 +367,6 @@ private fun CarAvatar(modifier: Modifier = Modifier) {
             tint = MaterialTheme.colorScheme.onSecondaryContainer
         )
     }
-}
-
-// endregion
-
-// region util
-
-@ComprehensionDebt
-@Composable
-fun rememberAnimatedCardShape(
-    isFirst: Boolean,
-    isLast: Boolean,
-    smallRadius: Dp = 8.dp,
-    largeRadius: Dp = 32.dp
-): Shape {
-    val targetTop = if (isFirst) largeRadius else smallRadius
-    val targetBottom = if (isLast) largeRadius else smallRadius
-
-    val animatedTop by animateDpAsState(
-        targetValue = targetTop,
-        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
-        label = "TopEndCorner"
-    )
-    val animatedBottom by animateDpAsState(
-        targetValue = targetBottom,
-        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
-        label = "BottomStartCorner"
-    )
-
-    return RoundedCornerShape(
-        topStart = animatedTop,
-        topEnd = animatedTop,
-        bottomEnd = animatedBottom,
-        bottomStart = animatedBottom
-    )
 }
 
 // endregion

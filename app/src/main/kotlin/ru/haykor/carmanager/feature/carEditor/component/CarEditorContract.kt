@@ -3,8 +3,8 @@ package ru.haykor.carmanager.feature.carEditor.component
 import androidx.compose.runtime.Stable
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.error.DataError
+import ru.haykor.carmanager.core.domain.model.CarField
 import ru.haykor.carmanager.core.domain.model.CarFormInput
-import ru.haykor.carmanager.core.domain.model.Field
 import ru.haykor.carmanager.core.domain.model.FieldError
 
 @Stable
@@ -13,16 +13,16 @@ sealed interface CarEditorState {
     data object NotFound : CarEditorState
     data class Form(
         val input: CarFormInput = CarFormInput(),
-        val touched: Set<Field> = emptySet(),
-        val errors: Map<Field, FieldError> = emptyMap(),
+        val touched: Set<CarField> = emptySet(),
+        val errors: Map<CarField, FieldError> = emptyMap(),
         val isSaving: Boolean = false,
         val isNew: Boolean = false
     ) : CarEditorState
 }
 
 sealed interface CarEditorIntent {
-    data class FieldChanged(val field: Field, val value: String) : CarEditorIntent
-    data class FieldBlurred(val field: Field) : CarEditorIntent
+    data class FieldChanged(val field: CarField, val value: String) : CarEditorIntent
+    data class FieldBlurred(val field: CarField) : CarEditorIntent
     data class PlateCountryChanged(val plateCountry: PlateCountry) : CarEditorIntent
     data object SaveClicked : CarEditorIntent
     data object BackClicked : CarEditorIntent
@@ -35,10 +35,10 @@ sealed interface CarEditorEvent {
 sealed interface CarEditorMutation {
     data class FormInputLoaded(val input: CarFormInput) : CarEditorMutation
     data object FormInputNew : CarEditorMutation
-    data class FieldChanged(val field: Field, val value: String) : CarEditorMutation
-    data class FieldBlurred(val field: Field) : CarEditorMutation
+    data class FieldChanged(val field: CarField, val value: String) : CarEditorMutation
+    data class FieldBlurred(val field: CarField) : CarEditorMutation
     data object AllFieldsTouched : CarEditorMutation
-    data class ErrorsUpdated(val errors: Map<Field, FieldError>) : CarEditorMutation
+    data class ErrorsUpdated(val errors: Map<CarField, FieldError>) : CarEditorMutation
     data class PlateCountryChanged(val plateCountry: PlateCountry) : CarEditorMutation
     data class SetSaving(val value: Boolean) : CarEditorMutation
     data object SetLoading : CarEditorMutation
@@ -57,7 +57,7 @@ object CarEditorReducer {
         }
 
         CarEditorMutation.AllFieldsTouched -> {
-            (state as? CarEditorState.Form)?.copy(touched = Field.entries.toSet()) ?: state
+            (state as? CarEditorState.Form)?.copy(touched = CarField.entries.toSet()) ?: state
         }
 
         is CarEditorMutation.PlateCountryChanged -> {
@@ -89,12 +89,12 @@ object CarEditorReducer {
     }
 }
 
-private fun CarFormInput.change(field: Field, value: String): CarFormInput = when (field) {
-    Field.BRAND -> copy(brand = value)
-    Field.MODEL -> copy(model = value)
-    Field.YEAR -> copy(year = value)
-    Field.NOTE -> copy(note = value)
-    Field.MILEAGE -> copy(mileage = value)
-    Field.VIN -> copy(vin = value)
-    Field.PLATE -> copy(plate = value)
+private fun CarFormInput.change(field: CarField, value: String): CarFormInput = when (field) {
+    CarField.BRAND -> copy(brand = value)
+    CarField.MODEL -> copy(model = value)
+    CarField.YEAR -> copy(year = value)
+    CarField.NOTE -> copy(note = value)
+    CarField.MILEAGE -> copy(mileage = value)
+    CarField.VIN -> copy(vin = value)
+    CarField.PLATE -> copy(plate = value)
 }

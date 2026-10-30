@@ -3,7 +3,9 @@ package ru.haykor.carmanager.core.data.mapper
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordEntity
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordUpdate
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordWithCategory
+import ru.haykor.carmanager.core.data.model.MileageBoundsRow
 import ru.haykor.carmanager.core.domain.ServiceRecordId
+import ru.haykor.carmanager.core.domain.model.MileageBounds
 import ru.haykor.carmanager.core.domain.model.ServiceRecord
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDraft
@@ -49,4 +51,9 @@ fun ServiceRecordEntity.toDomain() = ServiceRecord(
 fun ServiceRecordWithCategory.toDetails() = ServiceRecordDetails(
     record = record.toDomain(),
     category = category.toDomain()
+)
+
+fun MileageBoundsRow.toDomain() = MileageBounds(
+    lower = lower,
+    upper = upper
 )

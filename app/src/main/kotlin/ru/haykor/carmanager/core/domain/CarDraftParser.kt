@@ -5,25 +5,25 @@ import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import ru.haykor.carmanager.core.domain.model.CarDraft
+import ru.haykor.carmanager.core.domain.model.CarField
 import ru.haykor.carmanager.core.domain.model.CarFormInput
-import ru.haykor.carmanager.core.domain.model.Field
 import ru.haykor.carmanager.core.domain.model.FieldError
 
 @Inject
 class CarDraftParser(private val plateFormats: PlateFormats, private val clock: Clock) {
 
-    fun validate(input: CarFormInput): Map<Field, FieldError> {
+    fun validate(input: CarFormInput): Map<CarField, FieldError> {
         val normalized = input.normalized()
         val plateFormat = plateFormats.of(normalized.plateCountry)
 
         val validators = mapOf(
-            Field.BRAND to (required() + maxLength(BRAND_MAX_LENGTH)),
-            Field.MODEL to (required() + maxLength(MODEL_MAX_LENGTH)),
-            Field.YEAR to (required() + matches { it.toIntOrNull() in MIN_YEAR..maxYear() }),
-            Field.MILEAGE to (required() + matches { it.toLongOrNull() in 0..MAX_MILEAGE }),
-            Field.NOTE to optional(maxLength(NOTE_MAX_LENGTH)),
-            Field.VIN to optional(matches(VIN_REGEX::matches)),
-            Field.PLATE to optional(matches(plateFormat::isValid))
+            CarField.BRAND to (required() + maxLength(BRAND_MAX_LENGTH)),
+            CarField.MODEL to (required() + maxLength(MODEL_MAX_LENGTH)),
+            CarField.YEAR to (required() + matches { it.toIntOrNull() in MIN_YEAR..maxYear() }),
+            CarField.MILEAGE to (required() + matches { it.toLongOrNull() in 0..MAX_MILEAGE }),
+            CarField.NOTE to optional(maxLength(NOTE_MAX_LENGTH)),
+            CarField.VIN to optional(matches(VIN_REGEX::matches)),
+            CarField.PLATE to optional(matches(plateFormat::isValid))
         )
 
         return buildMap {
@@ -64,14 +64,14 @@ class CarDraftParser(private val plateFormats: PlateFormats, private val clock: 
         plate = plateFormats.of(plateCountry).normalize(plate)
     )
 
-    private fun CarFormInput.valueOf(field: Field): String = when (field) {
-        Field.BRAND -> brand
-        Field.MODEL -> model
-        Field.YEAR -> year
-        Field.NOTE -> note
-        Field.MILEAGE -> mileage
-        Field.VIN -> vin
-        Field.PLATE -> plate
+    private fun CarFormInput.valueOf(field: CarField): String = when (field) {
+        CarField.BRAND -> brand
+        CarField.MODEL -> model
+        CarField.YEAR -> year
+        CarField.NOTE -> note
+        CarField.MILEAGE -> mileage
+        CarField.VIN -> vin
+        CarField.PLATE -> plate
     }
 
     // Next year's models go on sale in autumn
@@ -91,21 +91,5 @@ class CarDraftParser(private val plateFormats: PlateFormats, private val clock: 
 
 sealed interface CarParseResult {
     data class Valid(val draft: CarDraft) : CarParseResult
-    data class Invalid(val errors: Map<Field, FieldError>) : CarParseResult
+    data class Invalid(val errors: Map<CarField, FieldError>) : CarParseResult
 }
-
-fun interface Validator {
-    fun validate(input: String): FieldError?
-}
-
-operator fun Validator.plus(other: Validator): Validator = Validator { value ->
-    this.validate(value) ?: other.validate(value)
-}
-
-fun required() = Validator { if (it.isEmpty()) FieldError.Required else null }
-
-fun maxLength(max: Int) = Validator { if (it.length > max) FieldError.TooLong(max) else null }
-
-fun matches(predicate: (String) -> Boolean) = Validator { if (predicate(it)) null else FieldError.Invalid }
-
-fun optional(validator: Validator) = Validator { if (it.isEmpty()) null else validator.validate(it) }
