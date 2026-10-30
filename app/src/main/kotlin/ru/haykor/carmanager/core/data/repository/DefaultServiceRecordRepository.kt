@@ -8,12 +8,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.haykor.carmanager.core.data.local.dao.ServiceRecordDao
 import ru.haykor.carmanager.core.data.mapper.toDetails
+import ru.haykor.carmanager.core.data.mapper.toDomain
 import ru.haykor.carmanager.core.data.mapper.toEntity
 import ru.haykor.carmanager.core.data.mapper.toUpdate
 import ru.haykor.carmanager.core.data.safeCall
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.error.DataError
+import ru.haykor.carmanager.core.domain.model.MileageBounds
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDraft
 import ru.haykor.carmanager.core.domain.repository.ServiceRecordRepository
@@ -59,10 +61,13 @@ class DefaultServiceRecordRepository(private val recordDao: ServiceRecordDao, pr
         recordDao.updateWithCarMileage(draft.toUpdate(id = id, updatedAt = now), newCarMileage = newCarMileage)
     }
 
-    override suspend fun latestDate(carId: CarId, excludeId: ServiceRecordId?): DataResult<Long?, DataError> =
-        safeCall {
-            recordDao.latestDate(carId, excludeId)
-        }
+    override suspend fun mileageBounds(
+        carId: CarId,
+        date: Long,
+        excludeId: ServiceRecordId?
+    ): DataResult<MileageBounds, DataError> = safeCall {
+        recordDao.mileageBounds(carId, date, excludeId).toDomain()
+    }
 
     override fun observeByCar(carId: CarId): Flow<List<ServiceRecordDetails>> =
         recordDao.observeByCar(carId).map { records ->

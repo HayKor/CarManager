@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.error.DataError
+import ru.haykor.carmanager.core.domain.model.MileageBounds
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDraft
 import ru.haykor.carmanager.core.result.DataResult
@@ -22,7 +23,11 @@ interface ServiceRecordRepository {
         newCarMileage: Long?
     ): EmptyResult<DataError>
 
-    suspend fun latestDate(carId: CarId, excludeId: ServiceRecordId?): DataResult<Long?, DataError>
+    suspend fun mileageBounds(
+        carId: CarId,
+        date: Long,
+        excludeId: ServiceRecordId?
+    ): DataResult<MileageBounds, DataError>
 
     fun observeByCar(carId: CarId): Flow<List<ServiceRecordDetails>>
     fun observeById(id: ServiceRecordId): Flow<ServiceRecordDetails?>

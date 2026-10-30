@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordEntity
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordUpdate
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordWithCategory
+import ru.haykor.carmanager.core.data.model.MileageBoundsRow
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceRecordId
 
@@ -52,6 +53,19 @@ abstract class ServiceRecordDao {
             check(setCarMileage(recordUpdate.carId, newCarMileage) == 1) { "Car ${recordUpdate.carId} not found" }
         }
     }
+
+    @Query(
+        """
+    SELECT
+      (SELECT MAX(atMileage) FROM service_records
+        WHERE carId = :carId AND date < :date
+          AND (:excludeId IS NULL OR id != :excludeId)) AS lower,
+      (SELECT MIN(atMileage) FROM service_records
+        WHERE carId = :carId AND date > :date
+          AND (:excludeId IS NULL OR id != :excludeId)) AS upper
+    """
+    )
+    abstract suspend fun mileageBounds(carId: CarId, date: Long, excludeId: ServiceRecordId?): MileageBoundsRow
 
     // excludeId нужен для Edit: запись не должна сравниваться сама с собой
     @Query(

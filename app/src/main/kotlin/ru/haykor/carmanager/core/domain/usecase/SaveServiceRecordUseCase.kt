@@ -50,9 +50,16 @@ class SaveServiceRecordUseCase(
         )
 
         val excludeId = (mode as? EditorMode.Edit)?.recordId
-        val latestDate = records.latestDate(carId, excludeId)
+        val bounds = records.mileageBounds(carId, draft.date, excludeId)
             .getOrReturn { return DataResult.Failure(SaveRecordError.Data(it)) }
-        val isLatest = latestDate == null || draft.date >= latestDate
+
+        val lower = bounds.lower
+        val upper = bounds.upper
+        val mileage = draft.atMileage
+        if ((lower != null && mileage < lower) || (upper != null && mileage > upper)) {
+            return DataResult.Failure(SaveRecordError.MileageOutOfSequence(lower, upper, mileage))
+        }
+        val isLatest = upper == null
 
         if (resolution == MileageResolution.ASK && isLatest && draft.atMileage < carMileage) {
             return DataResult.Failure(SaveRecordError.MileageMismatch(carMileage, draft.atMileage))
@@ -79,5 +86,6 @@ class SaveServiceRecordUseCase(
 sealed interface SaveRecordError : AppError {
     data class ParseFailure(val errors: Map<RecordField, FieldError>) : SaveRecordError
     data class MileageMismatch(val carMileage: Long, val recordMileage: Long) : SaveRecordError
+    data class MileageOutOfSequence(val min: Long?, val max: Long?, val recordMileage: Long) : SaveRecordError
     data class Data(val dataError: DataError) : SaveRecordError
 }

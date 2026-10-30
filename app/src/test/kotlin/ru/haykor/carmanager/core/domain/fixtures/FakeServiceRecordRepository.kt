@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.update
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.error.DataError
+import ru.haykor.carmanager.core.domain.model.MileageBounds
 import ru.haykor.carmanager.core.domain.model.ServiceCategory
 import ru.haykor.carmanager.core.domain.model.ServiceRecord
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
@@ -37,7 +38,7 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
     override suspend fun update(id: ServiceRecordId, draft: ServiceRecordDraft): EmptyResult<DataError> {
         updated.add(id to draft)
 
-        val record = draft.toDomain()
+        val record = draft.toDomain(id)
         records.update { it + (record.id to record) }
         return DataResult.Success(Unit)
     }
@@ -49,7 +50,7 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
 
         val record = draft.toDomain()
         records.update { it + (record.id to record) }
-        updatedCars.add(record.carId to newCarMileage)
+        newCarMileage?.let { updatedCars.add(record.carId to it) }
         return DataResult.Success(Unit)
     }
 
@@ -62,15 +63,23 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
 
         val record = draft.toDomain(id)
         records.update { it + (record.id to record) }
-        updatedCars.add(record.carId to newCarMileage)
+        newCarMileage?.let { updatedCars.add(record.carId to it) }
         return DataResult.Success(Unit)
     }
 
-    override suspend fun latestDate(carId: CarId, excludeId: ServiceRecordId?): DataResult<Long?, DataError> {
-        val latestDate = records.value.values
-            .filter { it.carId == carId && it.id != excludeId }
-            .maxOfOrNull { it.date }
-        return DataResult.Success(latestDate)
+    override suspend fun mileageBounds(
+        carId: CarId,
+        date: Long,
+        excludeId: ServiceRecordId?
+    ): DataResult<MileageBounds, DataError> {
+        val others = records.value.values.filter { it.carId == carId && it.id != excludeId }
+
+        return DataResult.Success(
+            MileageBounds(
+                lower = others.filter { it.date < date }.maxOfOrNull { it.atMileage },
+                upper = others.filter { it.date > date }.minOfOrNull { it.atMileage }
+            )
+        )
     }
 
     override fun observeByCar(carId: CarId): Flow<List<ServiceRecordDetails>> = records.map { records ->

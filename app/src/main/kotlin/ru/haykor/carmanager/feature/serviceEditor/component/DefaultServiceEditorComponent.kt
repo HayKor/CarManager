@@ -107,6 +107,10 @@ class DefaultServiceEditorComponent(
                         is SaveRecordError.ParseFailure -> {
                             reduce(ErrorsUpdated(error.errors))
                         }
+
+                        is SaveRecordError.MileageOutOfSequence -> {
+                            // TODO:
+                        }
                     }
                 }
 
