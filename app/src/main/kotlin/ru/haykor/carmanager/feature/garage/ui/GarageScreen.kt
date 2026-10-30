@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -41,24 +39,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import ru.haykor.carmanager.R
-import ru.haykor.carmanager.core.domain.CarId
-import ru.haykor.carmanager.core.domain.PlateCountry
-import ru.haykor.carmanager.core.domain.model.Car
-import ru.haykor.carmanager.core.presentation.ui.LicensePlate
-import ru.haykor.carmanager.core.presentation.ui.formatMileage
+import ru.haykor.carmanager.core.presentation.ui.CarCard
 import ru.haykor.carmanager.core.presentation.ui.rememberAnimatedCardShape
-import ru.haykor.carmanager.core.presentation.ui.title
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.garage.component.GarageIntent
 import ru.haykor.carmanager.feature.garage.component.GarageState
@@ -300,104 +291,14 @@ private fun GarageEmptySearch(query: String, modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun CarCard(
-    car: Car,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = CardDefaults.elevatedShape
-) {
-    ElevatedCard(
-        onClick = onClick,
-        shape = shape,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(16.dp)
-        ) {
-            CarAvatar()
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = car.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = stringResource(R.string.mileage_km, formatMileage(car.mileage)),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                car.plate?.let {
-                    Spacer(Modifier.height(8.dp))
-                    LicensePlate(plate = it)
-                }
-            }
-
-            Icon(
-                painterResource(R.drawable.keyboard_arrow_right),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun CarAvatar(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .size(48.dp)
-            .clip(MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.secondaryContainer),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painterResource(R.drawable.directions_car),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSecondaryContainer
-        )
-    }
-}
-
 // endregion
 
 // region preview
-private val previewCar = Car(
-    id = CarId.random(),
-    brand = "Nissan",
-    model = "Qashqai",
-    year = 2010,
-    note = "My family car",
-    vin = "SJNFAAJ10U1234567",
-    plateCountry = PlateCountry.RU,
-    plate = "С123ОМ77",
-    mileage = 128_400,
-    photoUri = null,
-    createdAt = 0L,
-    updatedAt = 0L
-)
-
-@Preview(showBackground = true)
-@Composable
-private fun CarCardPreview() = AppTheme {
-    CarCard(
-        car = previewCar,
-        onClick = {}
-    )
-}
 
 @Preview(showBackground = true)
 @Composable
 private fun GarageEmptyPreview() = AppTheme {
     GarageEmpty(onAddClick = {}, modifier = Modifier.fillMaxSize())
 }
+
+// endregion

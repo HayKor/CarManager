@@ -8,9 +8,9 @@ import androidx.room3.Transaction
 import androidx.room3.Update
 import kotlinx.coroutines.flow.Flow
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordEntity
-import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordUpdate
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordWithCategory
 import ru.haykor.carmanager.core.data.model.MileageBoundsRow
+import ru.haykor.carmanager.core.data.model.ServiceRecordUpdate
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceRecordId
 

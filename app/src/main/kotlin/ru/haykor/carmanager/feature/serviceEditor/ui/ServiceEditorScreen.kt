@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -50,10 +51,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -71,8 +76,10 @@ import ru.haykor.carmanager.core.domain.model.FieldError
 import ru.haykor.carmanager.core.domain.model.RecordField
 import ru.haykor.carmanager.core.domain.model.ServiceCategory
 import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
+import ru.haykor.carmanager.core.presentation.ui.CarCard
 import ru.haykor.carmanager.core.presentation.ui.FormTextField
 import ru.haykor.carmanager.feature.serviceEditor.component.EditorMode
+import ru.haykor.carmanager.feature.serviceEditor.component.MileageConflict
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorIntent
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState
@@ -157,46 +164,13 @@ internal fun ServiceEditorContent(
 }
 
 @Composable
-private fun ConfirmationDialog(
-    isShow: Boolean,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    if (isShow) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = {
-                Text("Confirm stuff")
-            },
-            text = {
-                Text("Are you sure you want to update car's mileage?")
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = onConfirm
-                ) {
-                    Text("CONFirm", color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-            modifier = modifier
-
-        )
-    }
-}
-
-@Composable
 private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Unit, modifier: Modifier = Modifier) {
     val input = form.input
 
     ConfirmationDialog(
-        isShow = form.isShowConfirmation,
-        onConfirm = { onIntent(ServiceEditorIntent.ConfirmSaveClicked) },
+        conflict = form.mileageConflict,
+        onConfirmUpdate = { onIntent(ServiceEditorIntent.UpdateCarMileageClicked) },
+        onConfirmKeep = { onIntent(ServiceEditorIntent.KeepCarMileageClicked) },
         onDismiss = { onIntent(ServiceEditorIntent.DismissSaveClicked) }
     )
 
@@ -206,18 +180,18 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        FormSection(stringResource(R.string.service_editor_section_car)) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = stringResource(R.string.service_editor_car),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "${form.car.brand} ${form.car.model}",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = stringResource(R.string.service_editor_section_car),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+            )
+            CarCard(
+                car = form.car,
+                onClick = {},
+                shape = RoundedCornerShape(32.dp)
+            )
         }
 
         Spacer(Modifier.height(8.dp))
@@ -276,6 +250,63 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
         }
 
         Spacer(Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun ConfirmationDialog(
+    conflict: MileageConflict?,
+    onConfirmUpdate: () -> Unit,
+    onConfirmKeep: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    conflict?.let { conflict ->
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = {
+                Text("Mileage mismatch")
+            },
+            text = {
+                val highlight = SpanStyle(
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+                val body = buildAnnotatedString {
+                    append("Current car's mileage is ")
+                    withStyle(highlight) { append("${conflict.carMileage}") }
+                    append(", record's is ")
+                    withStyle(highlight) { append("${conflict.recordMileage}") }
+                    append(". Do you want to update car's mileage to ")
+                    withStyle(highlight) { append("${conflict.recordMileage}") }
+                    append(" or keep it?")
+                }
+                Text(
+                    text = body
+                )
+            },
+            confirmButton = {
+                Row {
+                    TextButton(
+                        onClick = onConfirmKeep
+                    ) {
+                        Text("Keep", color = MaterialTheme.colorScheme.error)
+                    }
+                    TextButton(
+                        onClick = onConfirmUpdate
+                    ) {
+                        Text("Update", color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            modifier = modifier
+
+        )
     }
 }
 
@@ -595,4 +626,43 @@ private fun ServiceEditorPreview() {
             onIntent = {}
         )
     }
+}
+
+@Preview(name = "Mileage mismatch", showBackground = true)
+@Preview(name = "Mileage mismatch · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ServiceEditorDialogPreview() = AppTheme {
+    val carId = CarId("car-preview")
+    val categoryId = ServiceCategoryId("category-preview")
+    ServiceEditorContent(
+        state = Form(
+            input = ServiceRecordFormInput(
+                carId = carId,
+                categoryId = categoryId,
+                atMileage = "110000",
+                price = "1500",
+                date = System.currentTimeMillis()
+            ),
+            mileageConflict = MileageConflict(120_000L, 110_000L),
+            car = Car(
+                id = carId,
+                brand = "Toyota",
+                model = "Camry",
+                year = 2018,
+                note = null,
+                vin = null,
+                plateCountry = null,
+                plate = null,
+                mileage = 120000,
+                photoUri = null,
+                createdAt = 0,
+                updatedAt = 0
+            ),
+            categories = listOf(
+                ServiceCategory(categoryId, "Maintenance")
+            )
+        ),
+        editorMode = EditorMode.Create(carId),
+        onIntent = {}
+    )
 }

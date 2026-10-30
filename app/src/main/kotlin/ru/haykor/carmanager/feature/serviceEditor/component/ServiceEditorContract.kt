@@ -8,6 +8,8 @@ import ru.haykor.carmanager.core.domain.model.ServiceCategory
 import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState.Form
 
+data class MileageConflict(val carMileage: Long, val recordMileage: Long)
+
 sealed interface ServiceEditorState {
     data object Loading : ServiceEditorState
     data object NotFound : ServiceEditorState
@@ -18,7 +20,7 @@ sealed interface ServiceEditorState {
         val touched: Set<RecordField> = emptySet(),
         val errors: Map<RecordField, FieldError> = emptyMap(),
         val isSaving: Boolean = false,
-        val isShowConfirmation: Boolean = false
+        val mileageConflict: MileageConflict? = null
     ) : ServiceEditorState
 }
 
@@ -30,8 +32,10 @@ sealed interface ServiceEditorIntent {
     data class DatePicked(val date: Long) : ServiceEditorIntent
 
     data object SaveClicked : ServiceEditorIntent
-    data object ConfirmSaveClicked : ServiceEditorIntent
+    data object UpdateCarMileageClicked : ServiceEditorIntent
+    data object KeepCarMileageClicked : ServiceEditorIntent
     data object DismissSaveClicked : ServiceEditorIntent
+
     data object BackClicked : ServiceEditorIntent
 }
 
@@ -51,8 +55,10 @@ sealed interface ServiceEditorMutation {
     data class DatePicked(val date: Long) : ServiceEditorMutation
 
     data class SetIsSaving(val value: Boolean) : ServiceEditorMutation
-    data class SetShowConfirmation(val value: Boolean) : ServiceEditorMutation
     data object SetNotFound : ServiceEditorMutation
+
+    data class MileageConflictDetected(val conflict: MileageConflict) : ServiceEditorMutation
+    data object MileageConflictResolved : ServiceEditorMutation
 }
 
 object ServiceEditorReducer {
@@ -100,11 +106,13 @@ object ServiceEditorReducer {
             (state as? Form)?.copy(isSaving = mutation.value) ?: state
         }
 
-        is ServiceEditorMutation.SetShowConfirmation -> {
-            (state as? Form)?.copy(isShowConfirmation = mutation.value) ?: state
-        }
-
         ServiceEditorMutation.SetNotFound -> ServiceEditorState.NotFound
+
+        is ServiceEditorMutation.MileageConflictDetected ->
+            (state as? Form)?.copy(mileageConflict = mutation.conflict) ?: state
+
+        ServiceEditorMutation.MileageConflictResolved ->
+            (state as? Form)?.copy(mileageConflict = null) ?: state
     }
 }
 

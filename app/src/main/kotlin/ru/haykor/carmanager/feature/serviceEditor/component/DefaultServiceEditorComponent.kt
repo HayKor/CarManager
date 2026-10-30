@@ -20,8 +20,8 @@ import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutatio
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.ErrorsUpdated
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.FieldBlurred
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.FieldChanged
+import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.MileageConflictResolved
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.SetIsSaving
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.SetShowConfirmation
 
 class DefaultServiceEditorComponent(
     componentContext: ComponentContext,
@@ -53,14 +53,20 @@ class DefaultServiceEditorComponent(
             trySaveRecord()
         }
 
-        ServiceEditorIntent.ConfirmSaveClicked -> {
+        ServiceEditorIntent.UpdateCarMileageClicked -> {
             reduce(AllFieldsTouched)
-            reduce(SetShowConfirmation(false))
+            reduce(MileageConflictResolved)
             trySaveRecord(resolution = MileageResolution.UPDATE_CAR)
         }
 
+        ServiceEditorIntent.KeepCarMileageClicked -> {
+            reduce(AllFieldsTouched)
+            reduce(MileageConflictResolved)
+            trySaveRecord(resolution = MileageResolution.KEEP_CAR)
+        }
+
         ServiceEditorIntent.DismissSaveClicked -> {
-            reduce(SetShowConfirmation(false))
+            reduce(MileageConflictResolved)
         }
     }
 
@@ -101,7 +107,14 @@ class DefaultServiceEditorComponent(
                         }
 
                         is SaveRecordError.MileageMismatch -> {
-                            reduce(SetShowConfirmation(true))
+                            reduce(
+                                ServiceEditorMutation.MileageConflictDetected(
+                                    MileageConflict(
+                                        error.carMileage,
+                                        error.recordMileage
+                                    )
+                                )
+                            )
                         }
 
                         is SaveRecordError.ParseFailure -> {

@@ -1,9 +1,9 @@
 package ru.haykor.carmanager.core.data.mapper
 
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordEntity
-import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordUpdate
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordWithCategory
 import ru.haykor.carmanager.core.data.model.MileageBoundsRow
+import ru.haykor.carmanager.core.data.model.ServiceRecordUpdate
 import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.model.MileageBounds
 import ru.haykor.carmanager.core.domain.model.ServiceRecord

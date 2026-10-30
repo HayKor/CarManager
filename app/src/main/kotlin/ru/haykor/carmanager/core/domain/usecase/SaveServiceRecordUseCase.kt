@@ -44,9 +44,7 @@ class SaveServiceRecordUseCase(
         }
 
         val carMileage = cars.observeCar(carId).first()?.mileage ?: return DataResult.Failure(
-            SaveRecordError.Data(
-                DataError.Local.Unknown
-            )
+            SaveRecordError.Data(DataError.Local.Unknown)
         )
 
         val excludeId = (mode as? EditorMode.Edit)?.recordId

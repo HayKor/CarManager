@@ -16,7 +16,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import ru.haykor.carmanager.core.data.local.AppDatabase
 import ru.haykor.carmanager.core.data.local.entity.car.CarEntity
-import ru.haykor.carmanager.core.data.local.entity.car.CarUpdate
+import ru.haykor.carmanager.core.data.model.CarUpdate
 import ru.haykor.carmanager.core.domain.CarId
 
 @RunWith(AndroidJUnit4::class)
