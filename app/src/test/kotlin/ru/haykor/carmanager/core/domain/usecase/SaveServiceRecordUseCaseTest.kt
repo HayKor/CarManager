@@ -310,7 +310,7 @@ class SaveServiceRecordUseCaseTest {
             carId = defaultCar.id
         )
 
-        val error = assertFailure<SaveRecordError.ParseFailure>(result)
+        val error = assertFailure<SaveRecordError.FieldErrors>(result)
         assertTrue(error.errors.isNotEmpty())
         sut.assertNothingPersisted()
     }

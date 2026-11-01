@@ -7,6 +7,8 @@ import com.arkivanov.decompose.value.update
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.haykor.carmanager.core.domain.usecase.GetInitialServiceEditorDataUseCase
 import ru.haykor.carmanager.core.domain.usecase.MileageResolution
@@ -36,6 +38,9 @@ class DefaultServiceEditorComponent(
 
     override val state: Value<ServiceEditorState>
         field = MutableValue<ServiceEditorState>(ServiceEditorState.Loading)
+
+    private val _events = Channel<ServiceEditorEvent>(Channel.BUFFERED)
+    override val events = _events.receiveAsFlow()
 
     override fun accept(intent: ServiceEditorIntent) = when (intent) {
         ServiceEditorIntent.BackClicked -> onBack()
@@ -103,7 +108,7 @@ class DefaultServiceEditorComponent(
                     reduce(SetIsSaving(false))
                     when (val error = result.error) {
                         is SaveRecordError.Data -> {
-                            // TODO:
+                            _events.send(ServiceEditorEvent.StorageError(error.dataError))
                         }
 
                         is SaveRecordError.MileageMismatch -> {
@@ -117,12 +122,8 @@ class DefaultServiceEditorComponent(
                             )
                         }
 
-                        is SaveRecordError.ParseFailure -> {
+                        is SaveRecordError.FieldErrors -> {
                             reduce(ErrorsUpdated(error.errors))
-                        }
-
-                        is SaveRecordError.MileageOutOfSequence -> {
-                            // TODO:
                         }
                     }
                 }

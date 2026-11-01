@@ -42,6 +42,10 @@
     <string name="service_editor_price">Price</string>
     <string name="service_editor_unavailable">Editor data unavailable</string>
     <string name="service_editor_unavailable_description">The selected car or service record may have been deleted.</string>
+    <string name="error_mileage_between">Must be between %1$s and %2$s km</string>
+    <string name="error_mileage_min">Must be at least %1$s km</string>
+    <string name="error_mileage_max">Must be at most %1$s km</string>
+    <string name="error_mileage_invalid">Invalid mileage</string>
 
     <!-- Car fields -->
     <string name="field_brand">Brand</string>

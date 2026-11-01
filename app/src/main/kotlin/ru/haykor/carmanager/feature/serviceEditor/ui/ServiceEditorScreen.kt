@@ -1,6 +1,7 @@
 package ru.haykor.carmanager.feature.serviceEditor.ui
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -63,6 +65,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import java.text.DateFormat
+import java.text.NumberFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -72,15 +75,22 @@ import ru.haykor.carmanager.R
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
 import ru.haykor.carmanager.core.domain.model.Car
-import ru.haykor.carmanager.core.domain.model.FieldError
+import ru.haykor.carmanager.core.domain.model.Invalid
+import ru.haykor.carmanager.core.domain.model.MileageOutOfSequence
 import ru.haykor.carmanager.core.domain.model.RecordField
+import ru.haykor.carmanager.core.domain.model.RecordFieldError
+import ru.haykor.carmanager.core.domain.model.Required
 import ru.haykor.carmanager.core.domain.model.ServiceCategory
 import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
+import ru.haykor.carmanager.core.domain.model.TooLong
+import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
 import ru.haykor.carmanager.core.presentation.ui.CarCard
 import ru.haykor.carmanager.core.presentation.ui.FormTextField
+import ru.haykor.carmanager.core.presentation.ui.toUiText
 import ru.haykor.carmanager.feature.serviceEditor.component.EditorMode
 import ru.haykor.carmanager.feature.serviceEditor.component.MileageConflict
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
+import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorEvent
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorIntent
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState.Form
@@ -91,6 +101,15 @@ import ru.haykor.carmanager.ui.theme.AppTheme
 @Composable
 fun ServiceEditorScreen(component: ServiceEditorComponent, modifier: Modifier = Modifier) {
     val state by component.state.subscribeAsState()
+
+    val context = LocalContext.current
+    ObserveAsEvents(component.events) { event ->
+        when (event) {
+            is ServiceEditorEvent.StorageError -> {
+                Toast.makeText(context, event.error.toUiText(), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     ServiceEditorContent(
         state = state,
@@ -572,16 +591,29 @@ private fun RecordField.label(): String = stringResource(
 )
 
 @Composable
-private fun FieldError.message(field: RecordField): String = when (this) {
-    FieldError.Required -> stringResource(R.string.error_required)
+private fun RecordFieldError.message(field: RecordField): String = when (this) {
+    Required -> stringResource(R.string.error_required)
 
-    FieldError.Invalid -> when (field) {
+    Invalid -> when (field) {
         RecordField.AT_MILEAGE -> stringResource(R.string.error_invalid_mileage)
         RecordField.PRICE -> stringResource(R.string.error_invalid_price)
         RecordField.NOTE -> stringResource(R.string.error_invalid)
     }
 
-    is FieldError.TooLong -> stringResource(R.string.error_too_long, maxLength)
+    is TooLong -> stringResource(R.string.error_too_long, maxLength)
+
+    is MileageOutOfSequence -> toText()
+}
+
+@Composable
+private fun MileageOutOfSequence.toText(): String {
+    val nf = remember { NumberFormat.getIntegerInstance() }
+    return when {
+        min != null && max != null -> stringResource(R.string.error_mileage_between, nf.format(min), nf.format(max))
+        min != null -> stringResource(R.string.error_mileage_min, nf.format(min))
+        max != null -> stringResource(R.string.error_mileage_max, nf.format(max))
+        else -> stringResource(R.string.error_mileage_invalid)
+    }
 }
 
 // endregion

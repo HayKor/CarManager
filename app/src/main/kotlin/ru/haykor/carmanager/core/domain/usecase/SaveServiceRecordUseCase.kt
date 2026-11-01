@@ -6,8 +6,9 @@ import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceRecordDraftParser
 import ru.haykor.carmanager.core.domain.ServiceRecordParseResult
 import ru.haykor.carmanager.core.domain.error.DataError
-import ru.haykor.carmanager.core.domain.model.FieldError
+import ru.haykor.carmanager.core.domain.model.MileageOutOfSequence
 import ru.haykor.carmanager.core.domain.model.RecordField
+import ru.haykor.carmanager.core.domain.model.RecordFieldError
 import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
 import ru.haykor.carmanager.core.domain.repository.CarRepository
 import ru.haykor.carmanager.core.domain.repository.ServiceRecordRepository
@@ -38,7 +39,7 @@ class SaveServiceRecordUseCase(
     ): EmptyResult<SaveRecordError> {
         val draft = when (val parsed = parser.parse(input)) {
             is ServiceRecordParseResult.Invalid ->
-                return DataResult.Failure(SaveRecordError.ParseFailure(parsed.errors))
+                return DataResult.Failure(SaveRecordError.FieldErrors(parsed.errors))
 
             is ServiceRecordParseResult.Valid -> parsed.draft
         }
@@ -55,7 +56,11 @@ class SaveServiceRecordUseCase(
         val upper = bounds.upper
         val mileage = draft.atMileage
         if ((lower != null && mileage < lower) || (upper != null && mileage > upper)) {
-            return DataResult.Failure(SaveRecordError.MileageOutOfSequence(lower, upper, mileage))
+            return DataResult.Failure(
+                SaveRecordError.FieldErrors(
+                    mapOf(RecordField.AT_MILEAGE to MileageOutOfSequence(lower, upper, mileage))
+                )
+            )
         }
         val isLatest = upper == null
 
@@ -82,8 +87,7 @@ class SaveServiceRecordUseCase(
 }
 
 sealed interface SaveRecordError : AppError {
-    data class ParseFailure(val errors: Map<RecordField, FieldError>) : SaveRecordError
+    data class FieldErrors(val errors: Map<RecordField, RecordFieldError>) : SaveRecordError
     data class MileageMismatch(val carMileage: Long, val recordMileage: Long) : SaveRecordError
-    data class MileageOutOfSequence(val min: Long?, val max: Long?, val recordMileage: Long) : SaveRecordError
     data class Data(val dataError: DataError) : SaveRecordError
 }

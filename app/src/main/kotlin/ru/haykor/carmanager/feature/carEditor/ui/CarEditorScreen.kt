@@ -60,8 +60,11 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import ru.haykor.carmanager.R
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.model.CarField
+import ru.haykor.carmanager.core.domain.model.CarFieldError
 import ru.haykor.carmanager.core.domain.model.CarFormInput
-import ru.haykor.carmanager.core.domain.model.FieldError
+import ru.haykor.carmanager.core.domain.model.Invalid
+import ru.haykor.carmanager.core.domain.model.Required
+import ru.haykor.carmanager.core.domain.model.TooLong
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
 import ru.haykor.carmanager.core.presentation.ui.FormTextField
 import ru.haykor.carmanager.core.presentation.ui.toUiText
@@ -446,12 +449,12 @@ private fun CarField.label(): String = stringResource(
 )
 
 @Composable
-private fun FieldError.message(field: CarField, plateCountry: PlateCountry): String = when (this) {
-    FieldError.Required -> stringResource(R.string.error_required)
+private fun CarFieldError.message(field: CarField, plateCountry: PlateCountry): String = when (this) {
+    Required -> stringResource(R.string.error_required)
 
-    is FieldError.TooLong -> stringResource(R.string.error_too_long, maxLength)
+    is TooLong -> stringResource(R.string.error_too_long, maxLength)
 
-    FieldError.Invalid -> when (field) {
+    Invalid -> when (field) {
         CarField.YEAR -> stringResource(R.string.error_invalid_year)
         CarField.MILEAGE -> stringResource(R.string.error_invalid_mileage)
         CarField.VIN -> stringResource(R.string.error_invalid_vin)
@@ -500,9 +503,9 @@ private fun CarEditorErrorsPreview() {
                 input = CarFormInput(brand = "Toyota", year = "1850", mileage = "120000", plate = "Д12ВС"),
                 touched = CarField.entries.toSet(),
                 errors = mapOf(
-                    CarField.MODEL to FieldError.Required,
-                    CarField.YEAR to FieldError.Invalid,
-                    CarField.PLATE to FieldError.Invalid
+                    CarField.MODEL to Required,
+                    CarField.YEAR to Invalid,
+                    CarField.PLATE to Invalid
                 )
             ),
             onIntent = {}

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.CarField
+import ru.haykor.carmanager.core.domain.model.CarFieldError
 import ru.haykor.carmanager.core.domain.model.CarFormInput
 import ru.haykor.carmanager.core.domain.model.FieldError
 
@@ -14,7 +15,7 @@ sealed interface CarEditorState {
     data class Form(
         val input: CarFormInput = CarFormInput(),
         val touched: Set<CarField> = emptySet(),
-        val errors: Map<CarField, FieldError> = emptyMap(),
+        val errors: Map<CarField, CarFieldError> = emptyMap(),
         val isSaving: Boolean = false,
         val isNew: Boolean = false
     ) : CarEditorState
@@ -38,7 +39,7 @@ sealed interface CarEditorMutation {
     data class FieldChanged(val field: CarField, val value: String) : CarEditorMutation
     data class FieldBlurred(val field: CarField) : CarEditorMutation
     data object AllFieldsTouched : CarEditorMutation
-    data class ErrorsUpdated(val errors: Map<CarField, FieldError>) : CarEditorMutation
+    data class ErrorsUpdated(val errors: Map<CarField, CarFieldError>) : CarEditorMutation
     data class PlateCountryChanged(val plateCountry: PlateCountry) : CarEditorMutation
     data class SetSaving(val value: Boolean) : CarEditorMutation
     data object SetLoading : CarEditorMutation

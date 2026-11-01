@@ -1,9 +1,11 @@
 package ru.haykor.carmanager.feature.serviceEditor.component
 
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
+import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.domain.model.FieldError
 import ru.haykor.carmanager.core.domain.model.RecordField
+import ru.haykor.carmanager.core.domain.model.RecordFieldError
 import ru.haykor.carmanager.core.domain.model.ServiceCategory
 import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState.Form
@@ -18,7 +20,7 @@ sealed interface ServiceEditorState {
         val car: Car,
         val categories: List<ServiceCategory>,
         val touched: Set<RecordField> = emptySet(),
-        val errors: Map<RecordField, FieldError> = emptyMap(),
+        val errors: Map<RecordField, RecordFieldError> = emptyMap(),
         val isSaving: Boolean = false,
         val mileageConflict: MileageConflict? = null
     ) : ServiceEditorState
@@ -39,6 +41,10 @@ sealed interface ServiceEditorIntent {
     data object BackClicked : ServiceEditorIntent
 }
 
+sealed interface ServiceEditorEvent {
+    data class StorageError(val error: DataError) : ServiceEditorEvent
+}
+
 sealed interface ServiceEditorMutation {
     data class InitialFormLoaded(
         val input: ServiceRecordFormInput,
@@ -49,7 +55,7 @@ sealed interface ServiceEditorMutation {
     data class FieldChanged(val field: RecordField, val value: String) : ServiceEditorMutation
     data class FieldBlurred(val field: RecordField) : ServiceEditorMutation
     data object AllFieldsTouched : ServiceEditorMutation
-    data class ErrorsUpdated(val errors: Map<RecordField, FieldError>) : ServiceEditorMutation
+    data class ErrorsUpdated(val errors: Map<RecordField, RecordFieldError>) : ServiceEditorMutation
 
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorMutation
     data class DatePicked(val date: Long) : ServiceEditorMutation

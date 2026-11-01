@@ -6,13 +6,14 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import ru.haykor.carmanager.core.domain.model.CarDraft
 import ru.haykor.carmanager.core.domain.model.CarField
+import ru.haykor.carmanager.core.domain.model.CarFieldError
 import ru.haykor.carmanager.core.domain.model.CarFormInput
 import ru.haykor.carmanager.core.domain.model.FieldError
 
 @Inject
 class CarDraftParser(private val plateFormats: PlateFormats, private val clock: Clock) {
 
-    fun validate(input: CarFormInput): Map<CarField, FieldError> {
+    fun validate(input: CarFormInput): Map<CarField, CarFieldError> {
         val normalized = input.normalized()
         val plateFormat = plateFormats.of(normalized.plateCountry)
 
@@ -91,5 +92,5 @@ class CarDraftParser(private val plateFormats: PlateFormats, private val clock: 
 
 sealed interface CarParseResult {
     data class Valid(val draft: CarDraft) : CarParseResult
-    data class Invalid(val errors: Map<CarField, FieldError>) : CarParseResult
+    data class Invalid(val errors: Map<CarField, CarFieldError>) : CarParseResult
 }

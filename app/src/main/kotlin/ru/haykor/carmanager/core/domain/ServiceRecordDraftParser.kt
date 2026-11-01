@@ -1,15 +1,17 @@
 package ru.haykor.carmanager.core.domain
 
 import dev.zacsweers.metro.Inject
+import kotlin.collections.isNotEmpty
 import ru.haykor.carmanager.core.domain.model.FieldError
 import ru.haykor.carmanager.core.domain.model.RecordField
+import ru.haykor.carmanager.core.domain.model.RecordFieldError
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDraft
 import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
 
 @Inject
 class ServiceRecordDraftParser {
 
-    fun validate(input: ServiceRecordFormInput): Map<RecordField, FieldError> {
+    fun validate(input: ServiceRecordFormInput): Map<RecordField, RecordFieldError> {
         val normalized = input.normalized()
 
         val validators = mapOf(
@@ -64,5 +66,5 @@ class ServiceRecordDraftParser {
 
 sealed interface ServiceRecordParseResult {
     data class Valid(val draft: ServiceRecordDraft) : ServiceRecordParseResult
-    data class Invalid(val errors: Map<RecordField, FieldError>) : ServiceRecordParseResult
+    data class Invalid(val errors: Map<RecordField, RecordFieldError>) : ServiceRecordParseResult
 }
