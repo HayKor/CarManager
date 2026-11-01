@@ -288,10 +288,10 @@ private fun ServiceRecordCard(
     modifier: Modifier = Modifier,
     shape: Shape = CardDefaults.elevatedShape
 ) {
-    ElevatedCard(
+    Card(
         onClick = onClick,
         shape = shape,
-        colors = CardDefaults.elevatedCardColors(
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
         modifier = modifier.fillMaxWidth()

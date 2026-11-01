@@ -12,11 +12,11 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.serialization.Serializable
 import ru.haykor.carmanager.core.domain.CarId
+import ru.haykor.carmanager.core.domain.model.EditorMode
 import ru.haykor.carmanager.feature.car.component.CarComponent
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.main.component.MainComponent
-import ru.haykor.carmanager.feature.serviceEditor.component.EditorMode
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
 
 class DefaultRootComponent(

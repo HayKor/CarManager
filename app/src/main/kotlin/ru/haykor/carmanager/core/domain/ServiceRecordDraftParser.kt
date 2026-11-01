@@ -1,8 +1,6 @@
 package ru.haykor.carmanager.core.domain
 
 import dev.zacsweers.metro.Inject
-import kotlin.collections.isNotEmpty
-import ru.haykor.carmanager.core.domain.model.FieldError
 import ru.haykor.carmanager.core.domain.model.RecordField
 import ru.haykor.carmanager.core.domain.model.RecordFieldError
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDraft

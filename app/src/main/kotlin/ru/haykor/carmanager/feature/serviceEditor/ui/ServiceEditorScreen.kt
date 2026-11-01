@@ -75,6 +75,7 @@ import ru.haykor.carmanager.R
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
 import ru.haykor.carmanager.core.domain.model.Car
+import ru.haykor.carmanager.core.domain.model.EditorMode
 import ru.haykor.carmanager.core.domain.model.Invalid
 import ru.haykor.carmanager.core.domain.model.MileageOutOfSequence
 import ru.haykor.carmanager.core.domain.model.RecordField
@@ -87,7 +88,6 @@ import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
 import ru.haykor.carmanager.core.presentation.ui.CarCard
 import ru.haykor.carmanager.core.presentation.ui.FormTextField
 import ru.haykor.carmanager.core.presentation.ui.toUiText
-import ru.haykor.carmanager.feature.serviceEditor.component.EditorMode
 import ru.haykor.carmanager.feature.serviceEditor.component.MileageConflict
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorEvent
@@ -448,7 +448,7 @@ private fun DatePickerField(date: Long, enabled: Boolean, onDatePicked: (Long) -
         trailingIcon = {
             IconButton(onClick = { showDatePicker = true }, enabled = enabled) {
                 Icon(
-                    painter = painterResource(R.drawable.calendar),
+                    painter = painterResource(R.drawable.calendar_month),
                     contentDescription = stringResource(R.string.service_editor_date)
                 )
             }

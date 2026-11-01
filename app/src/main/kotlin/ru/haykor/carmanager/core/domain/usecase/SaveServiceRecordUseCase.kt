@@ -6,6 +6,7 @@ import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceRecordDraftParser
 import ru.haykor.carmanager.core.domain.ServiceRecordParseResult
 import ru.haykor.carmanager.core.domain.error.DataError
+import ru.haykor.carmanager.core.domain.model.EditorMode
 import ru.haykor.carmanager.core.domain.model.MileageOutOfSequence
 import ru.haykor.carmanager.core.domain.model.RecordField
 import ru.haykor.carmanager.core.domain.model.RecordFieldError
@@ -17,7 +18,6 @@ import ru.haykor.carmanager.core.result.DataResult
 import ru.haykor.carmanager.core.result.EmptyResult
 import ru.haykor.carmanager.core.result.getOrReturn
 import ru.haykor.carmanager.core.result.mapError
-import ru.haykor.carmanager.feature.serviceEditor.component.EditorMode
 
 enum class MileageResolution {
     ASK, // shows dialog if mismatch ([atMileage] < [car.mileage])

@@ -14,11 +14,11 @@ import ru.haykor.carmanager.core.domain.fixtures.aCategory
 import ru.haykor.carmanager.core.domain.fixtures.aRecord
 import ru.haykor.carmanager.core.domain.fixtures.recordParser
 import ru.haykor.carmanager.core.domain.model.Car
+import ru.haykor.carmanager.core.domain.model.EditorMode
 import ru.haykor.carmanager.core.domain.model.ServiceRecord
 import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
 import ru.haykor.carmanager.core.result.DataResult
 import ru.haykor.carmanager.core.result.EmptyResult
-import ru.haykor.carmanager.feature.serviceEditor.component.EditorMode
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SaveServiceRecordUseCaseTest {
