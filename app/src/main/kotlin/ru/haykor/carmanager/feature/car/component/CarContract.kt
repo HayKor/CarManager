@@ -1,21 +1,34 @@
 package ru.haykor.carmanager.feature.car.component
 
-import androidx.compose.runtime.Stable
+import androidx.compose.runtime.Immutable
+import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.Car
-import ru.haykor.carmanager.feature.car.component.CarState.Content
-import ru.haykor.carmanager.feature.car.component.CarState.Loading
-import ru.haykor.carmanager.feature.car.component.CarState.NotFound
+import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 
-@Stable
-sealed interface CarState {
-    data object Loading : CarState
-    data object NotFound : CarState
-    data class Content(val car: Car, val isShowDialog: Boolean = false, val isDeleting: Boolean = false) : CarState
+@Immutable
+data class CarState(
+    val carSection: CarSection = CarSection.Loading,
+    val recordsSection: RecordsSection = RecordsSection.Loading,
+    val isShowDialog: Boolean = false,
+    val isDeleting: Boolean = false
+)
+
+sealed interface CarSection {
+    data object Loading : CarSection
+    data object NotFound : CarSection
+    data class Loaded(val car: Car) : CarSection
+}
+
+sealed interface RecordsSection {
+    data object Loading : RecordsSection
+    data class Loaded(val records: List<ServiceRecordDetails>) : RecordsSection
 }
 
 sealed interface CarIntent {
     data object EditCarClicked : CarIntent
+    data class RecordClicked(val recordId: ServiceRecordId) : CarIntent
+    data object CreateRecordClicked : CarIntent
     data object BackClicked : CarIntent
 
     data object DeleteClicked : CarIntent
@@ -28,9 +41,9 @@ sealed interface CarEvent {
 }
 
 sealed interface CarMutation {
-    data object NotFound : CarMutation
-    data object LoadingStarted : CarMutation
+    data object CarNotFound : CarMutation
     data class CarLoaded(val car: Car) : CarMutation
+    data class RecordsLoaded(val records: List<ServiceRecordDetails>) : CarMutation
 
     data class SetShowDialog(val value: Boolean) : CarMutation
     data class SetIsDeleting(val value: Boolean) : CarMutation
@@ -38,20 +51,20 @@ sealed interface CarMutation {
 
 object CarReducer {
     fun reduce(state: CarState, mutation: CarMutation): CarState = when (mutation) {
-        is CarMutation.CarLoaded -> Content(mutation.car)
+        is CarMutation.CarLoaded -> state.copy(carSection = CarSection.Loaded(mutation.car))
 
-        CarMutation.NotFound -> {
-            if (state is Content && state.isDeleting) state else NotFound
+        is CarMutation.RecordsLoaded -> state.copy(recordsSection = RecordsSection.Loaded(mutation.records))
+
+        CarMutation.CarNotFound -> {
+            if (state.isDeleting) state else state.copy(carSection = CarSection.NotFound)
         }
 
-        CarMutation.LoadingStarted -> Loading
-
         is CarMutation.SetIsDeleting -> {
-            (state as? Content)?.copy(isDeleting = mutation.value) ?: state
+            state.copy(isDeleting = mutation.value)
         }
 
         is CarMutation.SetShowDialog -> {
-            (state as? Content)?.copy(isShowDialog = mutation.value) ?: state
+            state.copy(isShowDialog = mutation.value)
         }
     }
 }

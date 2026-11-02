@@ -24,9 +24,9 @@ import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.fixtures.FakeCarRepository
 import ru.haykor.carmanager.core.domain.fixtures.aCar
 import ru.haykor.carmanager.core.domain.fixtures.allRequiredErrors
-import ru.haykor.carmanager.core.domain.fixtures.parser
+import ru.haykor.carmanager.core.domain.fixtures.carParser
 import ru.haykor.carmanager.core.domain.mapper.toFormInput
-import ru.haykor.carmanager.core.domain.model.Field
+import ru.haykor.carmanager.core.domain.model.CarField
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultCarEditorComponentTest {
@@ -105,7 +105,7 @@ class DefaultCarEditorComponentTest {
     @Test
     fun `no errors without blur`() = runTest(dispatcher) {
         val component = createComponent(id = null)
-        component.accept(CarEditorIntent.FieldChanged(Field.BRAND, ""))
+        component.accept(CarEditorIntent.FieldChanged(CarField.BRAND, ""))
         val state = component.state.value
         assertIs<CarEditorState.Form>(state)
         assertEquals(0, state.errors.size)
@@ -114,21 +114,21 @@ class DefaultCarEditorComponentTest {
     @Test
     fun `only related errors after blur`() = runTest(dispatcher) {
         val component = createComponent(id = null)
-        component.accept(CarEditorIntent.FieldBlurred(Field.BRAND))
+        component.accept(CarEditorIntent.FieldBlurred(CarField.BRAND))
         val state = component.state.value
         assertIs<CarEditorState.Form>(state)
-        assertContains(state.errors, Field.BRAND)
-        assertFalse(Field.MODEL in state.errors)
+        assertContains(state.errors, CarField.BRAND)
+        assertFalse(CarField.MODEL in state.errors)
     }
 
     @Test
     fun `changing value in error field fixes error`() = runTest(dispatcher) {
         val component = createComponent(id = null)
-        component.accept(CarEditorIntent.FieldBlurred(Field.BRAND))
-        component.accept(CarEditorIntent.FieldChanged(Field.BRAND, "Aaaa"))
+        component.accept(CarEditorIntent.FieldBlurred(CarField.BRAND))
+        component.accept(CarEditorIntent.FieldChanged(CarField.BRAND, "Aaaa"))
         val state = component.state.value
         assertIs<CarEditorState.Form>(state)
-        assertFalse(Field.BRAND in state.errors)
+        assertFalse(CarField.BRAND in state.errors)
     }
 
     @Test
@@ -193,10 +193,10 @@ class DefaultCarEditorComponentTest {
 
     private fun fillForm(component: CarEditorComponent) {
         component.run {
-            accept(CarEditorIntent.FieldChanged(Field.BRAND, "Nissan"))
-            accept(CarEditorIntent.FieldChanged(Field.MODEL, "Qashqai"))
-            accept(CarEditorIntent.FieldChanged(Field.YEAR, "2010"))
-            accept(CarEditorIntent.FieldChanged(Field.MILEAGE, "10000"))
+            accept(CarEditorIntent.FieldChanged(CarField.BRAND, "Nissan"))
+            accept(CarEditorIntent.FieldChanged(CarField.MODEL, "Qashqai"))
+            accept(CarEditorIntent.FieldChanged(CarField.YEAR, "2010"))
+            accept(CarEditorIntent.FieldChanged(CarField.MILEAGE, "10000"))
         }
     }
 
@@ -205,7 +205,7 @@ class DefaultCarEditorComponentTest {
             componentContext = DefaultComponentContext(lifecycleRegistry),
             id = id,
             carRepository = carRepository,
-            parser = parser,
+            parser = carParser,
             onBack = { closeCount++ }
         )
 
