@@ -27,10 +27,11 @@ import ru.haykor.carmanager.core.result.EmptyResult
 class DefaultServiceRecordRepository(private val recordDao: ServiceRecordDao, private val clock: Clock) :
     ServiceRecordRepository {
 
-    override suspend fun create(draft: ServiceRecordDraft): EmptyResult<DataError> = safeCall {
+    override suspend fun create(draft: ServiceRecordDraft): DataResult<ServiceRecordId, DataError> = safeCall {
         val id = ServiceRecordId.random()
         val now = clock.now().toEpochMilliseconds()
         recordDao.insert(draft.toEntity(id, createdAt = now, updatedAt = now))
+        return@safeCall id
     }
 
     override suspend fun update(id: ServiceRecordId, draft: ServiceRecordDraft): EmptyResult<DataError> = safeCall {

@@ -12,7 +12,7 @@ import ru.haykor.carmanager.core.result.EmptyResult
 
 interface ServiceRecordRepository {
 
-    suspend fun create(draft: ServiceRecordDraft): EmptyResult<DataError>
+    suspend fun create(draft: ServiceRecordDraft): DataResult<ServiceRecordId, DataError>
     suspend fun update(id: ServiceRecordId, draft: ServiceRecordDraft): EmptyResult<DataError>
     suspend fun delete(id: ServiceRecordId): EmptyResult<DataError>
 

@@ -27,12 +27,12 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
     val updatedCars = mutableListOf<Pair<CarId, Long?>>()
     val updated = mutableListOf<Pair<ServiceRecordId, ServiceRecordDraft>>()
 
-    override suspend fun create(draft: ServiceRecordDraft): EmptyResult<DataError> {
+    override suspend fun create(draft: ServiceRecordDraft): DataResult<ServiceRecordId, DataError> {
         created.add(draft)
 
         val record = draft.toDomain()
         records.update { it + (record.id to record) }
-        return DataResult.Success(Unit)
+        return DataResult.Success(record.id)
     }
 
     override suspend fun update(id: ServiceRecordId, draft: ServiceRecordDraft): EmptyResult<DataError> {
