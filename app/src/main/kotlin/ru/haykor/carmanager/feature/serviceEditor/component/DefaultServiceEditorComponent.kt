@@ -11,6 +11,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.haykor.carmanager.core.domain.model.EditorMode
+import ru.haykor.carmanager.core.domain.repository.ServiceRecordRepository
 import ru.haykor.carmanager.core.domain.usecase.GetInitialServiceEditorDataUseCase
 import ru.haykor.carmanager.core.domain.usecase.MileageResolution
 import ru.haykor.carmanager.core.domain.usecase.SaveRecordError
@@ -31,6 +32,7 @@ class DefaultServiceEditorComponent(
     override val editorMode: EditorMode,
     private val getInitialServiceEditorData: GetInitialServiceEditorDataUseCase,
     private val saveServiceRecord: SaveServiceRecordUseCase,
+    private val recordRepo: ServiceRecordRepository,
     private val onBack: () -> Unit
 ) : ServiceEditorComponent,
     ComponentContext by componentContext {
@@ -57,6 +59,10 @@ class DefaultServiceEditorComponent(
         ServiceEditorIntent.SaveClicked -> {
             reduce(AllFieldsTouched)
             trySaveRecord()
+        }
+
+        ServiceEditorIntent.DeleteClicked -> {
+            delete()
         }
 
         ServiceEditorIntent.UpdateCarMileageClicked -> {
@@ -136,6 +142,24 @@ class DefaultServiceEditorComponent(
         }
     }
 
+    private fun delete() {
+        if (editorMode !is EditorMode.Edit) return // can only delete an existing record
+        val form = (state.value as? ServiceEditorState.Form) ?: return
+        if (form.isDeleting) return
+
+        reduce(ServiceEditorMutation.SetIsDeleting(true))
+        scope.launch {
+            when (val result = recordRepo.delete(id = editorMode.recordId)) {
+                is DataResult.Success -> onBack()
+
+                is DataResult.Failure -> {
+                    _events.send(ServiceEditorEvent.DeleteFailed(result.error))
+                }
+            }
+            reduce(ServiceEditorMutation.SetIsDeleting(false))
+        }
+    }
+
     private fun reduce(mutation: ServiceEditorMutation) {
         state.update { ServiceEditorReducer.reduce(it, mutation) }
     }
@@ -145,7 +169,8 @@ class DefaultServiceEditorComponent(
 @ContributesBinding(AppScope::class)
 class DefaultServiceEditorComponentFactory(
     private val getInitialServiceEditorData: GetInitialServiceEditorDataUseCase,
-    private val saveServiceRecord: SaveServiceRecordUseCase
+    private val saveServiceRecord: SaveServiceRecordUseCase,
+    private val recordRepo: ServiceRecordRepository
 ) : ServiceEditorComponent.Factory {
 
     override fun create(ctx: ComponentContext, mode: EditorMode, onBack: () -> Unit): ServiceEditorComponent =
@@ -154,6 +179,7 @@ class DefaultServiceEditorComponentFactory(
             editorMode = mode,
             getInitialServiceEditorData = getInitialServiceEditorData,
             saveServiceRecord = saveServiceRecord,
+            recordRepo = recordRepo,
             onBack = onBack
         )
 }

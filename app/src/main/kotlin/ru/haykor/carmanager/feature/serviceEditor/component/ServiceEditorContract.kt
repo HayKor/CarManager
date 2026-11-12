@@ -3,7 +3,6 @@ package ru.haykor.carmanager.feature.serviceEditor.component
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
 import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.Car
-import ru.haykor.carmanager.core.domain.model.FieldError
 import ru.haykor.carmanager.core.domain.model.RecordField
 import ru.haykor.carmanager.core.domain.model.RecordFieldError
 import ru.haykor.carmanager.core.domain.model.ServiceCategory
@@ -22,6 +21,7 @@ sealed interface ServiceEditorState {
         val touched: Set<RecordField> = emptySet(),
         val errors: Map<RecordField, RecordFieldError> = emptyMap(),
         val isSaving: Boolean = false,
+        val isDeleting: Boolean = false,
         val mileageConflict: MileageConflict? = null
     ) : ServiceEditorState
 }
@@ -34,6 +34,7 @@ sealed interface ServiceEditorIntent {
     data class DatePicked(val date: Long) : ServiceEditorIntent
 
     data object SaveClicked : ServiceEditorIntent
+    data object DeleteClicked : ServiceEditorIntent
     data object UpdateCarMileageClicked : ServiceEditorIntent
     data object KeepCarMileageClicked : ServiceEditorIntent
     data object DismissSaveClicked : ServiceEditorIntent
@@ -43,6 +44,7 @@ sealed interface ServiceEditorIntent {
 
 sealed interface ServiceEditorEvent {
     data class StorageError(val error: DataError) : ServiceEditorEvent
+    data class DeleteFailed(val error: DataError) : ServiceEditorEvent
 }
 
 sealed interface ServiceEditorMutation {
@@ -61,6 +63,7 @@ sealed interface ServiceEditorMutation {
     data class DatePicked(val date: Long) : ServiceEditorMutation
 
     data class SetIsSaving(val value: Boolean) : ServiceEditorMutation
+    data class SetIsDeleting(val value: Boolean) : ServiceEditorMutation
     data object SetNotFound : ServiceEditorMutation
 
     data class MileageConflictDetected(val conflict: MileageConflict) : ServiceEditorMutation
@@ -109,6 +112,10 @@ object ServiceEditorReducer {
         }
 
         is ServiceEditorMutation.SetIsSaving -> {
+            (state as? Form)?.copy(isSaving = mutation.value) ?: state
+        }
+
+        is ServiceEditorMutation.SetIsDeleting -> {
             (state as? Form)?.copy(isSaving = mutation.value) ?: state
         }
 

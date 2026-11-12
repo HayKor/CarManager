@@ -74,6 +74,7 @@ import java.util.Locale
 import ru.haykor.carmanager.R
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
+import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.domain.model.EditorMode
 import ru.haykor.carmanager.core.domain.model.Invalid
@@ -106,6 +107,10 @@ fun ServiceEditorScreen(component: ServiceEditorComponent, modifier: Modifier = 
     ObserveAsEvents(component.events) { event ->
         when (event) {
             is ServiceEditorEvent.StorageError -> {
+                Toast.makeText(context, event.error.toUiText(), Toast.LENGTH_SHORT).show()
+            }
+
+            is ServiceEditorEvent.DeleteFailed -> {
                 Toast.makeText(context, event.error.toUiText(), Toast.LENGTH_SHORT).show()
             }
         }
@@ -150,6 +155,16 @@ internal fun ServiceEditorContent(
                             painter = painterResource(R.drawable.chevron_left),
                             contentDescription = stringResource(R.string.go_back)
                         )
+                    }
+                },
+                actions = {
+                    if (editorMode is EditorMode.Edit) {
+                        IconButton(onClick = { onIntent(ServiceEditorIntent.DeleteClicked) }) {
+                            Icon(
+                                painter = painterResource(R.drawable.delete),
+                                contentDescription = null
+                            )
+                        }
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -697,4 +712,45 @@ private fun ServiceEditorDialogPreview() = AppTheme {
         editorMode = EditorMode.Create(carId),
         onIntent = {}
     )
+}
+
+@Preview(name = "Edit service record", showBackground = true)
+@Preview(name = "Edit service record · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ServiceEditorEditPreview() {
+    val carId = CarId("car-id")
+    val recordId = ServiceRecordId("record-id")
+    val categoryId = ServiceCategoryId("category-preview")
+    AppTheme {
+        ServiceEditorContent(
+            state = Form(
+                input = ServiceRecordFormInput(
+                    carId = carId,
+                    categoryId = categoryId,
+                    atMileage = "120000",
+                    price = "1500",
+                    date = System.currentTimeMillis()
+                ),
+                car = Car(
+                    id = carId,
+                    brand = "Toyota",
+                    model = "Camry",
+                    year = 2018,
+                    note = null,
+                    vin = null,
+                    plateCountry = null,
+                    plate = null,
+                    mileage = 120000,
+                    photoUri = null,
+                    createdAt = 0,
+                    updatedAt = 0
+                ),
+                categories = listOf(
+                    ServiceCategory(categoryId, "Maintenance")
+                )
+            ),
+            editorMode = EditorMode.Edit(recordId),
+            onIntent = {}
+        )
+    }
 }
