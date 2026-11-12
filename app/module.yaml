@@ -1,4 +1,6 @@
-product: android/app
+product:
+  type: kmp/lib
+  platforms: [ android ]
 
 dependencies:
   - bom: $libs.androidx.compose.bom
@@ -12,15 +14,13 @@ dependencies:
   - $libs.androidx.room.runtime
   - $libs.androidx.sqlite.bundled
 
+dependencies@android: 
+  - $compose.uiTooling
+
 test-dependencies:
   - $libs.junit
   - $kotlin.test
   - $libs.kotlinx.coroutines.test
-
-test-dependencies@android:
-  - bom: $libs.androidx.compose.bom
-  - $libs.androidx.junit
-  - $libs.androidx.espresso.core
 
 apply:
   - //common.module-template.yaml
@@ -49,12 +49,3 @@ settings:
 
   android:
     namespace: ru.haykor.carmanager
-    applicationId: ru.haykor.carmanager
-    versionCode: 1
-    versionName: "1.0"
-    minSdk: 26
-    compileSdk: 37
-    targetSdk: 36
-    resourcePackaging:
-      excludes:
-        - /META-INF/{AL2.0,LGPL2.1}

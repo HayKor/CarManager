@@ -1,0 +1,30 @@
+product: android/app
+
+dependencies: 
+  - //app
+
+test-dependencies:
+  - $libs.junit
+  - $kotlin.test
+  - $libs.kotlinx.coroutines.test
+  - $libs.androidx.room.runtime
+  - $libs.androidx.sqlite.bundled
+  - $libs.androidx.junit
+  - $libs.androidx.espresso.core
+
+apply: 
+  - //common.module-template.yaml
+  - //metro.module-template.yaml
+
+settings:
+  android:
+    namespace: ru.haykor.carmanager.debug
+    applicationId: ru.haykor.carmanager.debug
+    versionCode: 1
+    versionName: "1.0"
+    minSdk: 26
+    compileSdk: 37
+    targetSdk: 36
+    resourcePackaging:
+      excludes:
+        - /META-INF/{AL2.0,LGPL2.1}
