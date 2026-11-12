@@ -34,6 +34,11 @@ inline fun <D, E : AppError> DataResult<D, E>.getOrElse(onFailure: (E) -> D): D 
     is DataResult.Failure -> onFailure(error)
 }
 
+inline fun <D, E : AppError> DataResult<D, E>.getOrReturn(onFailure: (E) -> Nothing): D = when (this) {
+    is DataResult.Success -> data
+    is DataResult.Failure -> onFailure(error)
+}
+
 inline fun <D, E : AppError> DataResult<D, E>.getOrNull(): D? = when (this) {
     is DataResult.Success -> data
     is DataResult.Failure -> null

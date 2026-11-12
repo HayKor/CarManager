@@ -8,8 +8,8 @@ import androidx.room3.Transaction
 import androidx.room3.Update
 import kotlinx.coroutines.flow.Flow
 import ru.haykor.carmanager.core.data.local.entity.car.CarEntity
-import ru.haykor.carmanager.core.data.local.entity.car.CarUpdate
 import ru.haykor.carmanager.core.data.local.entity.car.CarWithRecords
+import ru.haykor.carmanager.core.data.model.CarUpdate
 import ru.haykor.carmanager.core.domain.CarId
 
 @Dao

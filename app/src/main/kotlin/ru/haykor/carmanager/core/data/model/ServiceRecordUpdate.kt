@@ -1,4 +1,4 @@
-package ru.haykor.carmanager.core.data.local.entity.service
+package ru.haykor.carmanager.core.data.model
 
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceCategoryId

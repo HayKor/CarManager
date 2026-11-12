@@ -4,4 +4,4 @@ import ru.haykor.carmanager.core.domain.CarDraftParser
 import ru.haykor.carmanager.core.domain.PlateFormats
 import ru.haykor.carmanager.core.domain.RussianPlateFormat
 
-internal val parser = CarDraftParser(PlateFormats(setOf(RussianPlateFormat())), clock)
+internal val carParser = CarDraftParser(PlateFormats(setOf(RussianPlateFormat())), clock)

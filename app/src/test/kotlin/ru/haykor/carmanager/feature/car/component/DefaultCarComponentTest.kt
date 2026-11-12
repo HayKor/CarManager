@@ -5,7 +5,6 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import junit.framework.TestCase.assertTrue
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertIs
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,7 +20,10 @@ import org.junit.Test
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.fixtures.FakeCarRepository
+import ru.haykor.carmanager.core.domain.fixtures.FakeServiceRecordRepository
 import ru.haykor.carmanager.core.domain.fixtures.aCar
+import ru.haykor.carmanager.core.domain.fixtures.aCategory
+import ru.haykor.carmanager.core.domain.fixtures.aRecord
 import ru.haykor.carmanager.core.domain.usecase.DeleteCarUseCase
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -29,6 +31,7 @@ class DefaultCarComponentTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val carRepository = FakeCarRepository(listOf(defaultCar))
+    private val recordRepository = FakeServiceRecordRepository(listOf(defaultRecord), defaultCategory)
     private val deleteCar = DeleteCarUseCase(carRepository)
     private var closeCount: Int = 0
 
@@ -73,7 +76,6 @@ class DefaultCarComponentTest {
             accept(CarIntent.DeleteConfirmed)
         }
         val state = component.state.value
-        assertIs<CarState.Content>(state)
         assertFalse(state.isShowDialog)
     }
 
@@ -95,7 +97,6 @@ class DefaultCarComponentTest {
         // Assert
         val state = component.state.value
         assertEquals(1, carRepository.deleted.size)
-        assertIs<CarState.Content>(state)
         assertTrue(state.isDeleting)
         assertEquals(0, closeCount)
 
@@ -122,24 +123,28 @@ class DefaultCarComponentTest {
         }
 
         val state = component.state.value
-        assertIs<CarState.Content>(state)
         assertFalse(state.isShowDialog)
         assertFalse(state.isDeleting)
         assertEquals(0, closeCount)
-        assertEquals<List<CarEvent>>(listOf(CarEvent.DeleteFailed(dataError)), events)
+        assertEquals(listOf<CarEvent>(CarEvent.DeleteFailed(dataError)), events)
     }
 
     private fun createComponent(id: CarId = defaultCar.id, lifecycleRegistry: LifecycleRegistry = LifecycleRegistry()) =
         DefaultCarComponent(
             componentContext = DefaultComponentContext(lifecycleRegistry),
-            repository = carRepository,
+            carRepository = carRepository,
+            recordRepository = recordRepository,
             deleteCar = deleteCar,
             id = id,
             onBack = { closeCount++ },
-            onOpenEdit = {}
+            onOpenEdit = {},
+            onOpenRecord = {},
+            onOpenCreateRecord = {}
         )
 
     private companion object {
         val defaultCar = aCar()
+        val defaultCategory = aCategory()
+        val defaultRecord = aRecord(carId = defaultCar.id)
     }
 }
