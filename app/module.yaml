@@ -1,0 +1,60 @@
+product: android/app
+
+dependencies:
+  - bom: $libs.androidx.compose.bom
+  - $libs.androidx.activity.compose
+  - $libs.androidx.compose.material3
+  - $compose.preview
+  - $libs.androidx.lifecycle.runtime.ktx
+  - $libs.kotlinx.datetime
+  - $libs.decompose
+  - $libs.decompose.extensions.compose
+  - $libs.androidx.room.runtime
+  - $libs.androidx.sqlite.bundled
+
+test-dependencies:
+  - $libs.junit
+  - $kotlin.test
+  - $libs.kotlinx.coroutines.test
+
+test-dependencies@android:
+  - bom: $libs.androidx.compose.bom
+  - $libs.androidx.junit
+  - $libs.androidx.espresso.core
+
+apply:
+  - //common.module-template.yaml
+  - //metro.module-template.yaml
+
+settings:
+  compose:
+    enabled: true
+    resources:
+      packageName: ru.haykor.carmanager
+  kotlin:
+    ksp:
+      processors:
+        - $libs.androidx.room.compiler
+      processorOptions:
+        room.schemaLocation: ./schemas
+    serialization:
+      enabled: true
+    freeCompilerArgs:
+      - -XXLanguage:+ExplicitBackingFields
+    compilerPlugins:
+      - id: dev.zacsweers.metro.compiler
+        dependency: $libs.metro.compiler
+#        options:
+#          enabled: true
+
+  android:
+    namespace: ru.haykor.carmanager
+    applicationId: ru.haykor.carmanager
+    versionCode: 1
+    versionName: "1.0"
+    minSdk: 26
+    compileSdk: 37
+    targetSdk: 36
+    resourcePackaging:
+      excludes:
+        - /META-INF/{AL2.0,LGPL2.1}
