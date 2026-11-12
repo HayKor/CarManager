@@ -11,6 +11,7 @@ settings:
   android:
     namespace: ru.haykor.carmanager.release
     applicationId: ru.haykor.carmanager
+    signing: enabled
     versionCode: 1
     versionName: "1.0"
     minSdk: 26
