@@ -15,6 +15,8 @@ import ru.haykor.carmanager.core.domain.fixtures.aRecord
 import ru.haykor.carmanager.core.domain.fixtures.recordParser
 import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.domain.model.EditorMode
+import ru.haykor.carmanager.core.domain.model.MileageOutOfSequence
+import ru.haykor.carmanager.core.domain.model.RecordField
 import ru.haykor.carmanager.core.domain.model.ServiceRecord
 import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
 import ru.haykor.carmanager.core.result.DataResult
@@ -147,7 +149,7 @@ class SaveServiceRecordUseCaseTest {
 
         val result = sut.create(atMileage = 4_000L, date = 5L)
 
-        val error = assertFailure<SaveRecordError.MileageOutOfSequence>(result)
+        val error = assertMileageOutOfSequence(result)
         assertEquals(5_000L, error.min)
         assertEquals(10_000L, error.max)
         assertEquals(4_000L, error.recordMileage)
@@ -160,7 +162,7 @@ class SaveServiceRecordUseCaseTest {
 
         val result = sut.create(atMileage = 11_000L, date = 5L)
 
-        assertFailure<SaveRecordError.MileageOutOfSequence>(result)
+        assertMileageOutOfSequence(result)
         sut.assertNothingPersisted()
     }
 
@@ -182,7 +184,7 @@ class SaveServiceRecordUseCaseTest {
 
         val result = sut.create(atMileage = 7_000L, date = 1L)
 
-        assertFailure<SaveRecordError.MileageOutOfSequence>(result)
+        assertMileageOutOfSequence(result)
     }
 
     @Test
@@ -265,7 +267,7 @@ class SaveServiceRecordUseCaseTest {
 
         val result = sut.edit(low, atMileage = 11_000L)
 
-        val error = assertFailure<SaveRecordError.MileageOutOfSequence>(result)
+        val error = assertMileageOutOfSequence(result)
         assertEquals(null, error.min) // nothing below `low` once itself is excluded
         assertEquals(10_000L, error.max)
         sut.assertNothingPersisted()
@@ -292,7 +294,7 @@ class SaveServiceRecordUseCaseTest {
         // `low` (5_000) moved to day 7, between `mid` (8_000) and `high` (10_000)
         val result = sut.edit(low, atMileage = 5_000L, date = 7L)
 
-        val error = assertFailure<SaveRecordError.MileageOutOfSequence>(result)
+        val error = assertMileageOutOfSequence(result)
         assertEquals(8_000L, error.min)
         assertEquals(10_000L, error.max)
         sut.assertNothingPersisted()
@@ -313,6 +315,11 @@ class SaveServiceRecordUseCaseTest {
         val error = assertFailure<SaveRecordError.FieldErrors>(result)
         assertTrue(error.errors.isNotEmpty())
         sut.assertNothingPersisted()
+    }
+
+    private fun assertMileageOutOfSequence(result: EmptyResult<SaveRecordError>): MileageOutOfSequence {
+        val error = assertFailure<SaveRecordError.FieldErrors>(result)
+        return assertIs<MileageOutOfSequence>(error.errors[RecordField.AT_MILEAGE])
     }
 
     private inline fun <reified E : SaveRecordError> assertFailure(result: EmptyResult<SaveRecordError>): E {

@@ -7,7 +7,9 @@ import ru.haykor.carmanager.core.domain.fixtures.allRequiredErrors
 import ru.haykor.carmanager.core.domain.fixtures.carParser
 import ru.haykor.carmanager.core.domain.model.CarField
 import ru.haykor.carmanager.core.domain.model.CarFormInput
-import ru.haykor.carmanager.core.domain.model.FieldError
+import ru.haykor.carmanager.core.domain.model.Invalid
+import ru.haykor.carmanager.core.domain.model.Required
+import ru.haykor.carmanager.core.domain.model.TooLong
 
 class CarDraftParserTest {
 
@@ -43,7 +45,7 @@ class CarDraftParserTest {
     @Test
     fun `whitespace only brand is required`() {
         assertEquals(
-            FieldError.Required,
+            Required,
             carParser.validate(validInput.copy(brand = "   "))[CarField.BRAND]
         )
     }
@@ -51,7 +53,7 @@ class CarDraftParserTest {
     @Test
     fun `too long brand`() {
         assertEquals(
-            FieldError.TooLong(30),
+            TooLong(30),
             carParser.validate(validInput.copy(brand = "x".repeat(31)))[CarField.BRAND]
         )
     }
@@ -60,15 +62,15 @@ class CarDraftParserTest {
     fun `year range depends on clock`() {
         assertTrue(CarField.YEAR !in carParser.validate(validInput.copy(year = "2027")))
         assertEquals(
-            FieldError.Invalid,
+            Invalid,
             carParser.validate(validInput.copy(year = "2028"))[CarField.YEAR]
         )
         assertEquals(
-            FieldError.Invalid,
+            Invalid,
             carParser.validate(validInput.copy(year = "1899"))[CarField.YEAR]
         )
         assertEquals(
-            FieldError.Invalid,
+            Invalid,
             carParser.validate(validInput.copy(year = "abc"))[CarField.YEAR]
         )
     }
@@ -76,7 +78,7 @@ class CarDraftParserTest {
     @Test
     fun `negative mileage is invalid`() {
         assertEquals(
-            FieldError.Invalid,
+            Invalid,
             carParser.validate(validInput.copy(mileage = "-1"))[CarField.MILEAGE]
         )
     }
@@ -85,11 +87,11 @@ class CarDraftParserTest {
     fun `vin rejects I O Q`() {
         assertTrue(CarField.VIN !in carParser.validate(validInput.copy(vin = "jtdbe32k920123456")))
         assertEquals(
-            FieldError.Invalid,
+            Invalid,
             carParser.validate(validInput.copy(vin = "JTDBE32K92012345O"))[CarField.VIN]
         )
         assertEquals(
-            FieldError.Invalid,
+            Invalid,
             carParser.validate(validInput.copy(vin = "JTDBE32K"))[CarField.VIN]
         )
     }
@@ -103,11 +105,11 @@ class CarDraftParserTest {
     @Test
     fun `plate rejects letters without lookalikes`() {
         assertEquals(
-            FieldError.Invalid,
+            Invalid,
             carParser.validate(validInput.copy(plate = "Д123ВС77"))[CarField.PLATE]
         )
         assertEquals(
-            FieldError.Invalid,
+            Invalid,
             carParser.validate(validInput.copy(plate = "A12BC77"))[CarField.PLATE]
         )
     }
