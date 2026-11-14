@@ -1,0 +1,22 @@
+product: android/app
+
+dependencies: 
+  - //app
+
+apply: 
+  - //common.module-template.yaml
+  - //metro.module-template.yaml
+
+settings:
+  android:
+    namespace: ru.haykor.carmanager.release
+    applicationId: ru.haykor.carmanager
+    signing: enabled
+    versionCode: 1
+    versionName: "1.0"
+    minSdk: 26
+    compileSdk: 37
+    targetSdk: 36
+    resourcePackaging:
+      excludes:
+        - /META-INF/{AL2.0,LGPL2.1}
