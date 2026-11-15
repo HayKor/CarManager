@@ -3,24 +3,27 @@ product:
   platforms: [ android ]
 
 dependencies:
-  - bom: $libs.androidx.compose.bom
+  # modules
+  - //core/common: exported
+  - //core/data
+  - //core/domain: exported
+  - //core/resources
+  - //core/ui
+  - //feature/car: exported
+  - //feature/carEditor: exported
+  - //feature/garage: exported
+  - //feature/serviceEditor: exported
+  # libs
   - $libs.androidx.activity.compose
   - $libs.androidx.compose.material3
-  - $compose.preview
-  - $libs.androidx.lifecycle.runtime.ktx
-  - $libs.kotlinx.datetime
-  - $libs.decompose
+  - $libs.decompose: exported
   - $libs.decompose.extensions.compose
-  - $libs.androidx.room.runtime
-  - $libs.androidx.sqlite.bundled
-
-dependencies@android: 
-  - $compose.uiTooling
 
 test-dependencies:
   - $libs.junit
   - $kotlin.test
   - $libs.kotlinx.coroutines.test
+  - $libs.androidx.sqlite.bundled
 
 apply:
   - //common.module-template.yaml
@@ -29,23 +32,8 @@ apply:
 settings:
   compose:
     enabled: true
-    resources:
-      packageName: ru.haykor.carmanager
   kotlin:
-    ksp:
-      processors:
-        - $libs.androidx.room.compiler
-      processorOptions:
-        room.schemaLocation: ./schemas
     serialization:
       enabled: true
-    freeCompilerArgs:
-      - -XXLanguage:+ExplicitBackingFields
-    compilerPlugins:
-      - id: dev.zacsweers.metro.compiler
-        dependency: $libs.metro.compiler
-#        options:
-#          enabled: true
-
   android:
     namespace: ru.haykor.carmanager

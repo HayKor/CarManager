@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.retainedComponent
 import ru.haykor.carmanager.root.ui.RootContent
-import ru.haykor.carmanager.ui.theme.AppTheme
+import ru.haykor.carmanager.core.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
 

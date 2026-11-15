@@ -2,6 +2,7 @@ product: android/app
 
 dependencies: 
   - //app
+  - //core/data
 
 apply: 
   - //common.module-template.yaml

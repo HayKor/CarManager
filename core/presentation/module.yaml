@@ -1,0 +1,15 @@
+product:
+  type: kmp/lib
+  platforms: [ android ]
+
+apply:
+  - //common.module-template.yaml
+
+dependencies:
+  - $libs.decompose: exported
+  - $libs.kotlinx.coroutines.core: exported
+  - $libs.androidx.lifecycle.runtime.ktx: exported
+  - $libs.androidx.lifecycle.runtime.compose
+
+settings:
+  compose: enabled

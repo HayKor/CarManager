@@ -3,7 +3,7 @@ package ru.haykor.carmanager
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
-import ru.haykor.carmanager.core.StartupTask
+import ru.haykor.carmanager.core.common.StartupTask
 import ru.haykor.carmanager.core.data.local.dao.CarDao
 import ru.haykor.carmanager.core.data.local.dao.ServiceCategoryDao
 import ru.haykor.carmanager.core.data.local.dao.ServiceRecordDao

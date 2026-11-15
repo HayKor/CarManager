@@ -1,0 +1,13 @@
+product:
+  type: kmp/lib
+  platforms: [ android ]
+
+apply:
+  - //common.module-template.yaml
+  - //metro.module-template.yaml
+
+dependencies:
+  - //core/common
+  - //core/result: exported
+  - $libs.kotlinx.coroutines.core: exported
+  - $libs.kotlinx.datetime

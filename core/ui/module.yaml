@@ -1,0 +1,23 @@
+product:
+  type: kmp/lib
+  platforms: [ android ]
+
+apply:
+  - //common.module-template.yaml
+
+dependencies:
+  # modules
+  - //core/design-system
+  - //core/domain: exported
+  - //core/resources
+  # libs
+  - $compose.foundation: exported
+  - $libs.androidx.compose.material3: exported
+  - $compose.ui: exported
+  - $compose.preview
+
+dependencies@android:
+  - $compose.uiTooling
+
+settings:
+  compose: enabled
