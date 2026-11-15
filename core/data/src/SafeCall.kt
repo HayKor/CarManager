@@ -1,9 +1,9 @@
 package ru.haykor.carmanager.core.data
 
 import androidx.sqlite.SQLiteException
-import kotlin.coroutines.cancellation.CancellationException
 import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.result.DataResult
+import kotlin.coroutines.cancellation.CancellationException
 
 suspend inline fun <T> safeCall(block: () -> T): DataResult<T, DataError> = try {
     DataResult.Success(block())

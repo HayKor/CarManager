@@ -1,14 +1,14 @@
 package ru.haykor.carmanager.core.data
 
 import androidx.sqlite.SQLiteException
-import kotlin.coroutines.cancellation.CancellationException
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertSame
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.result.DataResult
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
 
 class SafeCallTest {
 

@@ -14,3 +14,7 @@ modules:
   - feature/carEditor
   - feature/garage
   - feature/serviceEditor
+  - plugins/ktlint
+
+plugins:
+  - //plugins/ktlint

@@ -1,9 +1,9 @@
 package ru.haykor.carmanager.feature.garage.component
 
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
 import org.junit.Test
 import ru.haykor.carmanager.core.domain.fixtures.aCar
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 class GarageReducerTest {
 

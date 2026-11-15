@@ -24,12 +24,12 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
+import ru.haykor.carmanager.core.designsystem.FormTextField
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.model.*
-import ru.haykor.carmanager.core.designsystem.FormTextField
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
-import ru.haykor.carmanager.core.ui.toUiText
 import ru.haykor.carmanager.core.ui.theme.AppTheme
+import ru.haykor.carmanager.core.ui.toUiText
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorEvent
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorIntent
@@ -55,7 +55,6 @@ fun CarEditorScreen(component: CarEditorComponent, modifier: Modifier = Modifier
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CarEditorContent(
     state: CarEditorState,
@@ -261,7 +260,6 @@ private fun CarField(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlateCountryPicker(
     selected: PlateCountry,

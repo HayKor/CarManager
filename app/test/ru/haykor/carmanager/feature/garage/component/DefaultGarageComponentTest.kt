@@ -2,7 +2,6 @@ package ru.haykor.carmanager.feature.garage.component
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import kotlin.test.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -18,6 +17,7 @@ import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.fixtures.FakeCarRepository
 import ru.haykor.carmanager.core.domain.fixtures.aCar
 import ru.haykor.carmanager.core.domain.usecase.SearchCarsUseCase
+import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultGarageComponentTest {

@@ -3,7 +3,6 @@ package ru.haykor.carmanager.core.data.repository
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
-import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.haykor.carmanager.core.data.local.dao.CarDao
@@ -17,6 +16,7 @@ import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.domain.model.CarDraft
 import ru.haykor.carmanager.core.domain.repository.CarRepository
 import ru.haykor.carmanager.core.result.DataResult
+import kotlin.time.Clock
 
 @Inject
 @ContributesBinding(AppScope::class)

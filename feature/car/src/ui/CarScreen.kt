@@ -4,47 +4,13 @@ import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialShapes
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.toShape
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,16 +27,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import ru.haykor.carmanager.Res
-import ru.haykor.carmanager.build
-import ru.haykor.carmanager.cancel
-import ru.haykor.carmanager.car_info_title
-import ru.haykor.carmanager.car_not_found
-import ru.haykor.carmanager.car_not_found_description
-import ru.haykor.carmanager.car_section_details
-import ru.haykor.carmanager.car_section_service_history
-import ru.haykor.carmanager.car_service_history_empty
-import ru.haykor.carmanager.chevron_left
+import ru.haykor.carmanager.*
 import ru.haykor.carmanager.core.designsystem.LicensePlate
 import ru.haykor.carmanager.core.designsystem.rememberAnimatedCardShape
 import ru.haykor.carmanager.core.domain.CarId
@@ -83,32 +40,10 @@ import ru.haykor.carmanager.core.domain.model.ServiceRecord
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
 import ru.haykor.carmanager.core.ui.formatMileage
+import ru.haykor.carmanager.core.ui.theme.AppTheme
 import ru.haykor.carmanager.core.ui.title
 import ru.haykor.carmanager.core.ui.toUiText
-import ru.haykor.carmanager.core.ui.theme.AppTheme
-import ru.haykor.carmanager.delete
-import ru.haykor.carmanager.delete_car_text
-import ru.haykor.carmanager.delete_car_title
-import ru.haykor.carmanager.description_edit
-import ru.haykor.carmanager.edit
-import ru.haykor.carmanager.feature.car.component.CarComponent
-import ru.haykor.carmanager.feature.car.component.CarEvent
-import ru.haykor.carmanager.feature.car.component.CarIntent
-import ru.haykor.carmanager.feature.car.component.CarSection
-import ru.haykor.carmanager.feature.car.component.CarState
-import ru.haykor.carmanager.feature.car.component.RecordsSection
-import ru.haykor.carmanager.field_mileage
-import ru.haykor.carmanager.field_vin
-import ru.haykor.carmanager.go_back
-import ru.haykor.carmanager.keyboard_arrow_right
-import ru.haykor.carmanager.mileage_km
-import ru.haykor.carmanager.more_vert
-import ru.haykor.carmanager.not_specified
-import ru.haykor.carmanager.notes
-import ru.haykor.carmanager.pin
-import ru.haykor.carmanager.plus
-import ru.haykor.carmanager.show_less
-import ru.haykor.carmanager.show_more
+import ru.haykor.carmanager.feature.car.component.*
 
 // region composables
 @Composable
@@ -131,7 +66,6 @@ fun CarScreen(component: CarComponent, modifier: Modifier = Modifier) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CarContent(state: CarState, onIntent: (CarIntent) -> Unit, modifier: Modifier = Modifier) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()

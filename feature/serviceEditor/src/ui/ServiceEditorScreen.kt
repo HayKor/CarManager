@@ -3,50 +3,13 @@ package ru.haykor.carmanager.feature.serviceEditor.ui
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -62,71 +25,27 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import ru.haykor.carmanager.*
+import ru.haykor.carmanager.core.designsystem.FormTextField
+import ru.haykor.carmanager.core.domain.CarId
+import ru.haykor.carmanager.core.domain.ServiceCategoryId
+import ru.haykor.carmanager.core.domain.ServiceRecordId
+import ru.haykor.carmanager.core.domain.model.*
+import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
+import ru.haykor.carmanager.core.ui.CarCard
+import ru.haykor.carmanager.core.ui.theme.AppTheme
+import ru.haykor.carmanager.core.ui.toUiText
+import ru.haykor.carmanager.feature.serviceEditor.component.*
+import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState.Form
 import java.text.DateFormat
 import java.text.NumberFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
-import java.util.Date
-import java.util.Locale
-import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
-import ru.haykor.carmanager.Res
-import ru.haykor.carmanager.calendar_month
-import ru.haykor.carmanager.cancel
-import ru.haykor.carmanager.chevron_left
-import ru.haykor.carmanager.confirm
-import ru.haykor.carmanager.core.domain.CarId
-import ru.haykor.carmanager.core.domain.ServiceCategoryId
-import ru.haykor.carmanager.core.domain.ServiceRecordId
-import ru.haykor.carmanager.core.domain.model.Car
-import ru.haykor.carmanager.core.domain.model.EditorMode
-import ru.haykor.carmanager.core.domain.model.Invalid
-import ru.haykor.carmanager.core.domain.model.MileageOutOfSequence
-import ru.haykor.carmanager.core.domain.model.RecordField
-import ru.haykor.carmanager.core.domain.model.RecordFieldError
-import ru.haykor.carmanager.core.domain.model.Required
-import ru.haykor.carmanager.core.domain.model.ServiceCategory
-import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
-import ru.haykor.carmanager.core.domain.model.TooLong
-import ru.haykor.carmanager.core.designsystem.FormTextField
-import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
-import ru.haykor.carmanager.core.ui.CarCard
-import ru.haykor.carmanager.core.ui.toUiText
-import ru.haykor.carmanager.core.ui.theme.AppTheme
-import ru.haykor.carmanager.create_service_record_title
-import ru.haykor.carmanager.delete
-import ru.haykor.carmanager.edit_service_record_title
-import ru.haykor.carmanager.error_invalid
-import ru.haykor.carmanager.error_invalid_mileage
-import ru.haykor.carmanager.error_invalid_price
-import ru.haykor.carmanager.error_mileage_between
-import ru.haykor.carmanager.error_mileage_invalid
-import ru.haykor.carmanager.error_mileage_max
-import ru.haykor.carmanager.error_mileage_min
-import ru.haykor.carmanager.error_required
-import ru.haykor.carmanager.error_too_long
-import ru.haykor.carmanager.feature.serviceEditor.component.MileageConflict
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorEvent
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorIntent
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState.Form
-import ru.haykor.carmanager.field_mileage
-import ru.haykor.carmanager.field_note
-import ru.haykor.carmanager.go_back
-import ru.haykor.carmanager.hint_optional
-import ru.haykor.carmanager.save
-import ru.haykor.carmanager.service_editor_category
-import ru.haykor.carmanager.service_editor_date
-import ru.haykor.carmanager.service_editor_price
-import ru.haykor.carmanager.service_editor_section_car
-import ru.haykor.carmanager.service_editor_section_note
-import ru.haykor.carmanager.service_editor_section_record
-import ru.haykor.carmanager.service_editor_unavailable
-import ru.haykor.carmanager.service_editor_unavailable_description
-import ru.haykor.carmanager.unit_km
+import java.util.*
 
 // region composables
 
@@ -155,7 +74,6 @@ fun ServiceEditorScreen(component: ServiceEditorComponent, modifier: Modifier = 
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ServiceEditorContent(
     state: ServiceEditorState,
@@ -429,7 +347,6 @@ private fun ServiceField(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryPicker(
     selectedName: String,
@@ -475,7 +392,6 @@ private fun CategoryPicker(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DatePickerField(date: Long, enabled: Boolean, onDatePicked: (Long) -> Unit) {
     var showDatePicker by remember { mutableStateOf(false) }

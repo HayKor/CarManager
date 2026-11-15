@@ -1,11 +1,11 @@
 package ru.haykor.carmanager.core.domain
 
-import kotlin.test.assertEquals
 import org.junit.Test
 import ru.haykor.carmanager.core.domain.fixtures.aCar
 import ru.haykor.carmanager.core.domain.mapper.toFormInput
 import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.domain.model.CarFormInput
+import kotlin.test.assertEquals
 
 class CarFormInputMapperTest {
 

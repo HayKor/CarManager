@@ -1,7 +1,6 @@
 package ru.haykor.carmanager.core.domain.usecase
 
 import dev.zacsweers.metro.Inject
-import kotlin.time.Clock
 import kotlinx.coroutines.flow.first
 import ru.haykor.carmanager.core.domain.model.Car
 import ru.haykor.carmanager.core.domain.model.EditorMode
@@ -11,6 +10,7 @@ import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
 import ru.haykor.carmanager.core.domain.repository.CarRepository
 import ru.haykor.carmanager.core.domain.repository.ServiceCategoryRepository
 import ru.haykor.carmanager.core.domain.repository.ServiceRecordRepository
+import kotlin.time.Clock
 
 data class ServiceEditorData(val input: ServiceRecordFormInput, val car: Car, val categories: List<ServiceCategory>)
 

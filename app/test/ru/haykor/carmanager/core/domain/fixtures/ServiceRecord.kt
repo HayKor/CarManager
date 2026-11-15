@@ -5,7 +5,6 @@ import ru.haykor.carmanager.core.domain.ServiceCategoryId
 import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.model.ServiceRecord
 
-
 fun aRecord(
     id: ServiceRecordId = ServiceRecordId.random(),
     carId: CarId = CarId.random(),

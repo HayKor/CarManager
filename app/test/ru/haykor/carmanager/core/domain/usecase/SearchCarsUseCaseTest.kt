@@ -1,11 +1,11 @@
 package ru.haykor.carmanager.core.domain.usecase
 
-import kotlin.test.assertEquals
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import ru.haykor.carmanager.core.domain.fixtures.FakeCarRepository
 import ru.haykor.carmanager.core.domain.fixtures.aCar
+import kotlin.test.assertEquals
 
 class SearchCarsUseCaseTest {
 

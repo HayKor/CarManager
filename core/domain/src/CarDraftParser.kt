@@ -1,7 +1,6 @@
 package ru.haykor.carmanager.core.domain
 
 import dev.zacsweers.metro.Inject
-import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import ru.haykor.carmanager.core.domain.model.CarDraft
@@ -9,6 +8,7 @@ import ru.haykor.carmanager.core.domain.model.CarField
 import ru.haykor.carmanager.core.domain.model.CarFieldError
 import ru.haykor.carmanager.core.domain.model.CarFormInput
 import ru.haykor.carmanager.core.domain.model.FieldError
+import kotlin.time.Clock
 
 @Inject
 class CarDraftParser(private val plateFormats: PlateFormats, private val clock: Clock) {

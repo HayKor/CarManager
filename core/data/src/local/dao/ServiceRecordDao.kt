@@ -35,7 +35,8 @@ abstract class ServiceRecordDao {
     @Transaction
     open suspend fun insertWithCarMileage(
         record: ServiceRecordEntity,
-        newCarMileage: Long? // null = leave the car as is
+        // null = leave the car as is
+        newCarMileage: Long?
     ) {
         insert(record)
         if (newCarMileage != null) {
@@ -46,7 +47,8 @@ abstract class ServiceRecordDao {
     @Transaction
     open suspend fun updateWithCarMileage(
         recordUpdate: ServiceRecordUpdate,
-        newCarMileage: Long? // null = leave the car as is
+        // null = leave the car as is
+        newCarMileage: Long?
     ) {
         update(recordUpdate)
         if (newCarMileage != null) {

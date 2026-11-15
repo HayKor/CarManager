@@ -31,18 +31,13 @@ import ru.haykor.carmanager.core.designsystem.LicensePlate
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.model.Car
+import ru.haykor.carmanager.core.ui.theme.AppTheme
 import ru.haykor.carmanager.directions_car
 import ru.haykor.carmanager.keyboard_arrow_right
 import ru.haykor.carmanager.mileage_km
-import ru.haykor.carmanager.core.ui.theme.AppTheme
 
 @Composable
-fun CarCard(
-    car: Car,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = CardDefaults.elevatedShape
-) {
+fun CarCard(car: Car, onClick: () -> Unit, modifier: Modifier = Modifier, shape: Shape = CardDefaults.elevatedShape) {
     Card(
         onClick = onClick,
         shape = shape,

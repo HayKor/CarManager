@@ -1,8 +1,5 @@
 package ru.haykor.carmanager.feature.car.presentation
 
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 import org.junit.Test
 import ru.haykor.carmanager.core.domain.fixtures.aCar
 import ru.haykor.carmanager.feature.car.component.CarMutation
@@ -10,6 +7,9 @@ import ru.haykor.carmanager.feature.car.component.CarReducer
 import ru.haykor.carmanager.feature.car.component.CarSection
 import ru.haykor.carmanager.feature.car.component.CarState
 import ru.haykor.carmanager.feature.car.component.RecordsSection
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class CarReducerTest {
 

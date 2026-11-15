@@ -5,12 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -65,11 +60,7 @@ fun MainScreen(component: MainComponent, modifier: Modifier = Modifier) {
     }
 }
 
-internal data class TopLevelDestination(
-    val tab: MainTab,
-    val title: StringResource,
-    val icon: DrawableResource
-)
+internal data class TopLevelDestination(val tab: MainTab, val title: StringResource, val icon: DrawableResource)
 
 internal val topLevelDestinations: List<TopLevelDestination>
     @Composable

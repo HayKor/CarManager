@@ -1,7 +1,5 @@
 package ru.haykor.carmanager.core.domain
 
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import org.junit.Test
 import ru.haykor.carmanager.core.domain.fixtures.allRequiredErrors
 import ru.haykor.carmanager.core.domain.fixtures.carParser
@@ -10,6 +8,8 @@ import ru.haykor.carmanager.core.domain.model.CarFormInput
 import ru.haykor.carmanager.core.domain.model.Invalid
 import ru.haykor.carmanager.core.domain.model.Required
 import ru.haykor.carmanager.core.domain.model.TooLong
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class CarDraftParserTest {
 

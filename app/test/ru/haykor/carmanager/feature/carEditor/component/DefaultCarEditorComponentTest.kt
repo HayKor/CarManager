@@ -2,11 +2,6 @@ package ru.haykor.carmanager.feature.carEditor.component
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertIs
-import kotlin.test.assertTrue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,6 +22,11 @@ import ru.haykor.carmanager.core.domain.fixtures.allRequiredErrors
 import ru.haykor.carmanager.core.domain.fixtures.carParser
 import ru.haykor.carmanager.core.domain.mapper.toFormInput
 import ru.haykor.carmanager.core.domain.model.CarField
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultCarEditorComponentTest {

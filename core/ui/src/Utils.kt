@@ -2,8 +2,8 @@ package ru.haykor.carmanager.core.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import java.text.NumberFormat
 import ru.haykor.carmanager.core.domain.model.Car
+import java.text.NumberFormat
 
 /** Grouped by the current locale: 120000 → "120 000" / "120,000". */
 @Composable

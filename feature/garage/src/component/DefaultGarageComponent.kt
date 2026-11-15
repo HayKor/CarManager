@@ -7,7 +7,6 @@ import com.arkivanov.decompose.value.update
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +20,7 @@ import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.repository.CarRepository
 import ru.haykor.carmanager.core.domain.usecase.SearchCarsUseCase
 import ru.haykor.carmanager.core.presentation.component.createComponentScope
+import kotlin.time.Duration.Companion.milliseconds
 
 class DefaultGarageComponent(
     componentContext: ComponentContext,

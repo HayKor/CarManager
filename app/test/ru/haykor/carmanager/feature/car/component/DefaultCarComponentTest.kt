@@ -3,8 +3,6 @@ package ru.haykor.carmanager.feature.car.component
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import junit.framework.TestCase.assertTrue
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,6 +23,8 @@ import ru.haykor.carmanager.core.domain.fixtures.aCar
 import ru.haykor.carmanager.core.domain.fixtures.aCategory
 import ru.haykor.carmanager.core.domain.fixtures.aRecord
 import ru.haykor.carmanager.core.domain.usecase.DeleteCarUseCase
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultCarComponentTest {

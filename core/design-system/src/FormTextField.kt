@@ -66,6 +66,6 @@ private fun FormTextFieldPreview() {
         onFocusLost = {},
         label = "Email",
         placeholder = "example@gmail.com",
-        error = null,
+        error = null
     )
 }

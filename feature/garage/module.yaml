@@ -5,6 +5,7 @@ product:
 apply:
   - //common.module-template.yaml
   - //metro.module-template.yaml
+  - //ktlint.module-template.yaml
 
 dependencies:
   # modules
