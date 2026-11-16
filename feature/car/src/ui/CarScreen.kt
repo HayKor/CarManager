@@ -39,7 +39,8 @@ import ru.haykor.carmanager.core.domain.model.ServiceCategory
 import ru.haykor.carmanager.core.domain.model.ServiceRecord
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
-import ru.haykor.carmanager.core.ui.formatMileage
+import ru.haykor.carmanager.core.ui.formatDate
+import ru.haykor.carmanager.core.ui.formatNumber
 import ru.haykor.carmanager.core.ui.theme.AppTheme
 import ru.haykor.carmanager.core.ui.title
 import ru.haykor.carmanager.core.ui.toUiText
@@ -273,8 +274,10 @@ private fun ServiceRecordCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                val mileage = stringResource(Res.string.mileage_km, formatNumber(record.record.atMileage))
+                val date = formatDate(record.record.date)
                 Text(
-                    text = stringResource(Res.string.mileage_km, formatMileage(record.record.atMileage)),
+                    text = "$date · $mileage",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -288,7 +291,19 @@ private fun ServiceRecordCard(
                     )
                 }
             }
-
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                record.record.price?.let { price ->
+                    Text(
+                        text = formatNumber(price), // add formatting maybe
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1
+                    )
+                }
+            }
             Icon(
                 painter = painterResource(Res.drawable.keyboard_arrow_right),
                 contentDescription = null,
@@ -365,7 +380,7 @@ private fun CarSummaryCard(car: Car) {
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                 )
                 Text(
-                    text = stringResource(Res.string.mileage_km, formatMileage(car.mileage)),
+                    text = stringResource(Res.string.mileage_km, formatNumber(car.mileage)),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
