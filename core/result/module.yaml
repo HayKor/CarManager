@@ -1,0 +1,7 @@
+product:
+  type: kmp/lib
+  platforms: [ android ]
+
+apply:
+  - //common.module-template.yaml
+  - //ktlint.module-template.yaml

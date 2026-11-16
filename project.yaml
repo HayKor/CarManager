@@ -1,0 +1,20 @@
+modules:
+  - app
+  - app-debug
+  - app-release
+  - core/common
+  - core/data
+  - core/design-system
+  - core/domain
+  - core/presentation
+  - core/resources
+  - core/result
+  - core/ui
+  - feature/car
+  - feature/carEditor
+  - feature/garage
+  - feature/serviceEditor
+  - plugins/ktlint
+
+plugins:
+  - //plugins/ktlint

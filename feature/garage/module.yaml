@@ -1,0 +1,25 @@
+product:
+  type: kmp/lib
+  platforms: [ android ]
+
+apply:
+  - //common.module-template.yaml
+  - //metro.module-template.yaml
+  - //ktlint.module-template.yaml
+
+dependencies:
+  # modules
+  - //core/design-system
+  - //core/domain: exported
+  - //core/presentation: exported
+  - //core/resources
+  - //core/ui: exported
+  # libs
+  - $libs.decompose.extensions.compose
+  - $compose.preview
+
+dependencies@android:
+  - $compose.uiTooling
+
+settings:
+  compose: enabled

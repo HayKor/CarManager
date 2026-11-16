@@ -1,0 +1,40 @@
+product:
+  type: kmp/lib
+  platforms: [ android ]
+
+dependencies:
+  # modules
+  - //core/common: exported
+  - //core/data
+  - //core/domain: exported
+  - //core/resources
+  - //core/ui
+  - //feature/car: exported
+  - //feature/carEditor: exported
+  - //feature/garage: exported
+  - //feature/serviceEditor: exported
+  # libs
+  - $libs.androidx.activity.compose
+  - $libs.androidx.compose.material3
+  - $libs.decompose: exported
+  - $libs.decompose.extensions.compose
+
+test-dependencies:
+  - $libs.junit
+  - $kotlin.test
+  - $libs.kotlinx.coroutines.test
+  - $libs.androidx.sqlite.bundled
+
+apply:
+  - //common.module-template.yaml
+  - //metro.module-template.yaml
+  - //ktlint.module-template.yaml
+
+settings:
+  compose:
+    enabled: true
+  kotlin:
+    serialization:
+      enabled: true
+  android:
+    namespace: ru.haykor.carmanager

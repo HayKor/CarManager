@@ -1,0 +1,15 @@
+tasks:
+  ktlintCheck:
+    action: !io.heapy.ktc.plugins.ktlint.checkFormatting
+      moduleRoot: ${module.rootDir}
+      settings: ${pluginSettings}
+  ktlintFormat:
+    action: !io.heapy.ktc.plugins.ktlint.formatSources
+      moduleRoot: ${module.rootDir}
+      settings: ${pluginSettings}
+
+checks:
+  - ktlintCheck
+
+commands:
+  - ktlintFormat
