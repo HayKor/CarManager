@@ -11,4 +11,4 @@ dependencies:
   - //core/common
   - //core/result: exported
   - $libs.kotlinx.coroutines.core: exported
-  - $libs.kotlinx.datetime
+  - $libs.kotlinx.datetime: exported
