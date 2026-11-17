@@ -24,6 +24,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
+import ru.haykor.carmanager.core.designsystem.CmSectionHeader
 import ru.haykor.carmanager.core.designsystem.FormTextField
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.model.*
@@ -208,8 +209,8 @@ private fun CarEditorForm(
 
 @Composable
 private fun FormSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionHeader(title)
+    Column {
+        CmSectionHeader(title)
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surfaceContainer
@@ -301,16 +302,6 @@ private fun PlateCountryPicker(
             }
         }
     }
-}
-
-@Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-    )
 }
 
 @Composable

@@ -29,7 +29,9 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
+import ru.haykor.carmanager.core.designsystem.CmSectionHeader
 import ru.haykor.carmanager.core.designsystem.FormTextField
+import ru.haykor.carmanager.core.designsystem.cmSegmentShape
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
 import ru.haykor.carmanager.core.domain.ServiceRecordId
@@ -163,17 +165,12 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = stringResource(Res.string.service_editor_section_car),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-            )
+        Column {
+            CmSectionHeader(stringResource(Res.string.service_editor_section_car))
             CarCard(
                 car = form.car,
                 onClick = {},
-                shape = RoundedCornerShape(32.dp)
+                shape = cmSegmentShape(0, 1)
             )
         }
 
@@ -295,13 +292,8 @@ private fun ConfirmationDialog(
 
 @Composable
 private fun FormSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-        )
+    Column {
+        CmSectionHeader(title)
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surfaceContainer

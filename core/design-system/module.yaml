@@ -8,6 +8,7 @@ apply:
 
 dependencies:
   - //core/common
+  - //core/resources
   - $compose.foundation: exported
   - $libs.androidx.compose.material3: exported
   - $compose.ui: exported

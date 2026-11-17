@@ -8,19 +8,20 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -28,8 +29,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
-import ru.haykor.carmanager.core.designsystem.LicensePlate
-import ru.haykor.carmanager.core.designsystem.rememberAnimatedCardShape
+import ru.haykor.carmanager.core.designsystem.*
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
@@ -188,14 +188,19 @@ private fun CarDetails(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        item(key = "summary") { CarSummaryCard(car) }
+        item(key = "summary") {
+            CarSummaryCard(
+                car,
+                shape = cmSegmentShape(0, if (car.note != null) 2 else 1)
+            )
+        }
 
         car.note?.let { note ->
-            item(key = "note") { CarNoteCard(note) }
+            item(key = "note") { CarNoteCard(note, cmSegmentShape(1, 2)) }
         }
 
         car.vin?.let {
-            item(key = "details_header") { SectionHeader(stringResource(Res.string.car_section_details)) }
+            item(key = "details_header") { CmSectionHeader(stringResource(Res.string.car_section_details)) }
             item(key = "details") { CarDetailsCard(car) }
         }
 
@@ -207,7 +212,7 @@ private fun CarDetails(
 }
 
 fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onRecordClick: (ServiceRecordId) -> Unit) {
-    item(key = "history_header") { SectionHeader(stringResource(Res.string.car_section_service_history)) }
+    item(key = "history_header") { CmSectionHeader(stringResource(Res.string.car_section_service_history)) }
 
     when (recordsSection) {
         is RecordsSection.Loaded -> {
@@ -215,22 +220,11 @@ fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onRecordClick: 
                 item(key = "history_empty") { ServiceHistoryEmpty() }
             } else {
                 itemsIndexed(recordsSection.records, key = { _, record -> record.record.id.value }) { index, record ->
-
-                    val isFirst = index == 0
-                    val isLast = index == recordsSection.records.lastIndex
-
-                    val shape = rememberAnimatedCardShape(
-                        isFirst = isFirst,
-                        isLast = isLast,
-                        smallRadius = 8.dp,
-                        largeRadius = 32.dp
-                    )
-
                     ServiceRecordCard(
                         record = record,
-                        shape = shape,
+                        shape = cmSegmentShape(index, recordsSection.records.size),
                         onClick = { onRecordClick(record.record.id) },
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = CmSegmentedGap)
                     )
                 }
             }
@@ -247,69 +241,28 @@ private fun ServiceRecordCard(
     record: ServiceRecordDetails,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    shape: Shape = CardDefaults.elevatedShape
+    shape: Shape = RectangleShape
 ) {
-    Card(
-        onClick = onClick,
-        shape = shape,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(16.dp)
-        ) {
-            ServiceAvatar()
+    val mileage = stringResource(Res.string.mileage_km, formatNumber(record.record.atMileage))
+    val date = formatDate(record.record.date)
+    val note = record.record.note?.takeIf { it.isNotBlank() }
 
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = record.category.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                val mileage = stringResource(Res.string.mileage_km, formatNumber(record.record.atMileage))
-                val date = formatDate(record.record.date)
-                Text(
-                    text = "$date · $mileage",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                record.record.note?.takeIf { it.isNotBlank() }?.let { note ->
-                    Text(
-                        text = note,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+    CmNavRow(
+        onClick = onClick,
+        modifier = modifier,
+        shape = shape,
+        leadingContent = { ServiceAvatar() },
+        supportingContent = {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("$date · $mileage")
+                if (note != null) Text(note, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                record.record.price?.let { price ->
-                    Text(
-                        text = formatNumber(price), // add formatting maybe
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1
-                    )
-                }
-            }
-            Icon(
-                painter = painterResource(Res.drawable.keyboard_arrow_right),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        },
+        trailingContent = record.record.price?.let { price ->
+            { Text(formatNumber(price), style = MaterialTheme.typography.titleSmall, maxLines = 1) }
         }
+    ) {
+        Text(record.category.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -359,13 +312,13 @@ private fun DeleteDialog(isShow: Boolean, onDismiss: () -> Unit, onConfirm: () -
 }
 
 @Composable
-private fun CarSummaryCard(car: Car) {
+private fun CarSummaryCard(car: Car, shape: Shape) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 8.dp, bottomStart = 8.dp),
+        shape = shape,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 4.dp)
+            .padding(bottom = CmSegmentedGap)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -418,13 +371,13 @@ private fun CarDetailsCard(car: Car, modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun CarNoteCard(note: String, modifier: Modifier = Modifier) {
+private fun CarNoteCard(note: String, shape: Shape, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
     var overflows by remember { mutableStateOf(false) }
 
     Card(
         onClick = { expanded = !expanded },
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomEnd = 32.dp, bottomStart = 32.dp),
+        shape = shape,
         enabled = overflows || expanded,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -483,16 +436,6 @@ private fun CarNoteCard(note: String, modifier: Modifier = Modifier) {
             }
         }
     }
-}
-
-@Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
-    )
 }
 
 @Composable
@@ -573,6 +516,24 @@ private val previewRecord = ServiceRecordDetails(
         name = "Oil Change"
     )
 )
+private val previewRecordOther = ServiceRecordDetails(
+    record = ServiceRecord(
+        id = ServiceRecordId.random(),
+        carId = previewCar.id,
+        atMileage = 100_000,
+        price = 2500,
+        categoryId = ServiceCategoryId.random(),
+        note = "Some scheduled maintenance",
+        photoUri = null,
+        date = 50_000L,
+        createdAt = 1L,
+        updatedAt = 1L
+    ),
+    category = ServiceCategory(
+        id = ServiceCategoryId.random(),
+        name = "Scheduled Maintenance"
+    )
+)
 
 @Preview(name = "Content", showBackground = true)
 @Preview(name = "Content · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -581,7 +542,7 @@ private fun CarContentPreview() = AppTheme {
     CarContent(
         state = CarState(
             carSection = CarSection.Loaded(previewCar),
-            recordsSection = RecordsSection.Loaded(listOf(previewRecord))
+            recordsSection = RecordsSection.Loaded(listOf(previewRecord, previewRecordOther))
         ),
         onIntent = {}
     )
@@ -609,3 +570,22 @@ private fun CarNotFoundPreview() = AppTheme {
 }
 
 // endregion
+
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun Segmented() = AppTheme {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+    ) {
+        val count = 5
+        repeat(count) { index ->
+            SegmentedListItem(
+                shapes = ListItemDefaults.segmentedShapes(index, count),
+                onClick = {}
+            ) {
+                Text("Card No. $index")
+            }
+        }
+    }
+}

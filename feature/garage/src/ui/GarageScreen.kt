@@ -23,7 +23,8 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
-import ru.haykor.carmanager.core.designsystem.rememberAnimatedCardShape
+import ru.haykor.carmanager.core.designsystem.CmSegmentedGap
+import ru.haykor.carmanager.core.designsystem.cmSegmentShape
 import ru.haykor.carmanager.core.ui.CarCard
 import ru.haykor.carmanager.core.ui.theme.AppTheme
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
@@ -203,22 +204,12 @@ private fun GarageBody(
             is GarageState.Content.Cars -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = padding,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(CmSegmentedGap)
             ) {
                 itemsIndexed(content.items, key = { _, car -> car.id.value }) { index, car ->
-                    val isFirst = index == 0
-                    val isLast = index == content.items.lastIndex
-
-                    val shape = rememberAnimatedCardShape(
-                        isFirst = isFirst,
-                        isLast = isLast,
-                        smallRadius = 8.dp,
-                        largeRadius = 32.dp
-                    )
-
                     CarCard(
                         car = car,
-                        shape = shape,
+                        shape = cmSegmentShape(index, content.items.size),
                         onClick = { onIntent(GarageIntent.CarClicked(car.id)) },
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
