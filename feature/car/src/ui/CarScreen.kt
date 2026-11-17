@@ -1,7 +1,5 @@
 package ru.haykor.carmanager.feature.car.ui
 
-import android.R.attr.enabled
-import android.R.attr.onClick
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
@@ -10,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,10 +29,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
-import ru.haykor.carmanager.core.designsystem.CmNavRow
-import ru.haykor.carmanager.core.designsystem.CmSegmentedGap
-import ru.haykor.carmanager.core.designsystem.LicensePlate
-import ru.haykor.carmanager.core.designsystem.cmSegmentShape
+import ru.haykor.carmanager.core.designsystem.*
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
@@ -194,14 +188,19 @@ private fun CarDetails(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        item(key = "summary") { CarSummaryCard(car) }
+        item(key = "summary") {
+            CarSummaryCard(
+                car,
+                shape = cmSegmentShape(0, if (car.note != null) 2 else 1)
+            )
+        }
 
         car.note?.let { note ->
-            item(key = "note") { CarNoteCard(note) }
+            item(key = "note") { CarNoteCard(note, cmSegmentShape(1, 2)) }
         }
 
         car.vin?.let {
-            item(key = "details_header") { SectionHeader(stringResource(Res.string.car_section_details)) }
+            item(key = "details_header") { CmSectionHeader(stringResource(Res.string.car_section_details)) }
             item(key = "details") { CarDetailsCard(car) }
         }
 
@@ -213,7 +212,7 @@ private fun CarDetails(
 }
 
 fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onRecordClick: (ServiceRecordId) -> Unit) {
-    item(key = "history_header") { SectionHeader(stringResource(Res.string.car_section_service_history)) }
+    item(key = "history_header") { CmSectionHeader(stringResource(Res.string.car_section_service_history)) }
 
     when (recordsSection) {
         is RecordsSection.Loaded -> {
@@ -313,10 +312,10 @@ private fun DeleteDialog(isShow: Boolean, onDismiss: () -> Unit, onConfirm: () -
 }
 
 @Composable
-private fun CarSummaryCard(car: Car) {
+private fun CarSummaryCard(car: Car, shape: Shape) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        shape = cmSegmentShape(0, 2),
+        shape = shape,
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = CmSegmentedGap)
@@ -372,13 +371,13 @@ private fun CarDetailsCard(car: Car, modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun CarNoteCard(note: String, modifier: Modifier = Modifier) {
+private fun CarNoteCard(note: String, shape: Shape, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
     var overflows by remember { mutableStateOf(false) }
 
     Card(
         onClick = { expanded = !expanded },
-        shape = cmSegmentShape(1, 2),
+        shape = shape,
         enabled = overflows || expanded,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -437,16 +436,6 @@ private fun CarNoteCard(note: String, modifier: Modifier = Modifier) {
             }
         }
     }
-}
-
-@Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
-    )
 }
 
 @Composable
