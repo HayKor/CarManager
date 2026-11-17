@@ -1,5 +1,6 @@
 package ru.haykor.carmanager.feature.car.ui
 
+import android.R.attr.enabled
 import android.R.attr.onClick
 import android.content.res.Configuration
 import android.widget.Toast
@@ -315,10 +316,10 @@ private fun DeleteDialog(isShow: Boolean, onDismiss: () -> Unit, onConfirm: () -
 private fun CarSummaryCard(car: Car) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 8.dp, bottomStart = 8.dp),
+        shape = cmSegmentShape(0, 2),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 4.dp)
+            .padding(bottom = CmSegmentedGap)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -377,7 +378,7 @@ private fun CarNoteCard(note: String, modifier: Modifier = Modifier) {
 
     Card(
         onClick = { expanded = !expanded },
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomEnd = 32.dp, bottomStart = 32.dp),
+        shape = cmSegmentShape(1, 2),
         enabled = overflows || expanded,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
