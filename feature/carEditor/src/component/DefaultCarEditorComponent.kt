@@ -5,6 +5,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
 import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
@@ -39,6 +40,8 @@ class DefaultCarEditorComponent(
     private val _events = Channel<CarEditorEvent>(Channel.BUFFERED)
     override val events = _events.receiveAsFlow()
 
+    private var isExitHandled = false
+
     private val backCallback = BackCallback(isEnabled = false) {
         // if we're inside of this lambda, condition is already met
         accept(CarEditorIntent.BackClicked)
@@ -71,29 +74,41 @@ class DefaultCarEditorComponent(
             trySaveCar()
         }
 
-        CarEditorIntent.BackClicked -> {
-            val form = (_state.value as? CarEditorState.Form)
-            if (form != null && form.isDirty) {
-                reduce(CarEditorMutation.SetShowDialog(true))
-            } else {
-                onBack()
-            }
-        }
+        CarEditorIntent.BackClicked -> onBackClicked()
 
         CarEditorIntent.DialogConfirmClicked -> {
-            reduce(CarEditorMutation.SetShowDialog(false))
+            reduce(CarEditorMutation.SetExitDialogVisible(false))
             reduce(CarEditorMutation.AllFieldsTouched)
             trySaveCar()
         }
 
         CarEditorIntent.DialogIgnoreClicked -> {
-            reduce(CarEditorMutation.SetShowDialog(false))
-            onBack()
+            reduce(CarEditorMutation.SetExitDialogVisible(false))
+            exit()
         }
 
         CarEditorIntent.DialogDismissed -> {
-            reduce(CarEditorMutation.SetShowDialog(false))
+            reduce(CarEditorMutation.SetExitDialogVisible(false))
         }
+    }
+
+    private fun onBackClicked() {
+        val form = _state.value as? CarEditorState.Form
+        if (form != null && form.isDirty && !form.isSaving) {
+            reduce(CarEditorMutation.SetExitDialogVisible(true))
+        } else {
+            exit()
+        }
+    }
+
+    /**
+     * Leaves the screen at most once: the user may leave while a save is in flight, and the save
+     * must not pop the next screen afterwards. Also does nothing if the component is already gone.
+     */
+    private fun exit() {
+        if (isExitHandled || lifecycle.state == Lifecycle.State.DESTROYED) return
+        isExitHandled = true
+        onBack()
     }
 
     private fun loadInitialForm() = scope.launch {
@@ -132,7 +147,7 @@ class DefaultCarEditorComponent(
                 }
 
                 is DataResult.Success -> {
-                    onBack()
+                    exit()
                 }
             }
         } else {
@@ -143,15 +158,15 @@ class DefaultCarEditorComponent(
                 }
 
                 is DataResult.Success -> {
-                    onBack()
+                    exit()
                 }
             }
         }
     }
 
     private fun reduce(mutation: CarEditorMutation) {
-        updateBackCallback()
         _state.update { state -> CarEditorReducer.reduce(state, mutation) }
+        updateBackCallback()
     }
 
     private fun refreshErrors() {
@@ -161,8 +176,9 @@ class DefaultCarEditorComponent(
     }
 
     private fun updateBackCallback() {
-        val form = (_state.value as? CarEditorState.Form) ?: return
-        backCallback.isEnabled = form.isDirty
+        val form = _state.value as? CarEditorState.Form
+        // While saving, back leaves the screen and cancels the save, so no dialog is needed
+        backCallback.isEnabled = form != null && form.isDirty && !form.isSaving
     }
 }
 

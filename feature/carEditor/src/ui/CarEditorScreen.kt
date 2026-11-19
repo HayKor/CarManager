@@ -125,27 +125,11 @@ private fun CarEditorForm(
 ) {
     val input = form.currentInput
 
-    if (form.isShowDialog) {
-        AlertDialog(
-            onDismissRequest = { onIntent(CarEditorIntent.DialogDismissed) },
-            text = {},
-            title = { Text(text = "Test") },
-            confirmButton = {
-                TextButton(onClick = { onIntent(CarEditorIntent.DialogConfirmClicked) }) {
-                    Text(stringResource(Res.string.save), color = MaterialTheme.colorScheme.primary)
-                }
-            },
-            dismissButton = {
-                Row {
-                    TextButton(onClick = { onIntent(CarEditorIntent.DialogDismissed) }) {
-                        Text(text = "Cancel")
-                    }
-
-                    TextButton(onClick = { onIntent(CarEditorIntent.DialogIgnoreClicked) }) {
-                        Text(text = "Don't save")
-                    }
-                }
-            }
+    if (form.isExitDialogVisible) {
+        ExitDialog(
+            onDismiss = { onIntent(CarEditorIntent.DialogDismissed) },
+            onSave = { onIntent(CarEditorIntent.DialogConfirmClicked) },
+            onDiscard = { onIntent(CarEditorIntent.DialogIgnoreClicked) }
         )
     }
 
@@ -358,6 +342,44 @@ private fun SaveBar(isDirty: Boolean, isSaving: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
+private fun ExitDialog(
+    onDismiss: () -> Unit,
+    onSave: () -> Unit,
+    onDiscard: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(stringResource(Res.string.unsaved_changes_title))
+        },
+        text = {
+            Text(stringResource(Res.string.unsaved_changes_text))
+        },
+        confirmButton = {
+            TextButton(onClick = onSave) {
+                Text(stringResource(Res.string.save))
+            }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(Res.string.cancel))
+                }
+
+                TextButton(onClick = onDiscard) {
+                    Text(
+                        text = stringResource(Res.string.dont_save),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        },
+        modifier = modifier
+    )
+}
+
+@Composable
 private fun CarEditorNotFound(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
@@ -496,6 +518,22 @@ private fun CarEditorSavingPreview() {
             state = CarEditorState.Form(
                 currentInput = CarFormInput(brand = "Toyota", model = "Camry", year = "2018", mileage = "120000"),
                 isSaving = true
+            ),
+            onIntent = {}
+        )
+    }
+}
+
+@Preview(name = "Exit dialog", showBackground = true)
+@Preview(name = "Exit dialog · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun CarEditorExitDialogPreview() {
+    AppTheme {
+        CarEditorContent(
+            state = CarEditorState.Form(
+                initialInput = CarFormInput(brand = "Toyota", model = "Camry", year = "2018", mileage = "120000"),
+                currentInput = CarFormInput(brand = "Toyota", model = "Camry", year = "2018", mileage = "121500"),
+                isExitDialogVisible = true
             ),
             onIntent = {}
         )

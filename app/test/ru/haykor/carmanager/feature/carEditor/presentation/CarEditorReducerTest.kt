@@ -16,8 +16,38 @@ import kotlin.test.assertTrue
 class CarEditorReducerTest {
 
     private val loading: CarEditorState = CarEditorState.Loading
-    private val form: CarEditorState = CarEditorState.Form(currentInput = aCar().toFormInput())
+    private val loadedInput: CarFormInput = aCar().toFormInput()
+    private val form: CarEditorState = CarEditorState.Form(currentInput = loadedInput, initialInput = loadedInput)
     private val allFieldsSet: Set<CarField> = CarField.entries.toSet()
+
+    @Test
+    fun `new form is not dirty`() {
+        val state = CarEditorReducer.reduce(loading, CarEditorMutation.FormInputNew)
+        assertIs<CarEditorState.Form>(state)
+        assertFalse(state.isDirty)
+    }
+
+    @Test
+    fun `loaded form is not dirty`() {
+        val state = CarEditorReducer.reduce(loading, CarEditorMutation.FormInputLoaded(loadedInput))
+        assertIs<CarEditorState.Form>(state)
+        assertFalse(state.isDirty)
+    }
+
+    @Test
+    fun `changed field makes the form dirty`() {
+        val state = CarEditorReducer.reduce(form, CarEditorMutation.FieldChanged(CarField.BRAND, "BMW"))
+        assertIs<CarEditorState.Form>(state)
+        assertTrue(state.isDirty)
+    }
+
+    @Test
+    fun `reverting a field makes the form clean`() {
+        val dirty = CarEditorReducer.reduce(form, CarEditorMutation.FieldChanged(CarField.BRAND, "BMW"))
+        val clean = CarEditorReducer.reduce(dirty, CarEditorMutation.FieldChanged(CarField.BRAND, loadedInput.brand))
+        assertIs<CarEditorState.Form>(clean)
+        assertFalse(clean.isDirty)
+    }
 
     @Test
     fun `new form has isNew=true`() {

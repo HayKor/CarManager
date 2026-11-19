@@ -89,4 +89,9 @@
     <!-- Delete confirmation -->
     <string name="delete_car_title">Delete the car?</string>
     <string name="delete_car_text">Are you sure you want to delete the car with its service history?</string>
+
+    <!-- Unsaved changes confirmation -->
+    <string name="unsaved_changes_title">Save changes?</string>
+    <string name="unsaved_changes_text">You have unsaved changes. Save them before leaving?</string>
+    <string name="dont_save">Don't save</string>
 </resources>

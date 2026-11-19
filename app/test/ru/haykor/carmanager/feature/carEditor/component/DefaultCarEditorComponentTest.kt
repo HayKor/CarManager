@@ -1,6 +1,7 @@
 package ru.haykor.carmanager.feature.carEditor.component
 
 import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -191,6 +192,124 @@ class DefaultCarEditorComponentTest {
         assertEquals(defaultCar.toFormInput(), form)
     }
 
+    @Test
+    fun `edit mode without changes does not intercept back`() = runTest(dispatcher) {
+        val backDispatcher = BackDispatcher()
+        val component = createComponent(id = defaultCar.id, backDispatcher = backDispatcher)
+
+        assertFalse(backDispatcher.back())
+
+        val state = component.state.value
+        assertIs<CarEditorState.Form>(state)
+        assertFalse(state.isExitDialogVisible)
+        assertEquals(0, closeCount)
+    }
+
+    @Test
+    fun `back without changes closes the screen immediately`() = runTest(dispatcher) {
+        val component = createComponent(id = defaultCar.id)
+
+        component.accept(CarEditorIntent.BackClicked)
+
+        val state = component.state.value
+        assertIs<CarEditorState.Form>(state)
+        assertFalse(state.isExitDialogVisible)
+        assertEquals(1, closeCount)
+    }
+
+    @Test
+    fun `system back after change opens the dialog`() = runTest(dispatcher) {
+        val backDispatcher = BackDispatcher()
+        val component = createComponent(id = defaultCar.id, backDispatcher = backDispatcher)
+
+        component.accept(CarEditorIntent.FieldChanged(CarField.BRAND, "Toyota"))
+        assertTrue(backDispatcher.back())
+
+        val state = component.state.value
+        assertIs<CarEditorState.Form>(state)
+        assertTrue(state.isExitDialogVisible)
+        assertEquals(0, closeCount)
+    }
+
+    @Test
+    fun `dialog dismiss keeps the screen`() = runTest(dispatcher) {
+        val component = createComponent(id = defaultCar.id)
+        component.accept(CarEditorIntent.FieldChanged(CarField.BRAND, "Toyota"))
+        component.accept(CarEditorIntent.BackClicked)
+
+        component.accept(CarEditorIntent.DialogDismissed)
+
+        val state = component.state.value
+        assertIs<CarEditorState.Form>(state)
+        assertFalse(state.isExitDialogVisible)
+        assertEquals(0, closeCount)
+    }
+
+    @Test
+    fun `dialog ignore closes the screen without saving`() = runTest(dispatcher) {
+        val component = createComponent(id = defaultCar.id)
+        component.accept(CarEditorIntent.FieldChanged(CarField.BRAND, "Toyota"))
+        component.accept(CarEditorIntent.BackClicked)
+
+        component.accept(CarEditorIntent.DialogIgnoreClicked)
+
+        assertEquals(1, closeCount)
+        assertEquals(0, carRepository.updated.size)
+        assertEquals(0, carRepository.created.size)
+    }
+
+    @Test
+    fun `dialog save saves the car and closes the screen`() = runTest(dispatcher) {
+        val component = createComponent(id = defaultCar.id)
+        component.accept(CarEditorIntent.FieldChanged(CarField.BRAND, "Toyota"))
+        component.accept(CarEditorIntent.BackClicked)
+
+        component.accept(CarEditorIntent.DialogConfirmClicked)
+
+        assertEquals(1, carRepository.updated.size)
+        assertEquals(1, closeCount)
+    }
+
+    @Test
+    fun `back during saving does not open the dialog and does not intercept`() = runTest(dispatcher) {
+        // Arrange
+        val gate = CompletableDeferred<Unit>()
+        carRepository.saveGate = gate
+        val backDispatcher = BackDispatcher()
+        val component = createComponent(id = defaultCar.id, backDispatcher = backDispatcher)
+        component.accept(CarEditorIntent.FieldChanged(CarField.BRAND, "Toyota"))
+        component.accept(CarEditorIntent.SaveClicked)
+
+        // Act
+        assertTrue((component.state.value as CarEditorState.Form).isSaving)
+        assertFalse(backDispatcher.back())
+        component.accept(CarEditorIntent.BackClicked)
+
+        // Assert
+        val state = component.state.value
+        assertIs<CarEditorState.Form>(state)
+        assertFalse(state.isExitDialogVisible)
+        assertEquals(1, closeCount)
+
+        // Act: the save finishes after the user has already left
+        gate.complete(Unit)
+
+        // Assert
+        assertEquals(1, closeCount)
+    }
+
+    @Test
+    fun `leaving twice closes the screen once`() = runTest(dispatcher) {
+        val component = createComponent(id = defaultCar.id)
+
+        component.run {
+            accept(CarEditorIntent.BackClicked)
+            accept(CarEditorIntent.BackClicked)
+        }
+
+        assertEquals(1, closeCount)
+    }
+
     private fun fillForm(component: CarEditorComponent) {
         component.run {
             accept(CarEditorIntent.FieldChanged(CarField.BRAND, "Nissan"))
@@ -200,14 +319,17 @@ class DefaultCarEditorComponentTest {
         }
     }
 
-    private fun createComponent(id: CarId? = null, lifecycleRegistry: LifecycleRegistry = LifecycleRegistry()) =
-        DefaultCarEditorComponent(
-            componentContext = DefaultComponentContext(lifecycleRegistry),
-            id = id,
-            carRepository = carRepository,
-            parser = carParser,
-            onBack = { closeCount++ }
-        )
+    private fun createComponent(
+        id: CarId? = null,
+        lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(),
+        backDispatcher: BackDispatcher = BackDispatcher()
+    ) = DefaultCarEditorComponent(
+        componentContext = DefaultComponentContext(lifecycleRegistry, backHandler = backDispatcher),
+        id = id,
+        carRepository = carRepository,
+        parser = carParser,
+        onBack = { closeCount++ }
+    )
 
     private companion object {
         val defaultCar = aCar()

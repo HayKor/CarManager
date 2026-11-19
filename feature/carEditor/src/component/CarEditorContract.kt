@@ -18,7 +18,7 @@ sealed interface CarEditorState {
         val errors: Map<CarField, CarFieldError> = emptyMap(),
         val isSaving: Boolean = false,
         val isNew: Boolean = false,
-        val isShowDialog: Boolean = false
+        val isExitDialogVisible: Boolean = false
     ) : CarEditorState {
 
         val isDirty: Boolean
@@ -56,7 +56,7 @@ sealed interface CarEditorMutation {
     data class ErrorsUpdated(val errors: Map<CarField, CarFieldError>) : CarEditorMutation
 
     data class SetSaving(val value: Boolean) : CarEditorMutation
-    data class SetShowDialog(val value: Boolean) : CarEditorMutation
+    data class SetExitDialogVisible(val value: Boolean) : CarEditorMutation
 
     data object SetLoading : CarEditorMutation
     data object SetNotFound : CarEditorMutation
@@ -90,8 +90,8 @@ object CarEditorReducer {
             (state as? CarEditorState.Form)?.copy(isSaving = mutation.value) ?: state
         }
 
-        is CarEditorMutation.SetShowDialog -> {
-            (state as? CarEditorState.Form)?.copy(isShowDialog = mutation.value) ?: state
+        is CarEditorMutation.SetExitDialogVisible -> {
+            (state as? CarEditorState.Form)?.copy(isExitDialogVisible = mutation.value) ?: state
         }
 
         CarEditorMutation.SetLoading -> CarEditorState.Loading
