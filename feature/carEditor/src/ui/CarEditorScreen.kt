@@ -26,6 +26,7 @@ import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
 import ru.haykor.carmanager.core.designsystem.CmSectionHeader
 import ru.haykor.carmanager.core.designsystem.FormTextField
+import ru.haykor.carmanager.core.designsystem.UnsavedChangesDialog
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.model.*
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
@@ -91,6 +92,7 @@ internal fun CarEditorContent(
         bottomBar = {
             if (state is CarEditorState.Form) {
                 SaveBar(
+                    isDirty = state.isDirty,
                     isSaving = state.isSaving,
                     onClick = { onIntent(CarEditorIntent.SaveClicked) }
                 )
@@ -122,7 +124,15 @@ private fun CarEditorForm(
     onIntent: (CarEditorIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val input = form.input
+    val input = form.currentInput
+
+    if (form.isExitDialogVisible) {
+        UnsavedChangesDialog(
+            onDismiss = { onIntent(CarEditorIntent.DialogDismissed) },
+            onSave = { onIntent(CarEditorIntent.DialogConfirmClicked) },
+            onDiscard = { onIntent(CarEditorIntent.DialogIgnoreClicked) }
+        )
+    }
 
     Column(
         modifier = modifier
@@ -247,7 +257,7 @@ private fun CarField(
         onValueChange = { onIntent(CarEditorIntent.FieldChanged(field, inputFilter(it))) },
         onFocusLost = { onIntent(CarEditorIntent.FieldBlurred(field)) },
         label = field.label(),
-        error = form.errors[field]?.message(field, form.input.plateCountry),
+        error = form.errors[field]?.message(field, form.currentInput.plateCountry),
         hint = hint,
         placeholder = placeholder,
         suffix = suffix,
@@ -305,11 +315,11 @@ private fun PlateCountryPicker(
 }
 
 @Composable
-private fun SaveBar(isSaving: Boolean, onClick: () -> Unit) {
+private fun SaveBar(isDirty: Boolean, isSaving: Boolean, onClick: () -> Unit) {
     Surface(tonalElevation = 3.dp) {
         Button(
             onClick = onClick,
-            enabled = !isSaving,
+            enabled = !isSaving && isDirty,
             shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
             modifier = Modifier
@@ -450,7 +460,7 @@ private fun CarEditorErrorsPreview() {
     AppTheme {
         CarEditorContent(
             state = CarEditorState.Form(
-                input = CarFormInput(brand = "Toyota", year = "1850", mileage = "120000", plate = "Д12ВС"),
+                currentInput = CarFormInput(brand = "Toyota", year = "1850", mileage = "120000", plate = "Д12ВС"),
                 touched = CarField.entries.toSet(),
                 errors = mapOf(
                     CarField.MODEL to Required,
@@ -469,8 +479,24 @@ private fun CarEditorSavingPreview() {
     AppTheme {
         CarEditorContent(
             state = CarEditorState.Form(
-                input = CarFormInput(brand = "Toyota", model = "Camry", year = "2018", mileage = "120000"),
+                currentInput = CarFormInput(brand = "Toyota", model = "Camry", year = "2018", mileage = "120000"),
                 isSaving = true
+            ),
+            onIntent = {}
+        )
+    }
+}
+
+@Preview(name = "Exit dialog", showBackground = true)
+@Preview(name = "Exit dialog · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun CarEditorExitDialogPreview() {
+    AppTheme {
+        CarEditorContent(
+            state = CarEditorState.Form(
+                initialInput = CarFormInput(brand = "Toyota", model = "Camry", year = "2018", mileage = "120000"),
+                currentInput = CarFormInput(brand = "Toyota", model = "Camry", year = "2018", mileage = "121500"),
+                isExitDialogVisible = true
             ),
             onIntent = {}
         )

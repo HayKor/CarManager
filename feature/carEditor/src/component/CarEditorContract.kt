@@ -6,27 +6,37 @@ import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.CarField
 import ru.haykor.carmanager.core.domain.model.CarFieldError
 import ru.haykor.carmanager.core.domain.model.CarFormInput
-import ru.haykor.carmanager.core.domain.model.FieldError
 
 @Stable
 sealed interface CarEditorState {
     data object Loading : CarEditorState
     data object NotFound : CarEditorState
     data class Form(
-        val input: CarFormInput = CarFormInput(),
+        val currentInput: CarFormInput = CarFormInput(),
+        val initialInput: CarFormInput = CarFormInput(),
         val touched: Set<CarField> = emptySet(),
         val errors: Map<CarField, CarFieldError> = emptyMap(),
         val isSaving: Boolean = false,
-        val isNew: Boolean = false
-    ) : CarEditorState
+        val isNew: Boolean = false,
+        val isExitDialogVisible: Boolean = false
+    ) : CarEditorState {
+
+        val isDirty: Boolean
+            get() = initialInput != currentInput
+    }
 }
 
 sealed interface CarEditorIntent {
     data class FieldChanged(val field: CarField, val value: String) : CarEditorIntent
     data class FieldBlurred(val field: CarField) : CarEditorIntent
+
     data class PlateCountryChanged(val plateCountry: PlateCountry) : CarEditorIntent
+
     data object SaveClicked : CarEditorIntent
     data object BackClicked : CarEditorIntent
+    data object DialogConfirmClicked : CarEditorIntent
+    data object DialogIgnoreClicked : CarEditorIntent
+    data object DialogDismissed : CarEditorIntent
 }
 
 sealed interface CarEditorEvent {
@@ -36,12 +46,18 @@ sealed interface CarEditorEvent {
 sealed interface CarEditorMutation {
     data class FormInputLoaded(val input: CarFormInput) : CarEditorMutation
     data object FormInputNew : CarEditorMutation
+
     data class FieldChanged(val field: CarField, val value: String) : CarEditorMutation
     data class FieldBlurred(val field: CarField) : CarEditorMutation
     data object AllFieldsTouched : CarEditorMutation
-    data class ErrorsUpdated(val errors: Map<CarField, CarFieldError>) : CarEditorMutation
+
     data class PlateCountryChanged(val plateCountry: PlateCountry) : CarEditorMutation
+
+    data class ErrorsUpdated(val errors: Map<CarField, CarFieldError>) : CarEditorMutation
+
     data class SetSaving(val value: Boolean) : CarEditorMutation
+    data class SetExitDialogVisible(val value: Boolean) : CarEditorMutation
+
     data object SetLoading : CarEditorMutation
     data object SetNotFound : CarEditorMutation
 }
@@ -49,7 +65,9 @@ sealed interface CarEditorMutation {
 object CarEditorReducer {
     fun reduce(state: CarEditorState, mutation: CarEditorMutation): CarEditorState = when (mutation) {
         is CarEditorMutation.FieldChanged -> {
-            (state as? CarEditorState.Form)?.let { it.copy(input = it.input.change(mutation.field, mutation.value)) }
+            (state as? CarEditorState.Form)?.let {
+                it.copy(currentInput = it.currentInput.change(mutation.field, mutation.value))
+            }
                 ?: state
         }
 
@@ -63,7 +81,7 @@ object CarEditorReducer {
 
         is CarEditorMutation.PlateCountryChanged -> {
             (state as? CarEditorState.Form)?.let {
-                it.copy(input = it.input.copy(plateCountry = mutation.plateCountry))
+                it.copy(currentInput = it.currentInput.copy(plateCountry = mutation.plateCountry))
             }
                 ?: state
         }
@@ -72,12 +90,16 @@ object CarEditorReducer {
             (state as? CarEditorState.Form)?.copy(isSaving = mutation.value) ?: state
         }
 
+        is CarEditorMutation.SetExitDialogVisible -> {
+            (state as? CarEditorState.Form)?.copy(isExitDialogVisible = mutation.value) ?: state
+        }
+
         CarEditorMutation.SetLoading -> CarEditorState.Loading
 
         CarEditorMutation.SetNotFound -> CarEditorState.NotFound
 
         is CarEditorMutation.FormInputLoaded -> {
-            CarEditorState.Form(input = mutation.input)
+            CarEditorState.Form(currentInput = mutation.input, initialInput = mutation.input)
         }
 
         CarEditorMutation.FormInputNew -> {

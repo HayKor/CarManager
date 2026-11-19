@@ -14,14 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -31,6 +27,7 @@ import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
 import ru.haykor.carmanager.core.designsystem.CmSectionHeader
 import ru.haykor.carmanager.core.designsystem.FormTextField
+import ru.haykor.carmanager.core.designsystem.UnsavedChangesDialog
 import ru.haykor.carmanager.core.designsystem.cmSegmentShape
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
@@ -124,7 +121,8 @@ internal fun ServiceEditorContent(
         bottomBar = {
             if (state is Form) {
                 SaveBar(
-                    isSaving = state.isSaving,
+                    isDirty = state.isDirty,
+                    isBusy = state.isBusy,
                     onClick = { onIntent(ServiceEditorIntent.SaveClicked) }
                 )
             }
@@ -159,6 +157,14 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
         onDismiss = { onIntent(ServiceEditorIntent.DismissSaveClicked) }
     )
 
+    if (form.isExitDialogVisible) {
+        UnsavedChangesDialog(
+            onDismiss = { onIntent(ServiceEditorIntent.DialogDismissed) },
+            onSave = { onIntent(ServiceEditorIntent.DialogConfirmClicked) },
+            onDiscard = { onIntent(ServiceEditorIntent.DialogIgnoreClicked) }
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -179,14 +185,14 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
             CategoryPicker(
                 selectedName = form.categories.first { it.id == input.categoryId }.name,
                 categories = form.categories,
-                enabled = !form.isSaving,
+                enabled = !form.isBusy,
                 onSelect = { onIntent(ServiceEditorIntent.CategoryPicked(it)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
             DatePickerField(
                 date = input.date,
-                enabled = !form.isSaving,
+                enabled = !form.isBusy,
                 onDatePicked = { onIntent(ServiceEditorIntent.DatePicked(it)) }
             )
 
@@ -242,27 +248,19 @@ private fun ConfirmationDialog(
     modifier: Modifier = Modifier
 ) {
     conflict?.let { conflict ->
+        val numberFormat = remember { NumberFormat.getIntegerInstance() }
         AlertDialog(
             onDismissRequest = onDismiss,
             title = {
-                Text("Mileage mismatch")
+                Text(stringResource(Res.string.mileage_conflict_title))
             },
             text = {
-                val highlight = SpanStyle(
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
-                val body = buildAnnotatedString {
-                    append("Current car's mileage is ")
-                    withStyle(highlight) { append("${conflict.carMileage}") }
-                    append(", record's is ")
-                    withStyle(highlight) { append("${conflict.recordMileage}") }
-                    append(". Do you want to update car's mileage to ")
-                    withStyle(highlight) { append("${conflict.recordMileage}") }
-                    append(" or keep it?")
-                }
                 Text(
-                    text = body
+                    stringResource(
+                        Res.string.mileage_conflict_text,
+                        numberFormat.format(conflict.carMileage),
+                        numberFormat.format(conflict.recordMileage)
+                    )
                 )
             },
             confirmButton = {
@@ -270,12 +268,12 @@ private fun ConfirmationDialog(
                     TextButton(
                         onClick = onConfirmKeep
                     ) {
-                        Text("Keep", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(Res.string.keep), color = MaterialTheme.colorScheme.error)
                     }
                     TextButton(
                         onClick = onConfirmUpdate
                     ) {
-                        Text("Update", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(Res.string.update), color = MaterialTheme.colorScheme.error)
                     }
                 }
             },
@@ -333,7 +331,7 @@ private fun ServiceField(
         singleLine = singleLine,
         minLines = minLines,
         maxLines = maxLines,
-        enabled = !form.isSaving,
+        enabled = !form.isBusy,
         keyboardOptions = keyboardOptions,
         modifier = modifier.fillMaxWidth()
     )
@@ -477,11 +475,11 @@ private fun NotFoundContent(onBackClick: () -> Unit, modifier: Modifier = Modifi
 }
 
 @Composable
-private fun SaveBar(isSaving: Boolean, onClick: () -> Unit) {
+private fun SaveBar(isDirty: Boolean, isBusy: Boolean, onClick: () -> Unit) {
     Surface(tonalElevation = 3.dp) {
         Button(
             onClick = onClick,
-            enabled = !isSaving,
+            enabled = !isBusy && isDirty,
             shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
             modifier = Modifier
@@ -491,7 +489,7 @@ private fun SaveBar(isSaving: Boolean, onClick: () -> Unit) {
                 .padding(horizontal = 16.dp, vertical = 12.dp)
                 .height(52.dp)
         ) {
-            if (isSaving) {
+            if (isBusy) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
             } else {
                 Text(stringResource(Res.string.save))
@@ -607,6 +605,55 @@ private fun ServiceEditorPreview() {
                 categories = listOf(
                     ServiceCategory(categoryId, "Maintenance")
                 )
+            ),
+            editorMode = EditorMode.Create(carId),
+            onIntent = {}
+        )
+    }
+}
+
+@Preview(name = "Unsaved changes", showBackground = true)
+@Preview(name = "Unsaved changes · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ServiceEditorExitDialogPreview() {
+    val carId = CarId("car-preview")
+    val categoryId = ServiceCategoryId("category-preview")
+    val date = 1_750_000_000_000L
+    AppTheme {
+        ServiceEditorContent(
+            state = Form(
+                initialInput = ServiceRecordFormInput(
+                    carId = carId,
+                    categoryId = categoryId,
+                    atMileage = "120000",
+                    price = "1500",
+                    date = date
+                ),
+                input = ServiceRecordFormInput(
+                    carId = carId,
+                    categoryId = categoryId,
+                    atMileage = "121000",
+                    price = "1500",
+                    date = date
+                ),
+                car = Car(
+                    id = carId,
+                    brand = "Toyota",
+                    model = "Camry",
+                    year = 2018,
+                    note = null,
+                    vin = null,
+                    plateCountry = null,
+                    plate = null,
+                    mileage = 120000,
+                    photoUri = null,
+                    createdAt = 0,
+                    updatedAt = 0
+                ),
+                categories = listOf(
+                    ServiceCategory(categoryId, "Maintenance")
+                ),
+                isExitDialogVisible = true
             ),
             editorMode = EditorMode.Create(carId),
             onIntent = {}

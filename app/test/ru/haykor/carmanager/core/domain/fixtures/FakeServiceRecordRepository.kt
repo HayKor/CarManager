@@ -1,5 +1,6 @@
 package ru.haykor.carmanager.core.domain.fixtures
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -27,6 +28,8 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
     val updatedCars = mutableListOf<Pair<CarId, Long?>>()
     val updated = mutableListOf<Pair<ServiceRecordId, ServiceRecordDraft>>()
 
+    var saveGate: CompletableDeferred<Unit>? = null
+
     override suspend fun create(draft: ServiceRecordDraft): DataResult<ServiceRecordId, DataError> {
         created.add(draft)
 
@@ -47,6 +50,7 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
 
     override suspend fun createWithMileage(draft: ServiceRecordDraft, newCarMileage: Long?): EmptyResult<DataError> {
         created.add(draft)
+        saveGate?.await()
 
         val record = draft.toDomain()
         records.update { it + (record.id to record) }
@@ -60,6 +64,7 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
         newCarMileage: Long?
     ): EmptyResult<DataError> {
         updated.add(id to draft)
+        saveGate?.await()
 
         val record = draft.toDomain(id)
         records.update { it + (record.id to record) }
