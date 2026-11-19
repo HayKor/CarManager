@@ -125,6 +125,30 @@ private fun CarEditorForm(
 ) {
     val input = form.currentInput
 
+    if (form.isShowDialog) {
+        AlertDialog(
+            onDismissRequest = { onIntent(CarEditorIntent.DialogDismissed) },
+            text = {},
+            title = { Text(text = "Test") },
+            confirmButton = {
+                TextButton(onClick = { onIntent(CarEditorIntent.DialogConfirmClicked) }) {
+                    Text(stringResource(Res.string.save), color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { onIntent(CarEditorIntent.DialogDismissed) }) {
+                        Text(text = "Cancel")
+                    }
+
+                    TextButton(onClick = { onIntent(CarEditorIntent.DialogIgnoreClicked) }) {
+                        Text(text = "Don't save")
+                    }
+                }
+            }
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()

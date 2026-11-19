@@ -17,7 +17,8 @@ sealed interface CarEditorState {
         val touched: Set<CarField> = emptySet(),
         val errors: Map<CarField, CarFieldError> = emptyMap(),
         val isSaving: Boolean = false,
-        val isNew: Boolean = false
+        val isNew: Boolean = false,
+        val isShowDialog: Boolean = false
     ) : CarEditorState {
 
         val isDirty: Boolean
@@ -28,9 +29,14 @@ sealed interface CarEditorState {
 sealed interface CarEditorIntent {
     data class FieldChanged(val field: CarField, val value: String) : CarEditorIntent
     data class FieldBlurred(val field: CarField) : CarEditorIntent
+
     data class PlateCountryChanged(val plateCountry: PlateCountry) : CarEditorIntent
+
     data object SaveClicked : CarEditorIntent
     data object BackClicked : CarEditorIntent
+    data object DialogConfirmClicked : CarEditorIntent
+    data object DialogIgnoreClicked : CarEditorIntent
+    data object DialogDismissed : CarEditorIntent
 }
 
 sealed interface CarEditorEvent {
@@ -40,12 +46,18 @@ sealed interface CarEditorEvent {
 sealed interface CarEditorMutation {
     data class FormInputLoaded(val input: CarFormInput) : CarEditorMutation
     data object FormInputNew : CarEditorMutation
+
     data class FieldChanged(val field: CarField, val value: String) : CarEditorMutation
     data class FieldBlurred(val field: CarField) : CarEditorMutation
     data object AllFieldsTouched : CarEditorMutation
-    data class ErrorsUpdated(val errors: Map<CarField, CarFieldError>) : CarEditorMutation
+
     data class PlateCountryChanged(val plateCountry: PlateCountry) : CarEditorMutation
+
+    data class ErrorsUpdated(val errors: Map<CarField, CarFieldError>) : CarEditorMutation
+
     data class SetSaving(val value: Boolean) : CarEditorMutation
+    data class SetShowDialog(val value: Boolean) : CarEditorMutation
+
     data object SetLoading : CarEditorMutation
     data object SetNotFound : CarEditorMutation
 }
@@ -76,6 +88,10 @@ object CarEditorReducer {
 
         is CarEditorMutation.SetSaving -> {
             (state as? CarEditorState.Form)?.copy(isSaving = mutation.value) ?: state
+        }
+
+        is CarEditorMutation.SetShowDialog -> {
+            (state as? CarEditorState.Form)?.copy(isShowDialog = mutation.value) ?: state
         }
 
         CarEditorMutation.SetLoading -> CarEditorState.Loading

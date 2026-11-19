@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
+import com.arkivanov.essenty.backhandler.BackCallback
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -37,8 +38,14 @@ class DefaultCarEditorComponent(
     private val _events = Channel<CarEditorEvent>(Channel.BUFFERED)
     override val events = _events.receiveAsFlow()
 
+    private val backCallback = BackCallback(isEnabled = false) {
+        // if we're inside of this lambda, condition is already met
+        accept(CarEditorIntent.BackClicked)
+    }
+
     init {
         loadInitialForm()
+        backHandler.register(backCallback)
     }
 
     override fun accept(intent: CarEditorIntent) = when (intent) {
@@ -50,6 +57,7 @@ class DefaultCarEditorComponent(
         is CarEditorIntent.FieldChanged -> {
             reduce(CarEditorMutation.FieldChanged(intent.field, intent.value))
             refreshErrors()
+            updateBackCallback()
         }
 
         is CarEditorIntent.PlateCountryChanged -> {
@@ -63,7 +71,27 @@ class DefaultCarEditorComponent(
         }
 
         CarEditorIntent.BackClicked -> {
+            val form = (_state.value as? CarEditorState.Form)
+            if (form != null) {
+                reduce(CarEditorMutation.SetShowDialog(true))
+            } else {
+                onBack()
+            }
+        }
+
+        CarEditorIntent.DialogConfirmClicked -> {
+            reduce(CarEditorMutation.SetShowDialog(false))
+            reduce(CarEditorMutation.AllFieldsTouched)
+            trySaveCar()
+        }
+
+        CarEditorIntent.DialogIgnoreClicked -> {
+            reduce(CarEditorMutation.SetShowDialog(false))
             onBack()
+        }
+
+        CarEditorIntent.DialogDismissed -> {
+            reduce(CarEditorMutation.SetShowDialog(false))
         }
     }
 
@@ -128,6 +156,11 @@ class DefaultCarEditorComponent(
         val form = (_state.value as? CarEditorState.Form) ?: return
         val all = parser.validate(form.currentInput)
         reduce(CarEditorMutation.ErrorsUpdated(all.filterKeys { it in form.touched }))
+    }
+
+    private fun updateBackCallback() {
+        val form = (_state.value as? CarEditorState.Form) ?: return
+        backCallback.isEnabled = form.isDirty
     }
 }
 
