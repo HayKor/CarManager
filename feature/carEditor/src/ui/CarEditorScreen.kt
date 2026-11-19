@@ -91,7 +91,7 @@ internal fun CarEditorContent(
         bottomBar = {
             if (state is CarEditorState.Form) {
                 SaveBar(
-                    enabled = !state.isSaving && state.isDirty,
+                    isDirty = state.isDirty,
                     isSaving = state.isSaving,
                     onClick = { onIntent(CarEditorIntent.SaveClicked) }
                 )
@@ -330,11 +330,11 @@ private fun PlateCountryPicker(
 }
 
 @Composable
-private fun SaveBar(enabled: Boolean, isSaving: Boolean, onClick: () -> Unit) {
+private fun SaveBar(isDirty: Boolean, isSaving: Boolean, onClick: () -> Unit) {
     Surface(tonalElevation = 3.dp) {
         Button(
             onClick = onClick,
-            enabled = enabled,
+            enabled = !isSaving && isDirty,
             shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
             modifier = Modifier

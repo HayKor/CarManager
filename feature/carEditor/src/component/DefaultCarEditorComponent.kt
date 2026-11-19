@@ -5,6 +5,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
 import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -46,6 +47,7 @@ class DefaultCarEditorComponent(
     init {
         loadInitialForm()
         backHandler.register(backCallback)
+        lifecycle.doOnDestroy { backHandler.unregister(backCallback) }
     }
 
     override fun accept(intent: CarEditorIntent) = when (intent) {
@@ -57,7 +59,6 @@ class DefaultCarEditorComponent(
         is CarEditorIntent.FieldChanged -> {
             reduce(CarEditorMutation.FieldChanged(intent.field, intent.value))
             refreshErrors()
-            updateBackCallback()
         }
 
         is CarEditorIntent.PlateCountryChanged -> {
@@ -72,7 +73,7 @@ class DefaultCarEditorComponent(
 
         CarEditorIntent.BackClicked -> {
             val form = (_state.value as? CarEditorState.Form)
-            if (form != null) {
+            if (form != null && form.isDirty) {
                 reduce(CarEditorMutation.SetShowDialog(true))
             } else {
                 onBack()
@@ -149,6 +150,7 @@ class DefaultCarEditorComponent(
     }
 
     private fun reduce(mutation: CarEditorMutation) {
+        updateBackCallback()
         _state.update { state -> CarEditorReducer.reduce(state, mutation) }
     }
 
