@@ -17,7 +17,7 @@
     <string name="title_garage">Garage</string>
     <string name="garage_add_car">Add car</string>
     <string name="garage_empty_title">No cars currently. Add a car?</string>
-    <string name="garage_empty_on_query">Query \"%1$s\" didn\'t show any results</string>
+    <string name="garage_empty_on_query">Query "%1$s" didn't show any results</string>
     <string name="garage_search_title">Search</string>
     <string name="garage_mileage">%1$d km</string>
 
