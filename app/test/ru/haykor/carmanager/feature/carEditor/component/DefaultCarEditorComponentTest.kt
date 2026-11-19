@@ -59,7 +59,7 @@ class DefaultCarEditorComponentTest {
         val state = component.state.value
         assertIs<CarEditorState.Form>(state)
         assertFalse(state.isNew)
-        assertEquals(defaultCar.toFormInput(), state.input)
+        assertEquals(defaultCar.toFormInput(), state.currentInput)
     }
 
     @Test
@@ -187,7 +187,7 @@ class DefaultCarEditorComponentTest {
         val component = createComponent(id = defaultCar.id)
         val state = component.state.value
         assertIs<CarEditorState.Form>(state)
-        val form = state.input
+        val form = state.currentInput
         assertEquals(defaultCar.toFormInput(), form)
     }
 

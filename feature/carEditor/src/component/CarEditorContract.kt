@@ -6,19 +6,23 @@ import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.CarField
 import ru.haykor.carmanager.core.domain.model.CarFieldError
 import ru.haykor.carmanager.core.domain.model.CarFormInput
-import ru.haykor.carmanager.core.domain.model.FieldError
 
 @Stable
 sealed interface CarEditorState {
     data object Loading : CarEditorState
     data object NotFound : CarEditorState
     data class Form(
-        val input: CarFormInput = CarFormInput(),
+        val currentInput: CarFormInput = CarFormInput(),
+        val initialInput: CarFormInput = CarFormInput(),
         val touched: Set<CarField> = emptySet(),
         val errors: Map<CarField, CarFieldError> = emptyMap(),
         val isSaving: Boolean = false,
         val isNew: Boolean = false
-    ) : CarEditorState
+    ) : CarEditorState {
+
+        val isDirty: Boolean
+            get() = initialInput != currentInput
+    }
 }
 
 sealed interface CarEditorIntent {
@@ -49,7 +53,9 @@ sealed interface CarEditorMutation {
 object CarEditorReducer {
     fun reduce(state: CarEditorState, mutation: CarEditorMutation): CarEditorState = when (mutation) {
         is CarEditorMutation.FieldChanged -> {
-            (state as? CarEditorState.Form)?.let { it.copy(input = it.input.change(mutation.field, mutation.value)) }
+            (state as? CarEditorState.Form)?.let {
+                it.copy(currentInput = it.currentInput.change(mutation.field, mutation.value))
+            }
                 ?: state
         }
 
@@ -63,7 +69,7 @@ object CarEditorReducer {
 
         is CarEditorMutation.PlateCountryChanged -> {
             (state as? CarEditorState.Form)?.let {
-                it.copy(input = it.input.copy(plateCountry = mutation.plateCountry))
+                it.copy(currentInput = it.currentInput.copy(plateCountry = mutation.plateCountry))
             }
                 ?: state
         }
@@ -77,7 +83,7 @@ object CarEditorReducer {
         CarEditorMutation.SetNotFound -> CarEditorState.NotFound
 
         is CarEditorMutation.FormInputLoaded -> {
-            CarEditorState.Form(input = mutation.input)
+            CarEditorState.Form(currentInput = mutation.input, initialInput = mutation.input)
         }
 
         CarEditorMutation.FormInputNew -> {

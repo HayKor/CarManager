@@ -91,6 +91,7 @@ internal fun CarEditorContent(
         bottomBar = {
             if (state is CarEditorState.Form) {
                 SaveBar(
+                    enabled = !state.isSaving && state.isDirty,
                     isSaving = state.isSaving,
                     onClick = { onIntent(CarEditorIntent.SaveClicked) }
                 )
@@ -122,7 +123,7 @@ private fun CarEditorForm(
     onIntent: (CarEditorIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val input = form.input
+    val input = form.currentInput
 
     Column(
         modifier = modifier
@@ -247,7 +248,7 @@ private fun CarField(
         onValueChange = { onIntent(CarEditorIntent.FieldChanged(field, inputFilter(it))) },
         onFocusLost = { onIntent(CarEditorIntent.FieldBlurred(field)) },
         label = field.label(),
-        error = form.errors[field]?.message(field, form.input.plateCountry),
+        error = form.errors[field]?.message(field, form.currentInput.plateCountry),
         hint = hint,
         placeholder = placeholder,
         suffix = suffix,
@@ -305,11 +306,11 @@ private fun PlateCountryPicker(
 }
 
 @Composable
-private fun SaveBar(isSaving: Boolean, onClick: () -> Unit) {
+private fun SaveBar(enabled: Boolean, isSaving: Boolean, onClick: () -> Unit) {
     Surface(tonalElevation = 3.dp) {
         Button(
             onClick = onClick,
-            enabled = !isSaving,
+            enabled = enabled,
             shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
             modifier = Modifier
@@ -450,7 +451,7 @@ private fun CarEditorErrorsPreview() {
     AppTheme {
         CarEditorContent(
             state = CarEditorState.Form(
-                input = CarFormInput(brand = "Toyota", year = "1850", mileage = "120000", plate = "Д12ВС"),
+                currentInput = CarFormInput(brand = "Toyota", year = "1850", mileage = "120000", plate = "Д12ВС"),
                 touched = CarField.entries.toSet(),
                 errors = mapOf(
                     CarField.MODEL to Required,
@@ -469,7 +470,7 @@ private fun CarEditorSavingPreview() {
     AppTheme {
         CarEditorContent(
             state = CarEditorState.Form(
-                input = CarFormInput(brand = "Toyota", model = "Camry", year = "2018", mileage = "120000"),
+                currentInput = CarFormInput(brand = "Toyota", model = "Camry", year = "2018", mileage = "120000"),
                 isSaving = true
             ),
             onIntent = {}

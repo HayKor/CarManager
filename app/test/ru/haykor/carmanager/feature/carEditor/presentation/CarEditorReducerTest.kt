@@ -16,7 +16,7 @@ import kotlin.test.assertTrue
 class CarEditorReducerTest {
 
     private val loading: CarEditorState = CarEditorState.Loading
-    private val form: CarEditorState = CarEditorState.Form(input = aCar().toFormInput())
+    private val form: CarEditorState = CarEditorState.Form(currentInput = aCar().toFormInput())
     private val allFieldsSet: Set<CarField> = CarField.entries.toSet()
 
     @Test
@@ -50,7 +50,7 @@ class CarEditorReducerTest {
     fun `mutating a field changes only its value`() {
         val state = CarEditorReducer.reduce(form, CarEditorMutation.FieldChanged(CarField.BRAND, "BMW"))
         assertIs<CarEditorState.Form>(state)
-        assertEquals("BMW", state.input.brand)
-        assertEquals("Qashqai", state.input.model)
+        assertEquals("BMW", state.currentInput.brand)
+        assertEquals("Qashqai", state.currentInput.model)
     }
 }

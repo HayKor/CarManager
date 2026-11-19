@@ -82,7 +82,7 @@ class DefaultCarEditorComponent(
         val form = (_state.value as? CarEditorState.Form) ?: return
         if (form.isSaving) return
 
-        when (val result = parser.parse(form.input)) {
+        when (val result = parser.parse(form.currentInput)) {
             is CarParseResult.Invalid -> reduce(CarEditorMutation.ErrorsUpdated(result.errors))
 
             is CarParseResult.Valid -> {
@@ -126,7 +126,7 @@ class DefaultCarEditorComponent(
 
     private fun refreshErrors() {
         val form = (_state.value as? CarEditorState.Form) ?: return
-        val all = parser.validate(form.input)
+        val all = parser.validate(form.currentInput)
         reduce(CarEditorMutation.ErrorsUpdated(all.filterKeys { it in form.touched }))
     }
 }
