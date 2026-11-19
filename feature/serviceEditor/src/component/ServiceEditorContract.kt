@@ -18,12 +18,21 @@ sealed interface ServiceEditorState {
         val input: ServiceRecordFormInput,
         val car: Car,
         val categories: List<ServiceCategory>,
+        val initialInput: ServiceRecordFormInput = input,
         val touched: Set<RecordField> = emptySet(),
         val errors: Map<RecordField, RecordFieldError> = emptyMap(),
         val isSaving: Boolean = false,
         val isDeleting: Boolean = false,
-        val mileageConflict: MileageConflict? = null
-    ) : ServiceEditorState
+        val mileageConflict: MileageConflict? = null,
+        val isExitDialogVisible: Boolean = false
+    ) : ServiceEditorState {
+
+        val isDirty: Boolean
+            get() = initialInput != input
+
+        val isBusy: Boolean
+            get() = isSaving || isDeleting
+    }
 }
 
 sealed interface ServiceEditorIntent {
@@ -38,6 +47,10 @@ sealed interface ServiceEditorIntent {
     data object UpdateCarMileageClicked : ServiceEditorIntent
     data object KeepCarMileageClicked : ServiceEditorIntent
     data object DismissSaveClicked : ServiceEditorIntent
+
+    data object DialogConfirmClicked : ServiceEditorIntent
+    data object DialogIgnoreClicked : ServiceEditorIntent
+    data object DialogDismissed : ServiceEditorIntent
 
     data object BackClicked : ServiceEditorIntent
 }
@@ -68,12 +81,19 @@ sealed interface ServiceEditorMutation {
 
     data class MileageConflictDetected(val conflict: MileageConflict) : ServiceEditorMutation
     data object MileageConflictResolved : ServiceEditorMutation
+
+    data class SetExitDialogVisible(val value: Boolean) : ServiceEditorMutation
 }
 
 object ServiceEditorReducer {
     fun reduce(state: ServiceEditorState, mutation: ServiceEditorMutation): ServiceEditorState = when (mutation) {
         is ServiceEditorMutation.InitialFormLoaded -> {
-            Form(input = mutation.input, car = mutation.car, categories = mutation.categories)
+            Form(
+                input = mutation.input,
+                initialInput = mutation.input,
+                car = mutation.car,
+                categories = mutation.categories
+            )
         }
 
         is ServiceEditorMutation.FieldChanged -> {
@@ -116,7 +136,11 @@ object ServiceEditorReducer {
         }
 
         is ServiceEditorMutation.SetIsDeleting -> {
-            (state as? Form)?.copy(isSaving = mutation.value) ?: state
+            (state as? Form)?.copy(isDeleting = mutation.value) ?: state
+        }
+
+        is ServiceEditorMutation.SetExitDialogVisible -> {
+            (state as? Form)?.copy(isExitDialogVisible = mutation.value) ?: state
         }
 
         ServiceEditorMutation.SetNotFound -> ServiceEditorState.NotFound

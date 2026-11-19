@@ -94,4 +94,10 @@
     <string name="unsaved_changes_title">Save changes?</string>
     <string name="unsaved_changes_text">You have unsaved changes. Save them before leaving?</string>
     <string name="dont_save">Don't save</string>
+
+    <!-- Mileage conflict -->
+    <string name="mileage_conflict_title">Mileage mismatch</string>
+    <string name="mileage_conflict_text">Current car's mileage is %1$s, record's is %2$s. Do you want to update car's mileage to %2$s or keep it?</string>
+    <string name="keep">Keep</string>
+    <string name="update">Update</string>
 </resources>

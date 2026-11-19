@@ -26,6 +26,7 @@ import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
 import ru.haykor.carmanager.core.designsystem.CmSectionHeader
 import ru.haykor.carmanager.core.designsystem.FormTextField
+import ru.haykor.carmanager.core.designsystem.UnsavedChangesDialog
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.model.*
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
@@ -126,7 +127,7 @@ private fun CarEditorForm(
     val input = form.currentInput
 
     if (form.isExitDialogVisible) {
-        ExitDialog(
+        UnsavedChangesDialog(
             onDismiss = { onIntent(CarEditorIntent.DialogDismissed) },
             onSave = { onIntent(CarEditorIntent.DialogConfirmClicked) },
             onDiscard = { onIntent(CarEditorIntent.DialogIgnoreClicked) }
@@ -339,44 +340,6 @@ private fun SaveBar(isDirty: Boolean, isSaving: Boolean, onClick: () -> Unit) {
             }
         }
     }
-}
-
-@Composable
-private fun ExitDialog(
-    onDismiss: () -> Unit,
-    onSave: () -> Unit,
-    onDiscard: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(Res.string.unsaved_changes_title))
-        },
-        text = {
-            Text(stringResource(Res.string.unsaved_changes_text))
-        },
-        confirmButton = {
-            TextButton(onClick = onSave) {
-                Text(stringResource(Res.string.save))
-            }
-        },
-        dismissButton = {
-            Row {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(Res.string.cancel))
-                }
-
-                TextButton(onClick = onDiscard) {
-                    Text(
-                        text = stringResource(Res.string.dont_save),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-        },
-        modifier = modifier
-    )
 }
 
 @Composable

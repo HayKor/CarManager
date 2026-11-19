@@ -4,6 +4,9 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
+import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.lifecycle.Lifecycle
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -45,8 +48,15 @@ class DefaultServiceEditorComponent(
     private val _events = Channel<ServiceEditorEvent>(Channel.BUFFERED)
     override val events = _events.receiveAsFlow()
 
+    private var isExitHandled = false
+
+    private val backCallback = BackCallback(isEnabled = false) {
+        // if we're inside of this lambda, condition is already met
+        accept(ServiceEditorIntent.BackClicked)
+    }
+
     override fun accept(intent: ServiceEditorIntent) = when (intent) {
-        ServiceEditorIntent.BackClicked -> onBack()
+        ServiceEditorIntent.BackClicked -> onBackClicked()
 
         is ServiceEditorIntent.CategoryPicked -> reduce(CategoryPicked(intent.categoryId))
 
@@ -80,10 +90,54 @@ class DefaultServiceEditorComponent(
         ServiceEditorIntent.DismissSaveClicked -> {
             reduce(MileageConflictResolved)
         }
+
+        ServiceEditorIntent.DialogConfirmClicked -> {
+            reduce(ServiceEditorMutation.SetExitDialogVisible(false))
+            reduce(AllFieldsTouched)
+            trySaveRecord()
+        }
+
+        ServiceEditorIntent.DialogIgnoreClicked -> {
+            reduce(ServiceEditorMutation.SetExitDialogVisible(false))
+            exit()
+        }
+
+        ServiceEditorIntent.DialogDismissed -> {
+            reduce(ServiceEditorMutation.SetExitDialogVisible(false))
+        }
     }
 
     init {
         loadInitialForm()
+        backHandler.register(backCallback)
+        lifecycle.doOnDestroy { backHandler.unregister(backCallback) }
+    }
+
+    /**
+     * Back closes the mileage conflict first, then the exit confirmation is handled only when
+     * there are unsaved changes and nothing is being saved or deleted.
+     */
+    private fun onBackClicked() {
+        val form = state.value as? ServiceEditorState.Form
+        if (form != null && form.mileageConflict != null) {
+            reduce(MileageConflictResolved)
+            return
+        }
+        if (form != null && form.isDirty && !form.isBusy) {
+            reduce(ServiceEditorMutation.SetExitDialogVisible(true))
+        } else {
+            exit()
+        }
+    }
+
+    /**
+     * Leaves the screen at most once: the user may leave while a save or delete is in flight, and
+     * the result must not pop the next screen afterwards. Does nothing if the component is gone.
+     */
+    private fun exit() {
+        if (isExitHandled || lifecycle.state == Lifecycle.State.DESTROYED) return
+        isExitHandled = true
+        onBack()
     }
 
     private fun loadInitialForm() {
@@ -106,7 +160,7 @@ class DefaultServiceEditorComponent(
 
     private fun trySaveRecord(resolution: MileageResolution = MileageResolution.ASK) {
         val form = (state.value as? ServiceEditorState.Form) ?: return
-        if (form.isSaving) return
+        if (form.isBusy) return
 
         reduce(SetIsSaving(true))
         scope.launch {
@@ -136,7 +190,7 @@ class DefaultServiceEditorComponent(
                 }
 
                 is DataResult.Success -> {
-                    onBack()
+                    exit()
                 }
             }
         }
@@ -145,23 +199,30 @@ class DefaultServiceEditorComponent(
     private fun delete() {
         if (editorMode !is EditorMode.Edit) return // can only delete an existing record
         val form = (state.value as? ServiceEditorState.Form) ?: return
-        if (form.isDeleting) return
+        if (form.isBusy) return
 
         reduce(ServiceEditorMutation.SetIsDeleting(true))
         scope.launch {
             when (val result = recordRepo.delete(id = editorMode.recordId)) {
-                is DataResult.Success -> onBack()
+                is DataResult.Success -> exit()
 
                 is DataResult.Failure -> {
+                    reduce(ServiceEditorMutation.SetIsDeleting(false))
                     _events.send(ServiceEditorEvent.DeleteFailed(result.error))
                 }
             }
-            reduce(ServiceEditorMutation.SetIsDeleting(false))
         }
     }
 
     private fun reduce(mutation: ServiceEditorMutation) {
         state.update { ServiceEditorReducer.reduce(it, mutation) }
+        updateBackCallback()
+    }
+
+    private fun updateBackCallback() {
+        val form = state.value as? ServiceEditorState.Form
+        // While busy, back leaves the screen and cancels the operation, so no dialog is needed
+        backCallback.isEnabled = form != null && form.isDirty && !form.isBusy
     }
 }
 
