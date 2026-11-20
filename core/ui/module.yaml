@@ -11,10 +11,6 @@ dependencies:
   - //core/design-system
   - //core/domain: exported
   - //core/resources
-  # libs
-  - $compose.foundation: exported
-  - $libs.androidx.compose.material3: exported
-  - $compose.ui: exported
   - $compose.preview
 
 dependencies@android:

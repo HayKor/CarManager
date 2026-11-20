@@ -1,5 +1,6 @@
 package ru.haykor.carmanager.feature.garage.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -94,6 +95,9 @@ fun GarageTopBar(
             scrolledContainerColor = MaterialTheme.colorScheme.background
         ),
         title = {
+            BackHandler(enabled = isActive) {
+                focusManager.clearFocus()
+            }
             BasicTextField(
                 value = query,
                 onValueChange = onQueryChange,
