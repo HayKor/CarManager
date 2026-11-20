@@ -17,6 +17,7 @@ dependencies:
   # libs
   - $libs.decompose.extensions.compose
   - $compose.preview
+  - $compose.uiBackHandler
 
 dependencies@android:
   - $compose.uiTooling
