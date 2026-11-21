@@ -1,5 +1,6 @@
 package ru.haykor.carmanager.feature.serviceEditor.component
 
+import android.util.Log
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -10,6 +11,8 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import io.github.vinceglb.filekit.*
+import io.github.vinceglb.filekit.exceptions.FileKitException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -21,14 +24,9 @@ import ru.haykor.carmanager.core.domain.usecase.SaveRecordError
 import ru.haykor.carmanager.core.domain.usecase.SaveServiceRecordUseCase
 import ru.haykor.carmanager.core.presentation.component.createComponentScope
 import ru.haykor.carmanager.core.result.DataResult
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.AllFieldsTouched
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.CategoryPicked
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.DatePicked
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.ErrorsUpdated
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.FieldBlurred
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.FieldChanged
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.MileageConflictResolved
-import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.SetIsSaving
+import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.*
+import java.io.IOException
+import kotlin.uuid.Uuid
 
 class DefaultServiceEditorComponent(
     componentContext: ComponentContext,
@@ -55,12 +53,21 @@ class DefaultServiceEditorComponent(
         accept(ServiceEditorIntent.BackClicked)
     }
 
-    override fun accept(intent: ServiceEditorIntent) = when (intent) {
+    /**
+     * Contains keys, e.g. 'photo/example.jpg'
+     */
+    private val trashImages: MutableList<String> = mutableListOf()
+
+    override fun accept(intent: ServiceEditorIntent): Unit = when (intent) {
         ServiceEditorIntent.BackClicked -> onBackClicked()
 
         is ServiceEditorIntent.CategoryPicked -> reduce(CategoryPicked(intent.categoryId))
 
         is ServiceEditorIntent.DatePicked -> reduce(DatePicked(intent.date))
+
+        is ServiceEditorIntent.ImagePicked -> {
+            copyImage(intent.image)
+        }
 
         is ServiceEditorIntent.FieldBlurred -> reduce(FieldBlurred(intent.field))
 
@@ -92,18 +99,18 @@ class DefaultServiceEditorComponent(
         }
 
         ServiceEditorIntent.DialogConfirmClicked -> {
-            reduce(ServiceEditorMutation.SetExitDialogVisible(false))
+            reduce(SetExitDialogVisible(false))
             reduce(AllFieldsTouched)
             trySaveRecord()
         }
 
         ServiceEditorIntent.DialogIgnoreClicked -> {
-            reduce(ServiceEditorMutation.SetExitDialogVisible(false))
-            exit()
+            reduce(SetExitDialogVisible(false))
+            disposeAndExit(keep = null)
         }
 
         ServiceEditorIntent.DialogDismissed -> {
-            reduce(ServiceEditorMutation.SetExitDialogVisible(false))
+            reduce(SetExitDialogVisible(false))
         }
     }
 
@@ -113,18 +120,25 @@ class DefaultServiceEditorComponent(
         lifecycle.doOnDestroy { backHandler.unregister(backCallback) }
     }
 
+    private fun disposeAndExit(keep: String?) {
+        scope.launch {
+            disposeImages(keep = keep)
+            exit()
+        }
+    }
+
     /**
      * Back closes the mileage conflict first, then the exit confirmation is handled only when
      * there are unsaved changes and nothing is being saved or deleted.
      */
     private fun onBackClicked() {
         val form = state.value as? ServiceEditorState.Form
-        if (form != null && form.mileageConflict != null) {
+        if (form?.mileageConflict != null) {
             reduce(MileageConflictResolved)
             return
         }
         if (form != null && form.isDirty && !form.isBusy) {
-            reduce(ServiceEditorMutation.SetExitDialogVisible(true))
+            reduce(SetExitDialogVisible(true))
         } else {
             exit()
         }
@@ -143,11 +157,11 @@ class DefaultServiceEditorComponent(
     private fun loadInitialForm() {
         scope.launch {
             when (val result = getInitialServiceEditorData(editorMode)) {
-                null -> reduce(ServiceEditorMutation.SetNotFound)
+                null -> reduce(SetNotFound)
 
                 else -> {
                     reduce(
-                        ServiceEditorMutation.InitialFormLoaded(
+                        InitialFormLoaded(
                             input = result.input,
                             car = result.car,
                             categories = result.categories
@@ -163,6 +177,7 @@ class DefaultServiceEditorComponent(
         if (form.isBusy) return
 
         reduce(SetIsSaving(true))
+        val commitedPhotoKey = form.input.photoUri
         scope.launch {
             when (val result = saveServiceRecord(editorMode, form.input, form.input.carId, resolution)) {
                 is DataResult.Failure -> {
@@ -174,7 +189,7 @@ class DefaultServiceEditorComponent(
 
                         is SaveRecordError.MileageMismatch -> {
                             reduce(
-                                ServiceEditorMutation.MileageConflictDetected(
+                                MileageConflictDetected(
                                     MileageConflict(
                                         error.carMileage,
                                         error.recordMileage
@@ -190,7 +205,7 @@ class DefaultServiceEditorComponent(
                 }
 
                 is DataResult.Success -> {
-                    exit()
+                    disposeAndExit(keep = commitedPhotoKey)
                 }
             }
         }
@@ -201,16 +216,49 @@ class DefaultServiceEditorComponent(
         val form = (state.value as? ServiceEditorState.Form) ?: return
         if (form.isBusy) return
 
-        reduce(ServiceEditorMutation.SetIsDeleting(true))
+        reduce(SetIsDeleting(true))
         scope.launch {
             when (val result = recordRepo.delete(id = editorMode.recordId)) {
-                is DataResult.Success -> exit()
+                is DataResult.Success -> disposeAndExit(keep = null)
 
                 is DataResult.Failure -> {
-                    reduce(ServiceEditorMutation.SetIsDeleting(false))
+                    reduce(SetIsDeleting(false))
                     _events.send(ServiceEditorEvent.DeleteFailed(result.error))
                 }
             }
+        }
+    }
+
+    private fun copyImage(image: PlatformFile?) {
+        if (image == null) return
+
+        val hash = Uuid.random()
+        val key = "photo/$hash.${image.extension}"
+        val destination = FileKit.filesDir.resolve(key)
+        scope.launch {
+            try {
+                // If 'photo/' doesn't exist
+                photoDir.createDirectories()
+
+                destination write image
+                reduce(ImagePicked(key))
+                Log.d("PhotoPicker", "Image copied to ${destination.absolutePath()}")
+                Log.d("PhotoPicker", "Key is $key")
+
+                trashImages.add(key)
+            } catch (e: IOException) {
+                Log.d("PhotoPicker", e.toString())
+            } catch (e: FileKitException) {
+                Log.d("PhotoPicker", e.toString())
+            }
+        }
+    }
+
+    private suspend fun disposeImages(keep: String?) {
+        trashImages.filterNot { it == keep }.forEach { key ->
+            val image = FileKit.filesDir.resolve(key)
+            image.delete(mustExist = false)
+            Log.d("PhotoPicker", "Image deleted: ${image.path}")
         }
     }
 
@@ -223,6 +271,10 @@ class DefaultServiceEditorComponent(
         val form = state.value as? ServiceEditorState.Form
         // While busy, back leaves the screen and cancels the operation, so no dialog is needed
         backCallback.isEnabled = form != null && form.isDirty && !form.isBusy
+    }
+
+    private companion object {
+        val photoDir = FileKit.filesDir / "photo"
     }
 }
 

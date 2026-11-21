@@ -17,12 +17,17 @@ dependencies:
   # libs
   - $libs.decompose.extensions.compose
   - $compose.preview
+  - $libs.filekit.dialogs.compose
+  - $libs.filekit.coil: exported
+  - $libs.coil.compose
 
 dependencies@android:
   - $compose.uiTooling
 
 settings:
   compose: enabled
+  android:
+    minSdk: 26 # IDEA ругалась
   kotlin:
     freeCompilerArgs:
       - -XXLanguage:+ExplicitBackingFields

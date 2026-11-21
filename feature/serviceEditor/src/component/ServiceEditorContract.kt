@@ -1,12 +1,9 @@
 package ru.haykor.carmanager.feature.serviceEditor.component
 
+import io.github.vinceglb.filekit.PlatformFile
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
 import ru.haykor.carmanager.core.domain.error.DataError
-import ru.haykor.carmanager.core.domain.model.Car
-import ru.haykor.carmanager.core.domain.model.RecordField
-import ru.haykor.carmanager.core.domain.model.RecordFieldError
-import ru.haykor.carmanager.core.domain.model.ServiceCategory
-import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
+import ru.haykor.carmanager.core.domain.model.*
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState.Form
 
 data class MileageConflict(val carMileage: Long, val recordMileage: Long)
@@ -41,6 +38,7 @@ sealed interface ServiceEditorIntent {
 
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorIntent
     data class DatePicked(val date: Long) : ServiceEditorIntent
+    data class ImagePicked(val image: PlatformFile?) : ServiceEditorIntent
 
     data object SaveClicked : ServiceEditorIntent
     data object DeleteClicked : ServiceEditorIntent
@@ -74,6 +72,7 @@ sealed interface ServiceEditorMutation {
 
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorMutation
     data class DatePicked(val date: Long) : ServiceEditorMutation
+    data class ImagePicked(val photoUri: String?) : ServiceEditorMutation
 
     data class SetIsSaving(val value: Boolean) : ServiceEditorMutation
     data class SetIsDeleting(val value: Boolean) : ServiceEditorMutation
@@ -128,6 +127,12 @@ object ServiceEditorReducer {
         is ServiceEditorMutation.DatePicked -> {
             (state as? Form)?.let {
                 it.copy(input = it.input.copy(date = mutation.date))
+            } ?: state
+        }
+
+        is ServiceEditorMutation.ImagePicked -> {
+            (state as? Form)?.let {
+                it.copy(input = it.input.copy(photoUri = mutation.photoUri))
             } ?: state
         }
 

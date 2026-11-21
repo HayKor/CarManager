@@ -1,18 +1,21 @@
 package ru.haykor.carmanager.feature.serviceEditor.ui
 
 import android.content.res.Configuration
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -20,7 +23,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.filesDir
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.path
+import io.github.vinceglb.filekit.resolve
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -218,6 +231,13 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
                     modifier = Modifier.weight(1f)
                 )
             }
+            // Test photo picker
+            PhotoPicker(
+                photoPath = form.input.photoUri,
+                onPicked = { image ->
+                    onIntent(ServiceEditorIntent.ImagePicked(image))
+                }
+            )
         }
 
         Spacer(Modifier.height(8.dp))
@@ -236,6 +256,45 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
         }
 
         Spacer(Modifier.height(16.dp))
+    }
+}
+
+/**
+Passes [io.github.vinceglb.filekit.PlatformFile] to the component
+ */
+@Composable
+private fun PhotoPicker(photoPath: String?, onPicked: (PlatformFile?) -> Unit) {
+    val launcher = rememberFilePickerLauncher(
+        type = FileKitType.Image,
+        onError = { failure -> Log.d("PhotoPicker", "Picker failed: ${failure.message}") }
+    ) { image ->
+        // file is a PlatformFile, or null when the user cancelled
+        Log.d("PhotoPicker", "Picked ${image?.path}")
+        onPicked(image)
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(80.dp)
+            .clip(ListItemDefaults.shapes().shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .clickable { launcher.launch() }
+    ) {
+        if (photoPath != null) {
+            val file = FileKit.filesDir.resolve(photoPath)
+            AsyncImage(
+                model = file,
+                contentDescription = file.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Icon(
+                painter = painterResource(Res.drawable.plus),
+                contentDescription = null
+            )
+        }
     }
 }
 
