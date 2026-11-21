@@ -1,10 +1,7 @@
 package ru.haykor.carmanager.core.data.local.dao
 
-import android.content.Context
 import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -13,13 +10,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import ru.haykor.carmanager.core.data.local.AppDatabase
+import ru.haykor.carmanager.core.data.local.BundledSqliteNative
 import ru.haykor.carmanager.core.data.local.entity.car.CarEntity
 import ru.haykor.carmanager.core.data.model.CarUpdate
 import ru.haykor.carmanager.core.domain.CarId
 
-@RunWith(AndroidJUnit4::class)
 class CarDaoSearchTest {
 
     private lateinit var database: AppDatabase
@@ -27,8 +23,8 @@ class CarDaoSearchTest {
 
     @Before
     fun setUp() {
-        val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
-        database = Room.inMemoryDatabaseBuilder<AppDatabase>(context)
+        BundledSqliteNative.install()
+        database = Room.inMemoryDatabaseBuilder<AppDatabase>()
             .setDriver(BundledSQLiteDriver())
             .setQueryCoroutineContext(Dispatchers.IO)
             .build()

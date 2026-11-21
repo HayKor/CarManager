@@ -9,9 +9,9 @@ test-dependencies:
   - $kotlin.test
   - $libs.kotlinx.coroutines.test
   - $libs.androidx.room.runtime
-  - $libs.androidx.sqlite.bundled
-  - $libs.androidx.junit
-  - $libs.androidx.espresso.core
+  # JVM flavor: carries the host native library for BundledSQLiteDriver (see BundledSqliteNative)
+  - $libs.androidx.sqlite.bundled.jvm
+  - $libs.filekit.core
 
 apply:
   - //common.module-template.yaml
