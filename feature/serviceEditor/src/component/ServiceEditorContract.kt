@@ -1,6 +1,5 @@
 package ru.haykor.carmanager.feature.serviceEditor.component
 
-import io.github.vinceglb.filekit.PlatformFile
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
 import ru.haykor.carmanager.core.domain.error.DataError
 import ru.haykor.carmanager.core.domain.model.*
@@ -20,6 +19,7 @@ sealed interface ServiceEditorState {
         val errors: Map<RecordField, RecordFieldError> = emptyMap(),
         val isSaving: Boolean = false,
         val isDeleting: Boolean = false,
+        val isImporting: Boolean = false,
         val mileageConflict: MileageConflict? = null,
         val isExitDialogVisible: Boolean = false
     ) : ServiceEditorState {
@@ -28,7 +28,7 @@ sealed interface ServiceEditorState {
             get() = initialInput != input
 
         val isBusy: Boolean
-            get() = isSaving || isDeleting
+            get() = isSaving || isDeleting || isImporting
     }
 }
 
@@ -38,7 +38,7 @@ sealed interface ServiceEditorIntent {
 
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorIntent
     data class DatePicked(val date: Long) : ServiceEditorIntent
-    data class ImagePicked(val image: PlatformFile?) : ServiceEditorIntent
+    data class ImagePicked(val imagePath: String?) : ServiceEditorIntent
 
     data object SaveClicked : ServiceEditorIntent
     data object DeleteClicked : ServiceEditorIntent
@@ -56,6 +56,7 @@ sealed interface ServiceEditorIntent {
 sealed interface ServiceEditorEvent {
     data class StorageError(val error: DataError) : ServiceEditorEvent
     data class DeleteFailed(val error: DataError) : ServiceEditorEvent
+    data class PhotoImportFailed(val error: DataError) : ServiceEditorEvent
 }
 
 sealed interface ServiceEditorMutation {
@@ -72,10 +73,11 @@ sealed interface ServiceEditorMutation {
 
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorMutation
     data class DatePicked(val date: Long) : ServiceEditorMutation
-    data class ImagePicked(val photoUri: String?) : ServiceEditorMutation
+    data class ImagePicked(val imagePath: String?) : ServiceEditorMutation
 
     data class SetIsSaving(val value: Boolean) : ServiceEditorMutation
     data class SetIsDeleting(val value: Boolean) : ServiceEditorMutation
+    data class SetIsImporting(val value: Boolean) : ServiceEditorMutation
     data object SetNotFound : ServiceEditorMutation
 
     data class MileageConflictDetected(val conflict: MileageConflict) : ServiceEditorMutation
@@ -132,7 +134,7 @@ object ServiceEditorReducer {
 
         is ServiceEditorMutation.ImagePicked -> {
             (state as? Form)?.let {
-                it.copy(input = it.input.copy(photoUri = mutation.photoUri))
+                it.copy(input = it.input.copy(photoUri = mutation.imagePath))
             } ?: state
         }
 
@@ -142,6 +144,10 @@ object ServiceEditorReducer {
 
         is ServiceEditorMutation.SetIsDeleting -> {
             (state as? Form)?.copy(isDeleting = mutation.value) ?: state
+        }
+
+        is ServiceEditorMutation.SetIsImporting -> {
+            (state as? Form)?.copy(isImporting = mutation.value) ?: state
         }
 
         is ServiceEditorMutation.SetExitDialogVisible -> {

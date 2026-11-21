@@ -25,15 +25,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.*
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.div
-import io.github.vinceglb.filekit.filesDir
-import io.github.vinceglb.filekit.name
-import io.github.vinceglb.filekit.path
-import io.github.vinceglb.filekit.resolve
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -73,6 +67,10 @@ fun ServiceEditorScreen(component: ServiceEditorComponent, modifier: Modifier = 
             }
 
             is ServiceEditorEvent.DeleteFailed -> {
+                Toast.makeText(context, getString(event.error.toUiText()), Toast.LENGTH_SHORT).show()
+            }
+
+            is ServiceEditorEvent.PhotoImportFailed -> {
                 Toast.makeText(context, getString(event.error.toUiText()), Toast.LENGTH_SHORT).show()
             }
         }
@@ -231,11 +229,10 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
                     modifier = Modifier.weight(1f)
                 )
             }
-            // Test photo picker
             PhotoPicker(
                 photoPath = form.input.photoUri,
                 onPicked = { image ->
-                    onIntent(ServiceEditorIntent.ImagePicked(image))
+                    onIntent(ServiceEditorIntent.ImagePicked(image?.path))
                 }
             )
         }
@@ -260,7 +257,7 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
 }
 
 /**
-Passes [io.github.vinceglb.filekit.PlatformFile] to the component
+ * Passes [io.github.vinceglb.filekit.PlatformFile].path to the component
  */
 @Composable
 private fun PhotoPicker(photoPath: String?, onPicked: (PlatformFile?) -> Unit) {

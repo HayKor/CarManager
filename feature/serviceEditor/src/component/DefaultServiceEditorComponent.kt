@@ -1,6 +1,5 @@
 package ru.haykor.carmanager.feature.serviceEditor.component
 
-import android.util.Log
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -11,12 +10,14 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
-import io.github.vinceglb.filekit.*
-import io.github.vinceglb.filekit.exceptions.FileKitException
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.filesDir
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.haykor.carmanager.core.domain.model.EditorMode
+import ru.haykor.carmanager.core.domain.repository.PhotoRepository
 import ru.haykor.carmanager.core.domain.repository.ServiceRecordRepository
 import ru.haykor.carmanager.core.domain.usecase.GetInitialServiceEditorDataUseCase
 import ru.haykor.carmanager.core.domain.usecase.MileageResolution
@@ -25,8 +26,6 @@ import ru.haykor.carmanager.core.domain.usecase.SaveServiceRecordUseCase
 import ru.haykor.carmanager.core.presentation.component.createComponentScope
 import ru.haykor.carmanager.core.result.DataResult
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorMutation.*
-import java.io.IOException
-import kotlin.uuid.Uuid
 
 class DefaultServiceEditorComponent(
     componentContext: ComponentContext,
@@ -34,6 +33,7 @@ class DefaultServiceEditorComponent(
     private val getInitialServiceEditorData: GetInitialServiceEditorDataUseCase,
     private val saveServiceRecord: SaveServiceRecordUseCase,
     private val recordRepo: ServiceRecordRepository,
+    private val photoRepo: PhotoRepository,
     private val onBack: () -> Unit
 ) : ServiceEditorComponent,
     ComponentContext by componentContext {
@@ -58,6 +58,11 @@ class DefaultServiceEditorComponent(
      */
     private val trashImages: MutableList<String> = mutableListOf()
 
+    /**
+     * Identifies the latest image pick; older imports finishing later are ignored.
+     */
+    private var imagePickGeneration = 0
+
     override fun accept(intent: ServiceEditorIntent): Unit = when (intent) {
         ServiceEditorIntent.BackClicked -> onBackClicked()
 
@@ -66,7 +71,7 @@ class DefaultServiceEditorComponent(
         is ServiceEditorIntent.DatePicked -> reduce(DatePicked(intent.date))
 
         is ServiceEditorIntent.ImagePicked -> {
-            copyImage(intent.image)
+            copyImage(intent.imagePath)
         }
 
         is ServiceEditorIntent.FieldBlurred -> reduce(FieldBlurred(intent.field))
@@ -229,37 +234,41 @@ class DefaultServiceEditorComponent(
         }
     }
 
-    private fun copyImage(image: PlatformFile?) {
-        if (image == null) return
+    /**
+     * Images are copied asynchronously, so several picks may be in flight at once. Only the latest
+     * pick may land in the form: a slower import of an earlier pick must not overwrite a newer one.
+     * Files of stale picks still get saved, so they are kept in [trashImages] to be cleaned up.
+     */
+    private fun copyImage(path: String?) {
+        if (path == null) return
 
-        val hash = Uuid.random()
-        val key = "photo/$hash.${image.extension}"
-        val destination = FileKit.filesDir.resolve(key)
+        val generation = ++imagePickGeneration
+        reduce(SetIsImporting(true))
+
         scope.launch {
-            try {
-                // If 'photo/' doesn't exist
-                photoDir.createDirectories()
+            when (val result = photoRepo.save(path)) {
+                is DataResult.Success -> {
+                    trashImages.add(result.data)
+                    if (generation == imagePickGeneration) {
+                        reduce(ImagePicked(result.data))
+                    }
+                }
 
-                destination write image
-                reduce(ImagePicked(key))
-                Log.d("PhotoPicker", "Image copied to ${destination.absolutePath()}")
-                Log.d("PhotoPicker", "Key is $key")
+                is DataResult.Failure -> {
+                    if (generation == imagePickGeneration) {
+                        _events.send(ServiceEditorEvent.PhotoImportFailed(result.error))
+                    }
+                }
+            }
 
-                trashImages.add(key)
-            } catch (e: IOException) {
-                Log.d("PhotoPicker", e.toString())
-            } catch (e: FileKitException) {
-                Log.d("PhotoPicker", e.toString())
+            if (generation == imagePickGeneration) {
+                reduce(SetIsImporting(false))
             }
         }
     }
 
     private suspend fun disposeImages(keep: String?) {
-        trashImages.filterNot { it == keep }.forEach { key ->
-            val image = FileKit.filesDir.resolve(key)
-            image.delete(mustExist = false)
-            Log.d("PhotoPicker", "Image deleted: ${image.path}")
-        }
+        photoRepo.delete(trashImages.filterNot { it == keep })
     }
 
     private fun reduce(mutation: ServiceEditorMutation) {
@@ -272,10 +281,6 @@ class DefaultServiceEditorComponent(
         // While busy, back leaves the screen and cancels the operation, so no dialog is needed
         backCallback.isEnabled = form != null && form.isDirty && !form.isBusy
     }
-
-    private companion object {
-        val photoDir = FileKit.filesDir / "photo"
-    }
 }
 
 @Inject
@@ -283,7 +288,8 @@ class DefaultServiceEditorComponent(
 class DefaultServiceEditorComponentFactory(
     private val getInitialServiceEditorData: GetInitialServiceEditorDataUseCase,
     private val saveServiceRecord: SaveServiceRecordUseCase,
-    private val recordRepo: ServiceRecordRepository
+    private val recordRepo: ServiceRecordRepository,
+    private val photoRepo: PhotoRepository
 ) : ServiceEditorComponent.Factory {
 
     override fun create(ctx: ComponentContext, mode: EditorMode, onBack: () -> Unit): ServiceEditorComponent =
@@ -293,6 +299,7 @@ class DefaultServiceEditorComponentFactory(
             getInitialServiceEditorData = getInitialServiceEditorData,
             saveServiceRecord = saveServiceRecord,
             recordRepo = recordRepo,
+            photoRepo = photoRepo,
             onBack = onBack
         )
 }
