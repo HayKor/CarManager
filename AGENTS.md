@@ -97,7 +97,7 @@ settings:
 - Amper layout: `<module>/src/...`, not `<module>/src/main/kotlin/...`.
 - Feature: `feature/<name>/src/component/` (contract, interface, default) and `feature/<name>/src/ui/`.
 - Unit tests: `app/test/ru/haykor/carmanager/...` — all modules' unit tests live in `app`.
-- Instrumentation tests: `app-debug/test/ru/haykor/carmanager/...`.
+- `app-debug`-only tests (Room/FTS): `app-debug/test/ru/haykor/carmanager/...`. Kotlin Toolchain 0.14 has no instrumented (device) test source set, so these run on the host JVM.
 - Test deps are declared in `app/module.yaml` (`test-dependencies`) or `app-debug/module.yaml`, not per-feature.
 - Generated code: `build/`, `.kotlin/`, `Res` — never edit.
 - `local.properties`, `app-release/keystore.properties`, `*.jks`, `*.keystore` are gitignored; never commit them.
@@ -314,7 +314,7 @@ internal fun FooContent(state: FooState, onIntent: (FooIntent) -> Unit, modifier
 - Debounce: `advanceTimeBy(301)` + `runCurrent()`.
 - Reducer tests: pure state-in/state-out, one behavior per test.
 - Use-case tests: fakes for repositories, assert `DataResult.Failure` type and that nothing was persisted.
-- Room/FTS tests: instrumentation in `app-debug/test`, in-memory DB + `BundledSQLiteDriver`.
+- Room/FTS tests: JVM tests in `app-debug/test`, in-memory DB + `BundledSQLiteDriver`; call `BundledSqliteNative.install()` in `@Before` so the Android driver loads the host native library (`sqlite-bundled-jvm` provides it in `test-dependencies`).
 - Add a regression test at the lowest layer that can express the bug; no UI-only coverage for domain rules.
 - `./kotlin check` runs `tests` + `ktlintCheck`; a failing check blocks done.
 
