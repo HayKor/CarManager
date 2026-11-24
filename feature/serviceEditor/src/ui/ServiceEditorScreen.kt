@@ -3,12 +3,10 @@ package ru.haykor.carmanager.feature.serviceEditor.ui
 import android.content.res.Configuration
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -233,7 +232,8 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
                 photoPath = form.input.photoUri,
                 onPicked = { image ->
                     onIntent(ServiceEditorIntent.ImagePicked(image?.path))
-                }
+                },
+                onRemoveClicked = { onIntent(ServiceEditorIntent.ImageUnpinned) }
             )
         }
 
@@ -257,40 +257,74 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
 }
 
 /**
- * Passes [io.github.vinceglb.filekit.PlatformFile].path to the component
+ * Passes [io.github.vinceglb.filekit.PlatformFile].`path` to the component
  */
 @Composable
-private fun PhotoPicker(photoPath: String?, onPicked: (PlatformFile?) -> Unit) {
+private fun PhotoPicker(photoPath: String?, onPicked: (PlatformFile?) -> Unit, onRemoveClicked: () -> Unit) {
     val launcher = rememberFilePickerLauncher(
         type = FileKitType.Image,
         onError = { failure -> Log.d("PhotoPicker", "Picker failed: ${failure.message}") }
     ) { image ->
-        // file is a PlatformFile, or null when the user cancelled
+        // image is a PlatformFile, or null when the user cancelled
         Log.d("PhotoPicker", "Picked ${image?.path}")
         onPicked(image)
     }
 
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(80.dp)
-            .clip(ListItemDefaults.shapes().shape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clickable { launcher.launch() }
-    ) {
+    val tileSize = 80.dp
+    val badgeSize = 28.dp
+    val overhang = badgeSize / 2 // how far the badge sticks out past the tile corner
+
+    // Outer box is larger than the tile so the badge stays inside its bounds (and stays tappable)
+    Box(Modifier.size(tileSize + overhang)) {
+        // The tile itself (clipped)
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .padding(top = overhang, end = overhang)
+                .fillMaxSize()
+                .clip(ListItemDefaults.shapes().shape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .clickable { launcher.launch() }
+        ) {
+            if (photoPath != null) {
+                val file = FileKit.filesDir.resolve(photoPath)
+                AsyncImage(
+                    model = file,
+                    contentDescription = file.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize()
+                )
+            } else {
+                Icon(
+                    painter = painterResource(Res.drawable.plus),
+                    contentDescription = "Add photo"
+                )
+            }
+        }
+
+        // Remove badge, centered on the tile's top-right corner
         if (photoPath != null) {
-            val file = FileKit.filesDir.resolve(photoPath)
-            AsyncImage(
-                model = file,
-                contentDescription = file.name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            Icon(
-                painter = painterResource(Res.drawable.plus),
-                contentDescription = null
-            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(badgeSize)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                    .clip(CircleShape)
+                    .clickable(
+                        role = Role.Button,
+                        onClickLabel = "Remove photo",
+                        onClick = onRemoveClicked
+                    )
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.close),
+                    contentDescription = "Remove photo",
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }

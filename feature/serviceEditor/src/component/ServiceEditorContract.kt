@@ -38,7 +38,12 @@ sealed interface ServiceEditorIntent {
 
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorIntent
     data class DatePicked(val date: Long) : ServiceEditorIntent
+
+    /**
+     * @param imagePath `null` means image picker dismissed
+     * */
     data class ImagePicked(val imagePath: String?) : ServiceEditorIntent
+    data object ImageUnpinned : ServiceEditorIntent
 
     data object SaveClicked : ServiceEditorIntent
     data object DeleteClicked : ServiceEditorIntent
@@ -74,6 +79,7 @@ sealed interface ServiceEditorMutation {
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorMutation
     data class DatePicked(val date: Long) : ServiceEditorMutation
     data class ImagePicked(val imagePath: String?) : ServiceEditorMutation
+    data object ImageUnpinned : ServiceEditorMutation
 
     data class SetIsSaving(val value: Boolean) : ServiceEditorMutation
     data class SetIsDeleting(val value: Boolean) : ServiceEditorMutation
@@ -135,6 +141,12 @@ object ServiceEditorReducer {
         is ServiceEditorMutation.ImagePicked -> {
             (state as? Form)?.let {
                 it.copy(input = it.input.copy(photoUri = mutation.imagePath))
+            } ?: state
+        }
+
+        ServiceEditorMutation.ImageUnpinned -> {
+            (state as? Form)?.let {
+                it.copy(input = it.input.copy(photoUri = null))
             } ?: state
         }
 

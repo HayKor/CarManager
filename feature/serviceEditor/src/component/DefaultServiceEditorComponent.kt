@@ -10,9 +10,6 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
-import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.div
-import io.github.vinceglb.filekit.filesDir
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -54,9 +51,11 @@ class DefaultServiceEditorComponent(
     }
 
     /**
-     * Contains keys, e.g. 'photo/example.jpg'
+     * Keys of photos copied into app storage during this editing session, e.g. 'photo/example.jpg'.
+     * No saved record references them until a save succeeds, so on exit they are deleted unless
+     * the successful save committed one of them.
      */
-    private val trashImages: MutableList<String> = mutableListOf()
+    private val importedPhotoKeys: MutableSet<String> = mutableSetOf()
 
     /**
      * Identifies the latest image pick; older imports finishing later are ignored.
@@ -71,7 +70,14 @@ class DefaultServiceEditorComponent(
         is ServiceEditorIntent.DatePicked -> reduce(DatePicked(intent.date))
 
         is ServiceEditorIntent.ImagePicked -> {
-            copyImage(intent.imagePath)
+            importPhoto(intent.imagePath)
+        }
+
+        ServiceEditorIntent.ImageUnpinned -> {
+            // An import still in flight must not restore the photo the user has just removed.
+            ++imagePickGeneration
+            reduce(ImageUnpinned)
+            reduce(SetIsImporting(false))
         }
 
         is ServiceEditorIntent.FieldBlurred -> reduce(FieldBlurred(intent.field))
@@ -84,7 +90,7 @@ class DefaultServiceEditorComponent(
         }
 
         ServiceEditorIntent.DeleteClicked -> {
-            delete()
+            deleteRecord()
         }
 
         ServiceEditorIntent.UpdateCarMileageClicked -> {
@@ -111,7 +117,7 @@ class DefaultServiceEditorComponent(
 
         ServiceEditorIntent.DialogIgnoreClicked -> {
             reduce(SetExitDialogVisible(false))
-            disposeAndExit(keep = null)
+            exitAfterDiscard()
         }
 
         ServiceEditorIntent.DialogDismissed -> {
@@ -125,11 +131,46 @@ class DefaultServiceEditorComponent(
         lifecycle.doOnDestroy { backHandler.unregister(backCallback) }
     }
 
-    private fun disposeAndExit(keep: String?) {
+    /**
+     * After a successful save only the committed photo may survive. Stale imports and the photo
+     * the record used to reference are orphans now.
+     */
+    private fun exitAfterSave(committedPhoto: String?) {
         scope.launch {
-            disposeImages(keep = keep)
+            deletePhotos(allPhotoKeys().filterNot { it == committedPhoto })
             exit()
         }
+    }
+
+    /**
+     * A discarded edit was never written to the database, so only this session's imports are
+     * orphans. The stored photo still belongs to the record.
+     */
+    private fun exitAfterDiscard() {
+        scope.launch {
+            deletePhotos(importedPhotoKeys)
+            exit()
+        }
+    }
+
+    /** The record is gone, so both its stored photo and every session import are orphans. */
+    private fun exitAfterDelete() {
+        scope.launch {
+            deletePhotos(allPhotoKeys())
+            exit()
+        }
+    }
+
+    /**
+     * Every photo file the record may own: the one loaded with the form plus all session imports.
+     */
+    private fun allPhotoKeys(): List<String> {
+        val storedPhoto = (state.value as? ServiceEditorState.Form)?.initialInput?.photoUri
+        return (importedPhotoKeys + listOfNotNull(storedPhoto)).toList()
+    }
+
+    private suspend fun deletePhotos(keys: Collection<String>) {
+        photoRepo.delete(keys.toList())
     }
 
     /**
@@ -142,10 +183,16 @@ class DefaultServiceEditorComponent(
             reduce(MileageConflictResolved)
             return
         }
-        if (form != null && form.isDirty && !form.isBusy) {
-            reduce(SetExitDialogVisible(true))
-        } else {
-            exit()
+        when {
+            form != null && form.isDirty && !form.isBusy -> reduce(SetExitDialogVisible(true))
+
+            // A save/delete may still commit; the coroutine cancellation cleans nothing up itself.
+            form != null && form.isBusy -> exit()
+
+            // Picking and then unpinning can leave the form clean while an import is already on disk.
+            importedPhotoKeys.isNotEmpty() -> exitAfterDiscard()
+
+            else -> exit()
         }
     }
 
@@ -182,7 +229,7 @@ class DefaultServiceEditorComponent(
         if (form.isBusy) return
 
         reduce(SetIsSaving(true))
-        val commitedPhotoKey = form.input.photoUri
+        val committedPhotoKey = form.input.photoUri
         scope.launch {
             when (val result = saveServiceRecord(editorMode, form.input, form.input.carId, resolution)) {
                 is DataResult.Failure -> {
@@ -210,13 +257,13 @@ class DefaultServiceEditorComponent(
                 }
 
                 is DataResult.Success -> {
-                    disposeAndExit(keep = commitedPhotoKey)
+                    exitAfterSave(committedPhotoKey)
                 }
             }
         }
     }
 
-    private fun delete() {
+    private fun deleteRecord() {
         if (editorMode !is EditorMode.Edit) return // can only delete an existing record
         val form = (state.value as? ServiceEditorState.Form) ?: return
         if (form.isBusy) return
@@ -224,7 +271,7 @@ class DefaultServiceEditorComponent(
         reduce(SetIsDeleting(true))
         scope.launch {
             when (val result = recordRepo.delete(id = editorMode.recordId)) {
-                is DataResult.Success -> disposeAndExit(keep = null)
+                is DataResult.Success -> exitAfterDelete()
 
                 is DataResult.Failure -> {
                     reduce(SetIsDeleting(false))
@@ -237,9 +284,9 @@ class DefaultServiceEditorComponent(
     /**
      * Images are copied asynchronously, so several picks may be in flight at once. Only the latest
      * pick may land in the form: a slower import of an earlier pick must not overwrite a newer one.
-     * Files of stale picks still get saved, so they are kept in [trashImages] to be cleaned up.
+     * Files of stale picks still get saved, so they are kept in [importedPhotoKeys] to be cleaned up.
      */
-    private fun copyImage(path: String?) {
+    private fun importPhoto(path: String?) {
         if (path == null) return
 
         val generation = ++imagePickGeneration
@@ -248,9 +295,12 @@ class DefaultServiceEditorComponent(
         scope.launch {
             when (val result = photoRepo.save(path)) {
                 is DataResult.Success -> {
-                    trashImages.add(result.data)
+                    importedPhotoKeys.add(result.data)
                     if (generation == imagePickGeneration) {
                         reduce(ImagePicked(result.data))
+                    } else {
+                        // The import is stale, but its file still needs a cleanup-worthy back press.
+                        updateBackCallback()
                     }
                 }
 
@@ -267,10 +317,6 @@ class DefaultServiceEditorComponent(
         }
     }
 
-    private suspend fun disposeImages(keep: String?) {
-        photoRepo.delete(trashImages.filterNot { it == keep })
-    }
-
     private fun reduce(mutation: ServiceEditorMutation) {
         state.update { ServiceEditorReducer.reduce(it, mutation) }
         updateBackCallback()
@@ -278,8 +324,11 @@ class DefaultServiceEditorComponent(
 
     private fun updateBackCallback() {
         val form = state.value as? ServiceEditorState.Form
-        // While busy, back leaves the screen and cancels the operation, so no dialog is needed
-        backCallback.isEnabled = form != null && form.isDirty && !form.isBusy
+        // While busy, back leaves the screen and cancels the operation, so no dialog is needed.
+        // Pending imports must be intercepted even when the form itself is clean.
+        backCallback.isEnabled = form != null &&
+            (form.isDirty || importedPhotoKeys.isNotEmpty()) &&
+            !form.isBusy
     }
 }
 

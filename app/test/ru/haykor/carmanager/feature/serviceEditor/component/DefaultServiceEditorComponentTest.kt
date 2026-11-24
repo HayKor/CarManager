@@ -251,6 +251,16 @@ class DefaultServiceEditorComponentTest {
     }
 
     @Test
+    fun `delete removes the record photo from storage`() = runTest(dispatcher) {
+        val component = createComponent(mode = EditorMode.Edit(existingRecord.id))
+
+        component.accept(ServiceEditorIntent.DeleteClicked)
+
+        assertEquals(listOf(listOf(STORED_PHOTO)), photoRepository.deleted)
+        assertEquals(1, closeCount)
+    }
+
+    @Test
     fun `leaving twice closes the screen once`() = runTest(dispatcher) {
         val component = createComponent()
 
@@ -443,7 +453,7 @@ class DefaultServiceEditorComponentTest {
     }
 
     @Test
-    fun `edit with a new photo keeps the stored photo`() = runTest(dispatcher) {
+    fun `edit with a new photo deletes the replaced stored photo`() = runTest(dispatcher) {
         val records = FakeServiceRecordRepository(listOf(editableRecord), category)
         val component = createComponent(mode = EditorMode.Edit(editableRecord.id), records = records)
 
@@ -451,9 +461,89 @@ class DefaultServiceEditorComponentTest {
         component.accept(ServiceEditorIntent.SaveClicked)
 
         assertEquals("photo/1.jpg", records.updated.single().second.photoUri)
-        assertEquals(listOf(emptyList<String>()), photoRepository.deleted)
+        assertEquals(listOf(listOf(STORED_PHOTO)), photoRepository.deleted)
+        assertEquals(1, closeCount)
+    }
+
+    @Test
+    fun `unpinning the stored photo deletes it after saving`() = runTest(dispatcher) {
+        val records = FakeServiceRecordRepository(listOf(editableRecord), category)
+        val component = createComponent(mode = EditorMode.Edit(editableRecord.id), records = records)
+
+        component.accept(ServiceEditorIntent.ImageUnpinned)
+        component.accept(ServiceEditorIntent.SaveClicked)
+
+        assertNull(records.updated.single().second.photoUri)
+        assertEquals(listOf(listOf(STORED_PHOTO)), photoRepository.deleted)
+        assertEquals(1, closeCount)
+    }
+
+    @Test
+    fun `unpinning the stored photo and discarding keeps it`() = runTest(dispatcher) {
+        val component = createComponent(mode = EditorMode.Edit(existingRecord.id))
+
+        component.accept(ServiceEditorIntent.ImageUnpinned)
+        component.accept(ServiceEditorIntent.BackClicked)
+        component.accept(ServiceEditorIntent.DialogIgnoreClicked)
+
         assertTrue(photoRepository.deleted.flatten().none { it == STORED_PHOTO })
         assertEquals(1, closeCount)
+    }
+
+    @Test
+    fun `unpinning a picked photo drops it from the record`() = runTest(dispatcher) {
+        val component = createComponent()
+        component.accept(ServiceEditorIntent.ImagePicked("picked.jpg"))
+        component.accept(ServiceEditorIntent.ImageUnpinned)
+
+        assertNull((component.state.value as Form).input.photoUri)
+
+        component.accept(ServiceEditorIntent.SaveClicked)
+
+        assertNull(recordRepository.created.single().photoUri)
+        assertEquals(listOf(listOf("photo/1.jpg")), photoRepository.deleted)
+    }
+
+    @Test
+    fun `pick then unpin then back deletes the import without a dialog`() = runTest(dispatcher) {
+        val component = createComponent()
+        component.accept(ServiceEditorIntent.ImagePicked("picked.jpg"))
+        component.accept(ServiceEditorIntent.ImageUnpinned)
+
+        assertFalse((component.state.value as Form).isDirty)
+
+        component.accept(ServiceEditorIntent.BackClicked)
+
+        assertEquals(listOf(listOf("photo/1.jpg")), photoRepository.deleted)
+        assertEquals(1, closeCount)
+    }
+
+    @Test
+    fun `pick then unpin still intercepts system back`() = runTest(dispatcher) {
+        val backDispatcher = BackDispatcher()
+        val component = createComponent(backDispatcher = backDispatcher)
+        component.accept(ServiceEditorIntent.ImagePicked("picked.jpg"))
+        component.accept(ServiceEditorIntent.ImageUnpinned)
+
+        assertTrue(backDispatcher.back())
+
+        assertEquals(listOf(listOf("photo/1.jpg")), photoRepository.deleted)
+        assertEquals(1, closeCount)
+    }
+
+    @Test
+    fun `unpinning during import wins over the late import`() = runTest(dispatcher) {
+        val gate = photoRepository.gateSave("picked.jpg")
+        val component = createComponent(mode = EditorMode.Edit(existingRecord.id))
+
+        component.accept(ServiceEditorIntent.ImagePicked("picked.jpg"))
+        component.accept(ServiceEditorIntent.ImageUnpinned)
+        gate.complete(Unit)
+
+        val state = component.state.value
+        assertIs<Form>(state)
+        assertNull(state.input.photoUri)
+        assertFalse(state.isImporting)
     }
 
     @Test
