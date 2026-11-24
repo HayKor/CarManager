@@ -48,6 +48,16 @@ class DefaultPhotoRepository(@FilesDir private val filesDir: PlatformFile) : Pho
         return DataResult.Success(Unit)
     }
 
+    override suspend fun saveToGallery(photoPath: String): EmptyResult<DataError> {
+        val image = filesDir.resolve(photoPath)
+        val result = FileKit.saveImageToGallery(image)
+        return if (result.isSuccess) {
+            DataResult.Success(Unit)
+        } else {
+            DataResult.Failure(DataError.Local.Unknown)
+        }
+    }
+
     private companion object {
         const val PHOTO_DIR = "photo"
     }

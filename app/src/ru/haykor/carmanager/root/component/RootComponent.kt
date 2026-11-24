@@ -8,6 +8,7 @@ import ru.haykor.carmanager.feature.car.component.CarComponent
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
 import ru.haykor.carmanager.feature.main.component.MainComponent
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
+import ru.haykor.carmanager.photoviewer.component.PhotoViewerComponent
 
 interface RootComponent : BackHandlerOwner {
     val childStack: Value<ChildStack<*, Child>>
@@ -19,6 +20,8 @@ interface RootComponent : BackHandlerOwner {
         data class Car(val component: CarComponent) : Child
         data class CarEditor(val component: CarEditorComponent) : Child
         data class ServiceEditor(val component: ServiceEditorComponent) : Child
+
+        data class PhotoViewer(val component: PhotoViewerComponent) : Child
     }
 
     fun interface Factory {

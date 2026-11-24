@@ -230,6 +230,7 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
             }
             PhotoPicker(
                 photoPath = form.input.photoUri,
+                onImageClicked = { onIntent(ServiceEditorIntent.ImageClicked) },
                 onPicked = { image ->
                     onIntent(ServiceEditorIntent.ImagePicked(image?.path))
                 },
@@ -260,7 +261,12 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
  * Passes [io.github.vinceglb.filekit.PlatformFile].`path` to the component
  */
 @Composable
-private fun PhotoPicker(photoPath: String?, onPicked: (PlatformFile?) -> Unit, onRemoveClicked: () -> Unit) {
+private fun PhotoPicker(
+    photoPath: String?,
+    onImageClicked: () -> Unit,
+    onPicked: (PlatformFile?) -> Unit,
+    onRemoveClicked: () -> Unit
+) {
     val launcher = rememberFilePickerLauncher(
         type = FileKitType.Image,
         onError = { failure -> Log.d("PhotoPicker", "Picker failed: ${failure.message}") }
@@ -284,7 +290,13 @@ private fun PhotoPicker(photoPath: String?, onPicked: (PlatformFile?) -> Unit, o
                 .fillMaxSize()
                 .clip(ListItemDefaults.shapes().shape)
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .clickable { launcher.launch() }
+                .clickable(
+                    onClick = if (photoPath != null) {
+                        { onImageClicked() }
+                    } else {
+                        { launcher.launch() }
+                    }
+                )
         ) {
             if (photoPath != null) {
                 val file = FileKit.filesDir.resolve(photoPath)

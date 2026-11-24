@@ -39,6 +39,8 @@ sealed interface ServiceEditorIntent {
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorIntent
     data class DatePicked(val date: Long) : ServiceEditorIntent
 
+    data object ImageClicked : ServiceEditorIntent
+
     /**
      * @param imagePath `null` means image picker dismissed
      * */

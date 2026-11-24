@@ -31,7 +31,8 @@ class DefaultServiceEditorComponent(
     private val saveServiceRecord: SaveServiceRecordUseCase,
     private val recordRepo: ServiceRecordRepository,
     private val photoRepo: PhotoRepository,
-    private val onBack: () -> Unit
+    private val onBack: () -> Unit,
+    private val onOpenImage: (photoPath: String) -> Unit
 ) : ServiceEditorComponent,
     ComponentContext by componentContext {
 
@@ -68,6 +69,11 @@ class DefaultServiceEditorComponent(
         is ServiceEditorIntent.CategoryPicked -> reduce(CategoryPicked(intent.categoryId))
 
         is ServiceEditorIntent.DatePicked -> reduce(DatePicked(intent.date))
+
+        ServiceEditorIntent.ImageClicked -> {
+            val photoPath = (state.value as? ServiceEditorState.Form)?.input?.photoUri ?: return
+            onOpenImage(photoPath)
+        }
 
         is ServiceEditorIntent.ImagePicked -> {
             importPhoto(intent.imagePath)
@@ -341,14 +347,19 @@ class DefaultServiceEditorComponentFactory(
     private val photoRepo: PhotoRepository
 ) : ServiceEditorComponent.Factory {
 
-    override fun create(ctx: ComponentContext, mode: EditorMode, onBack: () -> Unit): ServiceEditorComponent =
-        DefaultServiceEditorComponent(
-            componentContext = ctx,
-            editorMode = mode,
-            getInitialServiceEditorData = getInitialServiceEditorData,
-            saveServiceRecord = saveServiceRecord,
-            recordRepo = recordRepo,
-            photoRepo = photoRepo,
-            onBack = onBack
-        )
+    override fun create(
+        ctx: ComponentContext,
+        mode: EditorMode,
+        onOpenImage: (photoPath: String) -> Unit,
+        onBack: () -> Unit
+    ): ServiceEditorComponent = DefaultServiceEditorComponent(
+        componentContext = ctx,
+        editorMode = mode,
+        getInitialServiceEditorData = getInitialServiceEditorData,
+        saveServiceRecord = saveServiceRecord,
+        recordRepo = recordRepo,
+        photoRepo = photoRepo,
+        onBack = onBack,
+        onOpenImage = onOpenImage
+    )
 }

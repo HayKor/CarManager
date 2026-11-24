@@ -19,4 +19,10 @@ interface PhotoRepository {
      * @return doesn't return any errors actually
      */
     suspend fun delete(keys: List<String>): EmptyResult<DataError>
+
+    /**
+     * Saves an image to the gallery
+     * @param photoPath relative path to the image in `filesDir`
+     */
+    suspend fun saveToGallery(photoPath: String): EmptyResult<DataError>
 }

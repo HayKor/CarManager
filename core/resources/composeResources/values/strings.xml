@@ -95,6 +95,10 @@
     <string name="unsaved_changes_text">You have unsaved changes. Save them before leaving?</string>
     <string name="dont_save">Don't save</string>
 
+    <!-- Photo viewer -->
+    <string name="photo_viewer_saved_toast">Image saved to the gallery successfully</string>
+    <string name="photo_viewer_save_failed_toast">Image save failed</string>
+
     <!-- Mileage conflict -->
     <string name="mileage_conflict_title">Mileage mismatch</string>
     <string name="mileage_conflict_text">Current car's mileage is %1$s, record's is %2$s. Do you want to update car's mileage to %2$s or keep it?</string>

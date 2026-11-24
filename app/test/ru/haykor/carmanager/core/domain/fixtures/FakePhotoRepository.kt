@@ -38,4 +38,9 @@ internal class FakePhotoRepository : PhotoRepository {
         deleted.add(keys)
         return deleteResult ?: DataResult.Success(Unit)
     }
+
+    override suspend fun saveToGallery(photoPath: String): EmptyResult<DataError> {
+        // TODO: implement
+        return DataResult.Success(Unit)
+    }
 }

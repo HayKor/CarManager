@@ -18,6 +18,7 @@ import ru.haykor.carmanager.feature.car.ui.CarScreen
 import ru.haykor.carmanager.feature.carEditor.ui.CarEditorScreen
 import ru.haykor.carmanager.feature.main.ui.MainScreen
 import ru.haykor.carmanager.feature.serviceEditor.ui.ServiceEditorScreen
+import ru.haykor.carmanager.photoviewer.ui.PhotoViewerScreen
 import ru.haykor.carmanager.root.component.RootComponent
 
 @OptIn(ExperimentalDecomposeApi::class)
@@ -57,6 +58,10 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
 
                 is RootComponent.Child.ServiceEditor -> {
                     ServiceEditorScreen(child.component)
+                }
+
+                is RootComponent.Child.PhotoViewer -> {
+                    PhotoViewerScreen(child.component)
                 }
             }
         }
