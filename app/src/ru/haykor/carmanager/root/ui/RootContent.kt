@@ -7,12 +7,9 @@ import androidx.compose.ui.Modifier
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import com.arkivanov.decompose.ExperimentalDecomposeApi
-import com.arkivanov.decompose.extensions.compose.stack.Children
-import com.arkivanov.decompose.extensions.compose.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.stack.animation.plus
-import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation
-import com.arkivanov.decompose.extensions.compose.stack.animation.slide
-import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import com.arkivanov.decompose.extensions.compose.experimental.stack.ChildStack
+import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.*
+import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.androidPredictiveBackAnimatableV2
 import io.github.vinceglb.filekit.coil.addPlatformFileSupport
 import ru.haykor.carmanager.feature.car.ui.CarScreen
 import ru.haykor.carmanager.feature.carEditor.ui.CarEditorScreen
@@ -34,12 +31,17 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
         modifier = modifier
     ) {
         // Root surface so automatic colorscheme applied
-        Children(
+        ChildStack(
             stack = component.childStack,
-            animation = predictiveBackAnimation(
-                backHandler = component.backHandler,
-                fallbackAnimation = stackAnimation(slide() + fade()),
-                onBack = component::onBack
+            animation = stackAnimation(
+                animator = slide() + fade(),
+                predictiveBackParams = {
+                    PredictiveBackParams(
+                        backHandler = component.backHandler,
+                        onBack = component::onBack,
+                        animatable = ::androidPredictiveBackAnimatableV2
+                    )
+                }
             ),
             modifier = Modifier.fillMaxSize()
         ) {
