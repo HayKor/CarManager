@@ -1,8 +1,10 @@
 package ru.haykor.carmanager.root.ui
 
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
@@ -11,6 +13,8 @@ import com.arkivanov.decompose.extensions.compose.experimental.stack.ChildStack
 import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.*
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.androidPredictiveBackAnimatableV2
 import io.github.vinceglb.filekit.coil.addPlatformFileSupport
+import ru.haykor.carmanager.core.ui.LocalAnimatedVisibilityScope
+import ru.haykor.carmanager.core.ui.LocalSharedTransitionScope
 import ru.haykor.carmanager.feature.car.ui.CarScreen
 import ru.haykor.carmanager.feature.carEditor.ui.CarEditorScreen
 import ru.haykor.carmanager.feature.main.ui.MainScreen
@@ -27,43 +31,56 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
             .build()
     }
 
-    Surface(
-        modifier = modifier
-    ) {
-        // Root surface so automatic colorscheme applied
-        ChildStack(
-            stack = component.childStack,
-            animation = stackAnimation(
-                animator = slide() + fade(),
-                predictiveBackParams = {
-                    PredictiveBackParams(
-                        backHandler = component.backHandler,
-                        onBack = component::onBack,
-                        animatable = ::androidPredictiveBackAnimatableV2
-                    )
-                }
-            ),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            when (val child = it.instance) {
-                is RootComponent.Child.Main -> {
-                    MainScreen(child.component)
-                }
+    SharedTransitionLayout {
+        CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+            Surface(
+                modifier = modifier
+            ) {
+                ChildStack(
+                    stack = component.childStack,
+                    animation = stackAnimation(
+                        predictiveBackParams = {
+                            PredictiveBackParams(
+                                backHandler = component.backHandler,
+                                onBack = component::onBack,
+                                animatable = ::androidPredictiveBackAnimatableV2
+                            )
+                        },
+                        selector = { child, otherChild, direction, isPredictiveBack ->
+                            if (child.instance is RootComponent.Child.PhotoViewer ||
+                                otherChild.instance is RootComponent.Child.PhotoViewer
+                            ) {
+                                fade()
+                            } else {
+                                slide() + fade()
+                            }
+                        }
+                    ),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    CompositionLocalProvider(LocalAnimatedVisibilityScope provides this@ChildStack) {
+                        when (val child = it.instance) {
+                            is RootComponent.Child.Main -> {
+                                MainScreen(child.component)
+                            }
 
-                is RootComponent.Child.Car -> {
-                    CarScreen(child.component)
-                }
+                            is RootComponent.Child.Car -> {
+                                CarScreen(child.component)
+                            }
 
-                is RootComponent.Child.CarEditor -> {
-                    CarEditorScreen(child.component)
-                }
+                            is RootComponent.Child.CarEditor -> {
+                                CarEditorScreen(child.component)
+                            }
 
-                is RootComponent.Child.ServiceEditor -> {
-                    ServiceEditorScreen(child.component)
-                }
+                            is RootComponent.Child.ServiceEditor -> {
+                                ServiceEditorScreen(child.component)
+                            }
 
-                is RootComponent.Child.PhotoViewer -> {
-                    PhotoViewerScreen(child.component)
+                            is RootComponent.Child.PhotoViewer -> {
+                                PhotoViewerScreen(child.component)
+                            }
+                        }
+                    }
                 }
             }
         }

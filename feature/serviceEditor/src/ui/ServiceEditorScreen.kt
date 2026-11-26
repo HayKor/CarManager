@@ -3,6 +3,8 @@ package ru.haykor.carmanager.feature.serviceEditor.ui
 import android.content.res.Configuration
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -41,6 +43,7 @@ import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.model.*
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
 import ru.haykor.carmanager.core.ui.CarCard
+import ru.haykor.carmanager.core.ui.sharedImage
 import ru.haykor.carmanager.core.ui.theme.AppTheme
 import ru.haykor.carmanager.core.ui.toUiText
 import ru.haykor.carmanager.feature.serviceEditor.component.*
@@ -304,7 +307,9 @@ private fun PhotoPicker(
                     model = file,
                     contentDescription = file.name,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize()
+                    modifier = Modifier
+                        .sharedImage(key = photoPath)
+                        .matchParentSize()
                 )
             } else {
                 Icon(

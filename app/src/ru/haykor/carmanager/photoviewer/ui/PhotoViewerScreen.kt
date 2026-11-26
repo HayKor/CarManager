@@ -25,13 +25,9 @@ import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
-import ru.haykor.carmanager.Res
-import ru.haykor.carmanager.arrow_back
+import ru.haykor.carmanager.*
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
-import ru.haykor.carmanager.delete
-import ru.haykor.carmanager.download
-import ru.haykor.carmanager.photo_viewer_save_failed_toast
-import ru.haykor.carmanager.photo_viewer_saved_toast
+import ru.haykor.carmanager.core.ui.sharedImage
 import ru.haykor.carmanager.photoviewer.component.PhotoViewerComponent
 import ru.haykor.carmanager.photoviewer.component.PhotoViewerEvent
 
@@ -80,11 +76,12 @@ private fun PhotoViewerContent(photoPath: String, onBack: () -> Unit, onSave: ()
             contentScale = ContentScale.Fit,
             onSuccess = { zoomState.setContentSize(it.painter.intrinsicSize) },
             modifier = Modifier
-                .fillMaxSize()
+                .sharedImage(key = photoPath)
                 .zoomable(
                     zoomState = zoomState,
                     onTap = { barsVisible = !barsVisible } // double-tap zoom is built in
                 )
+                .align(Alignment.Center)
         )
 
         AnimatedVisibility(
