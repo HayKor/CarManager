@@ -9,10 +9,12 @@ import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
+import ru.haykor.carmanager.feature.search.component.SearchComponent
 
 class DefaultMainComponent(
     componentContext: ComponentContext,
-    private val garage: (ComponentContext) -> GarageComponent
+    private val garage: (ComponentContext) -> GarageComponent,
+    private val search: (ComponentContext) -> SearchComponent
 ) : MainComponent,
     ComponentContext by componentContext {
 
@@ -51,15 +53,20 @@ class DefaultMainComponent(
 
     private fun child(config: Config, ctx: ComponentContext) = when (config) {
         Config.Garage -> MainComponent.Child.Garage(garage(ctx))
+        Config.Search -> MainComponent.Child.Search(search(ctx))
     }
 
     private fun MainTab.toConfig() = when (this) {
         MainTab.Garage -> Config.Garage
+        MainTab.Search -> Config.Search
     }
 
     @Serializable
     private sealed interface Config {
         @Serializable
         data object Garage : Config
+
+        @Serializable
+        data object Search : Config
     }
 }

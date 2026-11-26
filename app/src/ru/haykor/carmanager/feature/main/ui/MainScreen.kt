@@ -1,5 +1,6 @@
 package ru.haykor.carmanager.feature.main.ui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
@@ -20,6 +21,7 @@ import ru.haykor.carmanager.feature.garage.ui.GarageScreen
 import ru.haykor.carmanager.feature.main.component.MainComponent
 import ru.haykor.carmanager.feature.main.component.MainTab
 import ru.haykor.carmanager.garage_home
+import ru.haykor.carmanager.search
 import ru.haykor.carmanager.title_garage
 
 @Composable
@@ -55,6 +57,10 @@ fun MainScreen(component: MainComponent, modifier: Modifier = Modifier) {
                 is MainComponent.Child.Garage -> {
                     GarageScreen(child.component)
                 }
+
+                is MainComponent.Child.Search -> {
+                    Box(modifier = Modifier.fillMaxSize())
+                }
             }
         }
     }
@@ -69,6 +75,12 @@ internal val topLevelDestinations: List<TopLevelDestination>
             tab = MainTab.Garage,
             title = Res.string.title_garage,
             icon = Res.drawable.garage_home
+        ),
+
+        TopLevelDestination(
+            tab = MainTab.Search,
+            title = Res.string.title_garage,
+            icon = Res.drawable.search
         )
     )
 

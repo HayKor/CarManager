@@ -13,6 +13,7 @@ import ru.haykor.carmanager.feature.car.component.CarComponent
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.main.component.MainComponent
+import ru.haykor.carmanager.feature.search.component.SearchComponent
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
 import ru.haykor.carmanager.photoviewer.component.PhotoViewerComponent
 
@@ -20,6 +21,7 @@ class DefaultRootComponent(
     componentContext: ComponentContext,
     private val mainFactory: MainComponent.Factory,
     private val garageFactory: GarageComponent.Factory,
+    private val searchFactory: SearchComponent.Factory,
     private val carFactory: CarComponent.Factory,
     private val carEditorFactory: CarEditorComponent.Factory,
     private val serviceEditorFactory: ServiceEditorComponent.Factory,
@@ -55,6 +57,11 @@ class DefaultRootComponent(
                         onAddCar = {
                             navigation.pushNew(Config.CarEditor(null))
                         }
+                    )
+                },
+                search = { c ->
+                    searchFactory.create(
+                        ctx = c
                     )
                 }
             )
@@ -121,6 +128,7 @@ class DefaultRootComponent(
 class DefaultRootComponentFactory(
     private val mainFactory: MainComponent.Factory,
     private val garageFactory: GarageComponent.Factory,
+    private val searchFactory: SearchComponent.Factory,
     private val carFactory: CarComponent.Factory,
     private val carEditorFactory: CarEditorComponent.Factory,
     private val serviceEditorFactory: ServiceEditorComponent.Factory,
@@ -130,6 +138,7 @@ class DefaultRootComponentFactory(
         componentContext = ctx,
         mainFactory = mainFactory,
         garageFactory = garageFactory,
+        searchFactory = searchFactory,
         carFactory = carFactory,
         carEditorFactory = carEditorFactory,
         serviceEditorFactory = serviceEditorFactory,
