@@ -95,7 +95,7 @@ fun GarageTopBar(
             scrolledContainerColor = MaterialTheme.colorScheme.background
         ),
         title = {
-            BackHandler(enabled = isActive) {
+            BackHandler(enabled = isFocused) {
                 focusManager.clearFocus()
             }
             // Do NOT animate this with `padding`: the root SharedTransitionLayout is a
