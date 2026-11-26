@@ -15,6 +15,7 @@ dependencies:
   - $libs.kotlinx.coroutines.core: exported
   - $libs.androidx.room.runtime: exported
   - $libs.androidx.sqlite.bundled
+  - $libs.filekit.core
 
 settings:
   kotlin:

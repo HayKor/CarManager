@@ -1,11 +1,7 @@
 package ru.haykor.carmanager.root.component
 
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.router.stack.ChildStack
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.*
 import com.arkivanov.decompose.value.Value
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
@@ -18,6 +14,7 @@ import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.main.component.MainComponent
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
+import ru.haykor.carmanager.photoviewer.component.PhotoViewerComponent
 
 class DefaultRootComponent(
     componentContext: ComponentContext,
@@ -25,7 +22,8 @@ class DefaultRootComponent(
     private val garageFactory: GarageComponent.Factory,
     private val carFactory: CarComponent.Factory,
     private val carEditorFactory: CarEditorComponent.Factory,
-    private val serviceEditorFactory: ServiceEditorComponent.Factory
+    private val serviceEditorFactory: ServiceEditorComponent.Factory,
+    private val photoViewerFactory: PhotoViewerComponent.Factory
 ) : RootComponent,
     ComponentContext by componentContext {
 
@@ -85,6 +83,15 @@ class DefaultRootComponent(
             serviceEditorFactory.create(
                 ctx = ctx,
                 mode = config.mode,
+                onOpenImage = { photoPath -> navigation.pushNew(Config.PhotoViewer(photoPath)) },
+                onBack = { navigation.pop() }
+            )
+        )
+
+        is Config.PhotoViewer -> RootComponent.Child.PhotoViewer(
+            photoViewerFactory.create(
+                ctx = ctx,
+                photoPath = config.photoPath,
                 onBack = { navigation.pop() }
             )
         )
@@ -103,6 +110,9 @@ class DefaultRootComponent(
 
         @Serializable
         data class ServiceEditor(val mode: EditorMode) : Config
+
+        @Serializable
+        data class PhotoViewer(val photoPath: String) : Config
     }
 }
 
@@ -113,7 +123,8 @@ class DefaultRootComponentFactory(
     private val garageFactory: GarageComponent.Factory,
     private val carFactory: CarComponent.Factory,
     private val carEditorFactory: CarEditorComponent.Factory,
-    private val serviceEditorFactory: ServiceEditorComponent.Factory
+    private val serviceEditorFactory: ServiceEditorComponent.Factory,
+    private val photoViewerFactory: PhotoViewerComponent.Factory
 ) : RootComponent.Factory {
     override fun create(ctx: ComponentContext): RootComponent = DefaultRootComponent(
         componentContext = ctx,
@@ -121,6 +132,7 @@ class DefaultRootComponentFactory(
         garageFactory = garageFactory,
         carFactory = carFactory,
         carEditorFactory = carEditorFactory,
-        serviceEditorFactory = serviceEditorFactory
+        serviceEditorFactory = serviceEditorFactory,
+        photoViewerFactory = photoViewerFactory
     )
 }

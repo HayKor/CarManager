@@ -1,26 +1,34 @@
 package ru.haykor.carmanager.feature.serviceEditor.ui
 
 import android.content.res.Configuration
+import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import io.github.vinceglb.filekit.*
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -35,6 +43,7 @@ import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.model.*
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
 import ru.haykor.carmanager.core.ui.CarCard
+import ru.haykor.carmanager.core.ui.sharedImage
 import ru.haykor.carmanager.core.ui.theme.AppTheme
 import ru.haykor.carmanager.core.ui.toUiText
 import ru.haykor.carmanager.feature.serviceEditor.component.*
@@ -60,6 +69,10 @@ fun ServiceEditorScreen(component: ServiceEditorComponent, modifier: Modifier = 
             }
 
             is ServiceEditorEvent.DeleteFailed -> {
+                Toast.makeText(context, getString(event.error.toUiText()), Toast.LENGTH_SHORT).show()
+            }
+
+            is ServiceEditorEvent.PhotoImportFailed -> {
                 Toast.makeText(context, getString(event.error.toUiText()), Toast.LENGTH_SHORT).show()
             }
         }
@@ -218,6 +231,14 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
                     modifier = Modifier.weight(1f)
                 )
             }
+            PhotoPicker(
+                photoPath = form.input.photoUri,
+                onImageClicked = { onIntent(ServiceEditorIntent.ImageClicked) },
+                onPicked = { image ->
+                    onIntent(ServiceEditorIntent.ImagePicked(image?.path))
+                },
+                onRemoveClicked = { onIntent(ServiceEditorIntent.ImageUnpinned) }
+            )
         }
 
         Spacer(Modifier.height(8.dp))
@@ -236,6 +257,92 @@ private fun ServiceEditorForm(form: Form, onIntent: (ServiceEditorIntent) -> Uni
         }
 
         Spacer(Modifier.height(16.dp))
+    }
+}
+
+/**
+ * Passes [io.github.vinceglb.filekit.PlatformFile].`path` to the component
+ */
+@Composable
+private fun PhotoPicker(
+    photoPath: String?,
+    onImageClicked: () -> Unit,
+    onPicked: (PlatformFile?) -> Unit,
+    onRemoveClicked: () -> Unit
+) {
+    val launcher = rememberFilePickerLauncher(
+        type = FileKitType.Image,
+        onError = { failure -> Log.d("PhotoPicker", "Picker failed: ${failure.message}") }
+    ) { image ->
+        // image is a PlatformFile, or null when the user cancelled
+        Log.d("PhotoPicker", "Picked ${image?.path}")
+        onPicked(image)
+    }
+
+    val tileSize = 80.dp
+    val badgeSize = 28.dp
+    val overhang = badgeSize / 2 // how far the badge sticks out past the tile corner
+
+    // Outer box is larger than the tile so the badge stays inside its bounds (and stays tappable)
+    Box(Modifier.size(tileSize + overhang)) {
+        // The tile itself (clipped)
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .padding(top = overhang, end = overhang)
+                .fillMaxSize()
+                .clip(ListItemDefaults.shapes().shape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .clickable(
+                    onClick = if (photoPath != null) {
+                        { onImageClicked() }
+                    } else {
+                        { launcher.launch() }
+                    }
+                )
+        ) {
+            if (photoPath != null) {
+                val file = FileKit.filesDir.resolve(photoPath)
+                AsyncImage(
+                    model = file,
+                    contentDescription = file.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .sharedImage(key = photoPath)
+                        .matchParentSize()
+                )
+            } else {
+                Icon(
+                    painter = painterResource(Res.drawable.plus),
+                    contentDescription = "Add photo"
+                )
+            }
+        }
+
+        // Remove badge, centered on the tile's top-right corner
+        if (photoPath != null) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(badgeSize)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                    .clip(CircleShape)
+                    .clickable(
+                        role = Role.Button,
+                        onClickLabel = "Remove photo",
+                        onClick = onRemoveClicked
+                    )
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.close),
+                    contentDescription = "Remove photo",
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
     }
 }
 

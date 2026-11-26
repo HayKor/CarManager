@@ -30,7 +30,11 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
 
     var saveGate: CompletableDeferred<Unit>? = null
 
+    /** Makes every write fail with [DataError] when set. */
+    var writeError: DataError? = null
+
     override suspend fun create(draft: ServiceRecordDraft): DataResult<ServiceRecordId, DataError> {
+        writeError?.let { return DataResult.Failure(it) }
         created.add(draft)
 
         val record = draft.toDomain()
@@ -39,6 +43,7 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
     }
 
     override suspend fun update(id: ServiceRecordId, draft: ServiceRecordDraft): EmptyResult<DataError> {
+        writeError?.let { return DataResult.Failure(it) }
         updated.add(id to draft)
 
         val record = draft.toDomain(id)
@@ -49,6 +54,7 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
     override suspend fun delete(id: ServiceRecordId): EmptyResult<DataError> = DataResult.Success(Unit)
 
     override suspend fun createWithMileage(draft: ServiceRecordDraft, newCarMileage: Long?): EmptyResult<DataError> {
+        writeError?.let { return DataResult.Failure(it) }
         created.add(draft)
         saveGate?.await()
 
@@ -63,6 +69,7 @@ internal class FakeServiceRecordRepository(initial: List<ServiceRecord>, val cat
         draft: ServiceRecordDraft,
         newCarMileage: Long?
     ): EmptyResult<DataError> {
+        writeError?.let { return DataResult.Failure(it) }
         updated.add(id to draft)
         saveGate?.await()
 

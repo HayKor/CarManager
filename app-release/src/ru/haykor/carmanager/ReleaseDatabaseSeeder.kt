@@ -11,9 +11,7 @@ import ru.haykor.carmanager.core.domain.ServiceCategoryId
 
 @Inject
 @ContributesIntoSet(AppScope::class)
-class ReleaseDatabaseSeeder(
-    private val categoryDao: ServiceCategoryDao
-) : StartupTask {
+class ReleaseDatabaseSeeder(private val categoryDao: ServiceCategoryDao) : StartupTask {
 
     override suspend fun run() {
         if (categoryDao.observeAll().first().isNotEmpty()) return

@@ -13,6 +13,11 @@ interface ServiceEditorComponent {
     fun accept(intent: ServiceEditorIntent)
 
     fun interface Factory {
-        fun create(ctx: ComponentContext, mode: EditorMode, onBack: () -> Unit): ServiceEditorComponent
+        fun create(
+            ctx: ComponentContext,
+            mode: EditorMode,
+            onOpenImage: (photoPath: String) -> Unit,
+            onBack: () -> Unit
+        ): ServiceEditorComponent
     }
 }

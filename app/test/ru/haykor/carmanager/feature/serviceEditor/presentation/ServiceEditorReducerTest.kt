@@ -14,6 +14,7 @@ import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState.F
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ServiceEditorReducerTest {
@@ -104,5 +105,66 @@ class ServiceEditorReducerTest {
         val hidden = ServiceEditorReducer.reduce(shown, ServiceEditorMutation.SetExitDialogVisible(false))
         assertIs<Form>(hidden)
         assertFalse(hidden.isExitDialogVisible)
+    }
+
+    @Test
+    fun `picking an image sets the photo key and keeps other fields`() {
+        val state = ServiceEditorReducer.reduce(form, ServiceEditorMutation.ImagePicked("photo/1.jpg"))
+
+        assertIs<Form>(state)
+        assertEquals(input.copy(photoUri = "photo/1.jpg"), state.input)
+    }
+
+    @Test
+    fun `picking an image makes the form dirty`() {
+        val state = ServiceEditorReducer.reduce(form, ServiceEditorMutation.ImagePicked("photo/1.jpg"))
+
+        assertIs<Form>(state)
+        assertTrue(state.isDirty)
+    }
+
+    @Test
+    fun `clearing the photo makes the form dirty`() {
+        val withPhoto = (form as Form).copy(
+            input = input.copy(photoUri = "photo/1.jpg"),
+            initialInput = input.copy(photoUri = "photo/1.jpg")
+        )
+
+        val state = ServiceEditorReducer.reduce(withPhoto, ServiceEditorMutation.ImagePicked(null))
+
+        assertIs<Form>(state)
+        assertNull(state.input.photoUri)
+        assertTrue(state.isDirty)
+    }
+
+    @Test
+    fun `loaded edit form keeps its photo and stays clean`() {
+        val state = ServiceEditorReducer.reduce(
+            ServiceEditorState.Loading,
+            ServiceEditorMutation.InitialFormLoaded(
+                input = input.copy(photoUri = "photo/1.jpg"),
+                car = aCar(id = carId),
+                categories = listOf(category)
+            )
+        )
+
+        assertIs<Form>(state)
+        assertEquals("photo/1.jpg", state.input.photoUri)
+        assertFalse(state.isDirty)
+    }
+
+    @Test
+    fun `importing does not make the form busy for saving`() {
+        val state = ServiceEditorReducer.reduce(form, ServiceEditorMutation.SetIsImporting(true))
+
+        assertIs<Form>(state)
+        assertTrue(state.isImporting)
+        assertTrue(state.isBusy)
+
+        val idle = ServiceEditorReducer.reduce(state, ServiceEditorMutation.SetIsImporting(false))
+
+        assertIs<Form>(idle)
+        assertFalse(idle.isImporting)
+        assertFalse(idle.isBusy)
     }
 }

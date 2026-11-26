@@ -18,6 +18,10 @@ dependencies:
   - $libs.androidx.compose.material3
   - $libs.decompose: exported
   - $libs.decompose.extensions.compose
+  - $libs.decompose.extensions.compose.experimental
+  - $libs.filekit.coil
+  - $libs.coil.compose
+  - $libs.zoomable
 
 test-dependencies:
   - $libs.junit

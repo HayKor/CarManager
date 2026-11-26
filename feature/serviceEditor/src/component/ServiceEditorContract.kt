@@ -2,11 +2,7 @@ package ru.haykor.carmanager.feature.serviceEditor.component
 
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
 import ru.haykor.carmanager.core.domain.error.DataError
-import ru.haykor.carmanager.core.domain.model.Car
-import ru.haykor.carmanager.core.domain.model.RecordField
-import ru.haykor.carmanager.core.domain.model.RecordFieldError
-import ru.haykor.carmanager.core.domain.model.ServiceCategory
-import ru.haykor.carmanager.core.domain.model.ServiceRecordFormInput
+import ru.haykor.carmanager.core.domain.model.*
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorState.Form
 
 data class MileageConflict(val carMileage: Long, val recordMileage: Long)
@@ -23,6 +19,7 @@ sealed interface ServiceEditorState {
         val errors: Map<RecordField, RecordFieldError> = emptyMap(),
         val isSaving: Boolean = false,
         val isDeleting: Boolean = false,
+        val isImporting: Boolean = false,
         val mileageConflict: MileageConflict? = null,
         val isExitDialogVisible: Boolean = false
     ) : ServiceEditorState {
@@ -31,7 +28,7 @@ sealed interface ServiceEditorState {
             get() = initialInput != input
 
         val isBusy: Boolean
-            get() = isSaving || isDeleting
+            get() = isSaving || isDeleting || isImporting
     }
 }
 
@@ -41,6 +38,14 @@ sealed interface ServiceEditorIntent {
 
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorIntent
     data class DatePicked(val date: Long) : ServiceEditorIntent
+
+    data object ImageClicked : ServiceEditorIntent
+
+    /**
+     * @param imagePath `null` means image picker dismissed
+     * */
+    data class ImagePicked(val imagePath: String?) : ServiceEditorIntent
+    data object ImageUnpinned : ServiceEditorIntent
 
     data object SaveClicked : ServiceEditorIntent
     data object DeleteClicked : ServiceEditorIntent
@@ -58,6 +63,7 @@ sealed interface ServiceEditorIntent {
 sealed interface ServiceEditorEvent {
     data class StorageError(val error: DataError) : ServiceEditorEvent
     data class DeleteFailed(val error: DataError) : ServiceEditorEvent
+    data class PhotoImportFailed(val error: DataError) : ServiceEditorEvent
 }
 
 sealed interface ServiceEditorMutation {
@@ -74,9 +80,12 @@ sealed interface ServiceEditorMutation {
 
     data class CategoryPicked(val categoryId: ServiceCategoryId) : ServiceEditorMutation
     data class DatePicked(val date: Long) : ServiceEditorMutation
+    data class ImagePicked(val imagePath: String?) : ServiceEditorMutation
+    data object ImageUnpinned : ServiceEditorMutation
 
     data class SetIsSaving(val value: Boolean) : ServiceEditorMutation
     data class SetIsDeleting(val value: Boolean) : ServiceEditorMutation
+    data class SetIsImporting(val value: Boolean) : ServiceEditorMutation
     data object SetNotFound : ServiceEditorMutation
 
     data class MileageConflictDetected(val conflict: MileageConflict) : ServiceEditorMutation
@@ -131,12 +140,28 @@ object ServiceEditorReducer {
             } ?: state
         }
 
+        is ServiceEditorMutation.ImagePicked -> {
+            (state as? Form)?.let {
+                it.copy(input = it.input.copy(photoUri = mutation.imagePath))
+            } ?: state
+        }
+
+        ServiceEditorMutation.ImageUnpinned -> {
+            (state as? Form)?.let {
+                it.copy(input = it.input.copy(photoUri = null))
+            } ?: state
+        }
+
         is ServiceEditorMutation.SetIsSaving -> {
             (state as? Form)?.copy(isSaving = mutation.value) ?: state
         }
 
         is ServiceEditorMutation.SetIsDeleting -> {
             (state as? Form)?.copy(isDeleting = mutation.value) ?: state
+        }
+
+        is ServiceEditorMutation.SetIsImporting -> {
+            (state as? Form)?.copy(isImporting = mutation.value) ?: state
         }
 
         is ServiceEditorMutation.SetExitDialogVisible -> {
