@@ -596,6 +596,7 @@ class DefaultServiceEditorComponentTest {
         saveServiceRecord = SaveServiceRecordUseCase(records, carRepository, recordParser),
         recordRepo = records,
         photoRepo = photoRepository,
+        onOpenImage = {},
         onBack = { closeCount++ }
     )
 
