@@ -299,6 +299,7 @@ internal fun FooContent(state: FooState, onIntent: (FooIntent) -> Unit, modifier
 - Edge-to-edge is enabled in `MainActivity`; respect Scaffold insets. `windowSoftInputMode=adjustResize`.
 - Forms: always `FormTextField` (handles error/hint + real focus loss). Keep focus/back behavior local to UI.
 - Previews: `@Preview` + `AppTheme` + fake state; no components, no repositories.
+- `SharedTransitionLayout` in `RootContent` wraps the whole app in a `LookaheadScope`. Do not animate a layout-affecting modifier such as `padding` there: the child's size updates every frame, but its placement stays frozen until the spring reverses, so the element visibly jumps sideways (the search-bar flicker regression). Animate the size with `BoxWithConstraints` + an animated `Modifier.width` on a centered `Box` (`width = maxWidth - inset * 2`) — size and position then change in the same pass. See `GarageTopBar` in `feature/garage/src/ui/GarageScreen.kt`.
 
 ## Product scope
 

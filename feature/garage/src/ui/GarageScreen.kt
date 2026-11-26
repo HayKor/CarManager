@@ -82,10 +82,10 @@ fun GarageTopBar(
     var isFocused by remember { mutableStateOf(false) }
     val isActive = isFocused || query.isNotEmpty()
 
-    val horizontalPadding by animateDpAsState(
+    val horizontalInset by animateDpAsState(
         targetValue = if (isActive) 4.dp else 16.dp,
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
-        label = "SearchPadding"
+        label = "SearchBarInset"
     )
 
     TopAppBar(
@@ -98,83 +98,94 @@ fun GarageTopBar(
             BackHandler(enabled = isActive) {
                 focusManager.clearFocus()
             }
-            BasicTextField(
-                value = query,
-                onValueChange = onQueryChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = horizontalPadding)
-                    .onFocusChanged { isFocused = it.isFocused },
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                decorationBox = { innerTextField ->
-                    Row(
+            // Do NOT animate this with `padding`: the root SharedTransitionLayout is a
+            // LookaheadScope, so an animated padding freezes the text field content's
+            // placement while its size keeps changing and the bar jumps sideways.
+            // Animate the size via BoxWithConstraints + `width` on a centered Box.
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .width(maxWidth - horizontalInset * 2)
+                ) {
+                    BasicTextField(
+                        value = query,
+                        onValueChange = onQueryChange,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
-                            .clip(MaterialTheme.shapes.extraLarge)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                            .padding(horizontal = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (isActive) {
-                            IconButton(
-                                onClick = {
-                                    onClearQuery()
-                                    focusManager.clearFocus()
-                                },
-                                modifier = Modifier.size(48.dp)
+                            .onFocusChanged { isFocused = it.isFocused },
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        decorationBox = { innerTextField ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .clip(MaterialTheme.shapes.extraLarge)
+                                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                    .padding(horizontal = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    painter = painterResource(Res.drawable.chevron_left),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        } else {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.size(48.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(Res.drawable.search),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                if (isActive) {
+                                    IconButton(
+                                        onClick = {
+                                            onClearQuery()
+                                            focusManager.clearFocus()
+                                        },
+                                        modifier = Modifier.size(48.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(Res.drawable.chevron_left),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                } else {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.size(48.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(Res.drawable.search),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                Spacer(Modifier.width(4.dp))
+
+                                Box(modifier = Modifier.weight(1f)) {
+                                    if (query.isEmpty()) {
+                                        Text(
+                                            text = stringResource(Res.string.garage_search_title),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+
+                                if (query.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = onClearQuery,
+                                        modifier = Modifier.size(48.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(Res.drawable.close),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             }
                         }
-
-                        Spacer(Modifier.width(4.dp))
-
-                        Box(modifier = Modifier.weight(1f)) {
-                            if (query.isEmpty()) {
-                                Text(
-                                    text = stringResource(Res.string.garage_search_title),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            innerTextField()
-                        }
-
-                        if (query.isNotEmpty()) {
-                            IconButton(
-                                onClick = onClearQuery,
-                                modifier = Modifier.size(48.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(Res.drawable.close),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
+                    )
                 }
-            )
+            }
         },
         modifier = modifier
     )
