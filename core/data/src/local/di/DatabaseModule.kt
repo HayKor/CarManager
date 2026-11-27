@@ -12,6 +12,7 @@ import ru.haykor.carmanager.core.data.local.AppDatabase
 import ru.haykor.carmanager.core.data.local.dao.CarDao
 import ru.haykor.carmanager.core.data.local.dao.ServiceCategoryDao
 import ru.haykor.carmanager.core.data.local.dao.ServiceRecordDao
+import ru.haykor.carmanager.core.data.local.migration.MIGRATION_1_2
 
 @ContributesTo(AppScope::class)
 interface DatabaseModule {
@@ -31,6 +32,7 @@ interface DatabaseModule {
         )
             .setDriver(BundledSQLiteDriver())
             .setQueryCoroutineContext(Dispatchers.IO)
+            .addMigrations(MIGRATION_1_2)
             .build()
     }
 

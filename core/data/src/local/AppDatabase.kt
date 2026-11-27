@@ -9,10 +9,17 @@ import ru.haykor.carmanager.core.data.local.entity.car.CarEntity
 import ru.haykor.carmanager.core.data.local.entity.car.CarFtsEntity
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceCategoryEntity
 import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordEntity
+import ru.haykor.carmanager.core.data.local.entity.service.ServiceRecordFtsEntity
 
 @Database(
-    entities = [CarEntity::class, CarFtsEntity::class, ServiceRecordEntity::class, ServiceCategoryEntity::class],
-    version = 1,
+    entities = [
+        CarEntity::class,
+        CarFtsEntity::class,
+        ServiceRecordEntity::class,
+        ServiceRecordFtsEntity::class,
+        ServiceCategoryEntity::class
+    ],
+    version = 2,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
