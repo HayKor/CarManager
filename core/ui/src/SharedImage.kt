@@ -2,6 +2,7 @@ package ru.haykor.carmanager.core.ui
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
@@ -17,6 +18,19 @@ fun Modifier.sharedImage(key: Any): Modifier {
         this@sharedImage.sharedElement(
             sharedContentState = rememberSharedContentState(key),
             animatedVisibilityScope = avs
+        )
+    }
+}
+
+@Composable
+fun Modifier.sharedBounds(key: Any): Modifier {
+    val sts = LocalSharedTransitionScope.current ?: return this
+    val avs = LocalAnimatedVisibilityScope.current ?: return this
+    return with(sts) {
+        this@sharedBounds.sharedBounds(
+            sharedContentState = rememberSharedContentState(key),
+            animatedVisibilityScope = avs,
+            resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds
         )
     }
 }
