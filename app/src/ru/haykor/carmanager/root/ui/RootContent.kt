@@ -48,7 +48,7 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
                                 animatable = ::androidPredictiveBackAnimatableV2
                             )
                         },
-                        selector = { child, otherChild, direction, isPredictiveBack ->
+                        selector = { child, otherChild, _, _ ->
                             val childInstance = child.instance
                             val otherChildInstance = otherChild.instance
 
