@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -39,7 +38,7 @@ import ru.haykor.carmanager.core.domain.model.ServiceCategory
 import ru.haykor.carmanager.core.domain.model.ServiceRecord
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
-import ru.haykor.carmanager.core.ui.formatDate
+import ru.haykor.carmanager.core.ui.ServiceRecordRow
 import ru.haykor.carmanager.core.ui.formatNumber
 import ru.haykor.carmanager.core.ui.theme.AppTheme
 import ru.haykor.carmanager.core.ui.title
@@ -220,7 +219,7 @@ fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onRecordClick: 
                 item(key = "history_empty") { ServiceHistoryEmpty() }
             } else {
                 itemsIndexed(recordsSection.records, key = { _, record -> record.record.id.value }) { index, record ->
-                    ServiceRecordCard(
+                    ServiceRecordRow(
                         record = record,
                         shape = cmSegmentShape(index, recordsSection.records.size),
                         onClick = { onRecordClick(record.record.id) },
@@ -233,53 +232,6 @@ fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onRecordClick: 
         RecordsSection.Loading -> {
             // TODO: shimmer ?
         }
-    }
-}
-
-@Composable
-private fun ServiceRecordCard(
-    record: ServiceRecordDetails,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape
-) {
-    val mileage = stringResource(Res.string.mileage_km, formatNumber(record.record.atMileage))
-    val date = formatDate(record.record.date)
-    val note = record.record.note?.takeIf { it.isNotBlank() }
-
-    CmNavRow(
-        onClick = onClick,
-        modifier = modifier,
-        shape = shape,
-        leadingContent = { ServiceAvatar() },
-        supportingContent = {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text("$date · $mileage")
-                if (note != null) Text(note, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-        },
-        trailingContent = record.record.price?.let { price ->
-            { Text(formatNumber(price), style = MaterialTheme.typography.titleSmall, maxLines = 1) }
-        }
-    ) {
-        Text(record.category.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
-}
-
-@Composable
-private fun ServiceAvatar(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .size(48.dp)
-            .clip(MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.secondaryContainer),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(Res.drawable.build),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSecondaryContainer
-        )
     }
 }
 
