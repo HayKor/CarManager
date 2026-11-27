@@ -5,13 +5,18 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
+import ru.haykor.carmanager.feature.search.component.SearchComponent
 
 @ContributesBinding(AppScope::class)
 @Inject
 class DefaultMainComponentFactory : MainComponent.Factory {
-    override fun create(ctx: ComponentContext, garage: (ComponentContext) -> GarageComponent): MainComponent =
-        DefaultMainComponent(
-            componentContext = ctx,
-            garage = garage
-        )
+    override fun create(
+        ctx: ComponentContext,
+        garage: (ComponentContext) -> GarageComponent,
+        search: (ComponentContext) -> SearchComponent
+    ): MainComponent = DefaultMainComponent(
+        componentContext = ctx,
+        garage = garage,
+        search = search
+    )
 }

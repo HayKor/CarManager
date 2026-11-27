@@ -9,10 +9,12 @@ dependencies:
   - //core/domain: exported
   - //core/resources
   - //core/ui
+  # features
   - //feature/car: exported
   - //feature/carEditor: exported
   - //feature/garage: exported
   - //feature/serviceEditor: exported
+  - //feature/search: exported
   # libs
   - $libs.androidx.activity.compose
   - $libs.androidx.compose.material3

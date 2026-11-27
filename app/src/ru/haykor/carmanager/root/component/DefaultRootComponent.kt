@@ -1,8 +1,11 @@
 package ru.haykor.carmanager.root.component
 
+import com.arkivanov.decompose.Cancellation
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.*
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -13,6 +16,8 @@ import ru.haykor.carmanager.feature.car.component.CarComponent
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.main.component.MainComponent
+import ru.haykor.carmanager.feature.main.component.MainTab
+import ru.haykor.carmanager.feature.search.component.SearchComponent
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
 import ru.haykor.carmanager.photoviewer.component.PhotoViewerComponent
 
@@ -20,6 +25,7 @@ class DefaultRootComponent(
     componentContext: ComponentContext,
     private val mainFactory: MainComponent.Factory,
     private val garageFactory: GarageComponent.Factory,
+    private val searchFactory: SearchComponent.Factory,
     private val carFactory: CarComponent.Factory,
     private val carEditorFactory: CarEditorComponent.Factory,
     private val serviceEditorFactory: ServiceEditorComponent.Factory,
@@ -28,6 +34,13 @@ class DefaultRootComponent(
     ComponentContext by componentContext {
 
     private val navigation = StackNavigation<Config>()
+
+    private val tabBackCallback = BackCallback(isEnabled = false) {
+        activeMain()?.onTabSelected(MainTab.Garage)
+    }
+
+    private var pagesSubscription: Cancellation? = null
+    private var stackSubscription: Cancellation? = null
 
     override val childStack: Value<ChildStack<*, RootComponent.Child>> =
         childStack(
@@ -38,8 +51,28 @@ class DefaultRootComponent(
             childFactory = ::createChild
         )
 
+    init {
+        backHandler.register(tabBackCallback)
+        pagesSubscription = activeMain()?.pages?.subscribe { updateTabBackCallback() }
+        stackSubscription = childStack.subscribe { updateTabBackCallback() }
+        updateTabBackCallback()
+        lifecycle.doOnDestroy {
+            pagesSubscription?.cancel()
+            stackSubscription?.cancel()
+            backHandler.unregister(tabBackCallback)
+        }
+    }
+
     override fun onBack() {
         navigation.pop()
+    }
+
+    private fun activeMain(): MainComponent? =
+        (childStack.value.active.instance as? RootComponent.Child.Main)?.component
+
+    private fun updateTabBackCallback() {
+        tabBackCallback.isEnabled =
+            activeMain()?.pages?.value?.selectedIndex?.let { it != MainTab.Garage.ordinal } == true
     }
 
     private fun createChild(config: Config, ctx: ComponentContext) = when (config) {
@@ -55,6 +88,13 @@ class DefaultRootComponent(
                         onAddCar = {
                             navigation.pushNew(Config.CarEditor(null))
                         }
+                    )
+                },
+                search = { c ->
+                    searchFactory.create(
+                        ctx = c,
+                        onOpenCar = { id -> navigation.pushNew(Config.Car(id)) },
+                        onOpenRecord = { id -> navigation.pushNew(Config.ServiceEditor(EditorMode.Edit(id))) }
                     )
                 }
             )
@@ -121,6 +161,7 @@ class DefaultRootComponent(
 class DefaultRootComponentFactory(
     private val mainFactory: MainComponent.Factory,
     private val garageFactory: GarageComponent.Factory,
+    private val searchFactory: SearchComponent.Factory,
     private val carFactory: CarComponent.Factory,
     private val carEditorFactory: CarEditorComponent.Factory,
     private val serviceEditorFactory: ServiceEditorComponent.Factory,
@@ -130,6 +171,7 @@ class DefaultRootComponentFactory(
         componentContext = ctx,
         mainFactory = mainFactory,
         garageFactory = garageFactory,
+        searchFactory = searchFactory,
         carFactory = carFactory,
         carEditorFactory = carEditorFactory,
         serviceEditorFactory = serviceEditorFactory,

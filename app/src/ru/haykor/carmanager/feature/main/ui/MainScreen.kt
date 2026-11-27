@@ -16,11 +16,15 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.Res
+import ru.haykor.carmanager.core.ui.aboveSharedElements
 import ru.haykor.carmanager.feature.garage.ui.GarageScreen
 import ru.haykor.carmanager.feature.main.component.MainComponent
 import ru.haykor.carmanager.feature.main.component.MainTab
+import ru.haykor.carmanager.feature.search.ui.SearchScreen
 import ru.haykor.carmanager.garage_home
+import ru.haykor.carmanager.search
 import ru.haykor.carmanager.title_garage
+import ru.haykor.carmanager.title_search
 
 @Composable
 fun MainScreen(component: MainComponent, modifier: Modifier = Modifier) {
@@ -55,6 +59,10 @@ fun MainScreen(component: MainComponent, modifier: Modifier = Modifier) {
                 is MainComponent.Child.Garage -> {
                     GarageScreen(child.component)
                 }
+
+                is MainComponent.Child.Search -> {
+                    SearchScreen(child.component)
+                }
             }
         }
     }
@@ -69,6 +77,12 @@ internal val topLevelDestinations: List<TopLevelDestination>
             tab = MainTab.Garage,
             title = Res.string.title_garage,
             icon = Res.drawable.garage_home
+        ),
+
+        TopLevelDestination(
+            tab = MainTab.Search,
+            title = Res.string.title_search,
+            icon = Res.drawable.search
         )
     )
 

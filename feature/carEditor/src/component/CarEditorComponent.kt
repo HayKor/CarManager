@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import ru.haykor.carmanager.core.domain.CarId
 
 interface CarEditorComponent {
+    val id: CarId?
     val state: Value<CarEditorState>
     val events: Flow<CarEditorEvent>
 

@@ -12,6 +12,7 @@ dependencies:
   - //core/domain: exported
   - //core/resources
   - $compose.preview
+  - $compose.uiBackHandler
 
 dependencies@android:
   - $compose.uiTooling

@@ -1,6 +1,7 @@
 package ru.haykor.carmanager.root.ui
 
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -13,6 +14,7 @@ import com.arkivanov.decompose.extensions.compose.experimental.stack.ChildStack
 import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.*
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.androidPredictiveBackAnimatableV2
 import io.github.vinceglb.filekit.coil.addPlatformFileSupport
+import ru.haykor.carmanager.core.domain.model.EditorMode
 import ru.haykor.carmanager.core.ui.LocalAnimatedVisibilityScope
 import ru.haykor.carmanager.core.ui.LocalSharedTransitionScope
 import ru.haykor.carmanager.feature.car.ui.CarScreen
@@ -46,13 +48,44 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
                                 animatable = ::androidPredictiveBackAnimatableV2
                             )
                         },
-                        selector = { child, otherChild, direction, isPredictiveBack ->
-                            if (child.instance is RootComponent.Child.PhotoViewer ||
-                                otherChild.instance is RootComponent.Child.PhotoViewer
-                            ) {
-                                fade()
-                            } else {
-                                slide() + fade()
+                        selector = { child, otherChild, _, _ ->
+                            val childInstance = child.instance
+                            val otherChildInstance = otherChild.instance
+
+                            when {
+                                childInstance is RootComponent.Child.PhotoViewer ||
+                                    otherChildInstance is RootComponent.Child.PhotoViewer
+                                -> fade()
+
+                                // CarEditor new
+                                childInstance is RootComponent.Child.CarEditor &&
+                                    childInstance.component.id == null
+                                -> slide(orientation = Orientation.Vertical) +
+                                    fade()
+
+                                otherChildInstance is RootComponent.Child.CarEditor &&
+                                    otherChildInstance.component.id == null
+                                -> fade()
+
+                                // end CarEditor new
+
+                                // RecordEditor new
+                                childInstance is RootComponent.Child.ServiceEditor &&
+                                    childInstance.component.editorMode is EditorMode.Create
+                                -> slide(orientation = Orientation.Vertical) +
+                                    fade()
+
+                                otherChildInstance is RootComponent.Child.ServiceEditor &&
+                                    otherChildInstance.component.editorMode is EditorMode.Create
+                                -> fade()
+
+                                // end RecordEditor new
+
+                                childInstance is RootComponent.Child.ServiceEditor ||
+                                    otherChildInstance is RootComponent.Child.ServiceEditor
+                                -> fade()
+
+                                else -> fade()
                             }
                         }
                     ),

@@ -18,8 +18,13 @@
     <string name="garage_add_car">Add car</string>
     <string name="garage_empty_title">No cars currently. Add a car?</string>
     <string name="garage_empty_on_query">Query "%1$s" didn't show any results</string>
-    <string name="garage_search_title">Search</string>
     <string name="garage_mileage">%1$d km</string>
+
+    <!-- Search -->
+    <string name="title_search">Search</string>
+    <string name="search_hint">Search</string>
+    <string name="search_empty_history">No cars or records yet</string>
+    <string name="search_empty_on_query">Nothing found for "%1$s"</string>
 
     <!-- Car editor -->
     <string name="car_editor_title">Create or edit</string>

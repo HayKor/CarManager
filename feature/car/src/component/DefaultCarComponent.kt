@@ -22,7 +22,7 @@ import ru.haykor.carmanager.core.result.DataResult
 
 class DefaultCarComponent(
     componentContext: ComponentContext,
-    private val id: CarId,
+    override val id: CarId,
     private val carRepository: CarRepository,
     private val recordRepository: ServiceRecordRepository,
     private val deleteCar: DeleteCarUseCase,

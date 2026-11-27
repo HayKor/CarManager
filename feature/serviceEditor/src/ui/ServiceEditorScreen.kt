@@ -3,8 +3,6 @@ package ru.haykor.carmanager.feature.serviceEditor.ui
 import android.content.res.Configuration
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -43,7 +41,8 @@ import ru.haykor.carmanager.core.domain.ServiceRecordId
 import ru.haykor.carmanager.core.domain.model.*
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
 import ru.haykor.carmanager.core.ui.CarCard
-import ru.haykor.carmanager.core.ui.sharedImage
+import ru.haykor.carmanager.core.ui.sharedBounds
+import ru.haykor.carmanager.core.ui.sharedElement
 import ru.haykor.carmanager.core.ui.theme.AppTheme
 import ru.haykor.carmanager.core.ui.toUiText
 import ru.haykor.carmanager.feature.serviceEditor.component.*
@@ -95,6 +94,11 @@ internal fun ServiceEditorContent(
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val isNew = editorMode is EditorMode.Create
+    val sharedTransitionModifier = if (editorMode is EditorMode.Edit) {
+        Modifier.sharedBounds(key = editorMode.recordId.value)
+    } else {
+        Modifier
+    }
 
     Scaffold(
         topBar = {
@@ -140,7 +144,9 @@ internal fun ServiceEditorContent(
                 )
             }
         },
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+        modifier = modifier
+            .then(sharedTransitionModifier)
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { padding ->
         when (state) {
             ServiceEditorState.Loading -> LoadingContent(Modifier.padding(padding))
@@ -308,7 +314,7 @@ private fun PhotoPicker(
                     contentDescription = file.name,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .sharedImage(key = photoPath)
+                        .sharedElement(key = photoPath)
                         .matchParentSize()
                 )
             } else {
