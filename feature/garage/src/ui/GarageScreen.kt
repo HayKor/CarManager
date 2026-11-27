@@ -4,7 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -123,9 +124,9 @@ private fun GarageBody(
                         car = car,
                         shape = cmSegmentShape(index, content.items.size),
                         onClick = { onIntent(GarageIntent.CarClicked(car.id)) },
-                        modifier = cmAnimateItem(
-                            Modifier.padding(horizontal = 16.dp)
-                        )
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .cmAnimateItem()
                     )
                 }
             }

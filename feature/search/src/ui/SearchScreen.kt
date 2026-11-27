@@ -139,9 +139,9 @@ private fun SearchBody(
                         car = group.car,
                         hasRecords = group.records.isNotEmpty(),
                         onClick = { onIntent(SearchIntent.CarClicked(group.car.id)) },
-                        modifier = cmAnimateItem(
-                            Modifier.padding(bottom = CmSegmentedGap / 2)
-                        )
+                        modifier = Modifier
+                            .padding(bottom = CmSegmentedGap / 2)
+                            .cmAnimateItem()
                     )
                 }
 
@@ -153,9 +153,9 @@ private fun SearchBody(
                         record = record,
                         shape = cmSegmentShape(index + 1, group.records.size + 1),
                         onClick = { onIntent(SearchIntent.RecordClicked(record.record.id)) },
-                        modifier = cmAnimateItem(
-                            Modifier.padding(vertical = CmSegmentedGap / 2)
-                        )
+                        modifier = Modifier
+                            .padding(bottom = CmSegmentedGap / 2)
+                            .cmAnimateItem()
                     )
                 }
             }
