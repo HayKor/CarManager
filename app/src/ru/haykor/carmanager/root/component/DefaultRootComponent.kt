@@ -61,7 +61,9 @@ class DefaultRootComponent(
                 },
                 search = { c ->
                     searchFactory.create(
-                        ctx = c
+                        ctx = c,
+                        onOpenCar = { id -> navigation.pushNew(Config.Car(id)) },
+                        onOpenRecord = { id -> navigation.pushNew(Config.ServiceEditor(EditorMode.Edit(id))) }
                     )
                 }
             )
