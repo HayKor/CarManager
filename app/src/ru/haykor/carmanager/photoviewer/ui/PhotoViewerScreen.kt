@@ -27,7 +27,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import ru.haykor.carmanager.*
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
-import ru.haykor.carmanager.core.ui.sharedImage
+import ru.haykor.carmanager.core.ui.sharedElement
 import ru.haykor.carmanager.photoviewer.component.PhotoViewerComponent
 import ru.haykor.carmanager.photoviewer.component.PhotoViewerEvent
 
@@ -76,7 +76,7 @@ private fun PhotoViewerContent(photoPath: String, onBack: () -> Unit, onSave: ()
             contentScale = ContentScale.Fit,
             onSuccess = { zoomState.setContentSize(it.painter.intrinsicSize) },
             modifier = Modifier
-                .sharedImage(key = photoPath)
+                .sharedElement(key = photoPath)
                 .zoomable(
                     zoomState = zoomState,
                     onTap = { barsVisible = !barsVisible } // double-tap zoom is built in

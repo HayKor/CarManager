@@ -154,6 +154,7 @@ private fun SearchBody(
                         shape = cmSegmentShape(index + 1, group.records.size + 1),
                         onClick = { onIntent(SearchIntent.RecordClicked(record.record.id)) },
                         modifier = Modifier
+                            .sharedBounds(key = record.record.id.value)
                             .padding(bottom = CmSegmentedGap / 2)
                             .cmAnimateItem()
                     )

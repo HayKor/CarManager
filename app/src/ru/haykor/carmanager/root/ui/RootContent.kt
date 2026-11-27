@@ -57,13 +57,9 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
                                     otherChildInstance is RootComponent.Child.PhotoViewer
                                 -> fade()
 
+                                // CarEditor new
                                 childInstance is RootComponent.Child.CarEditor &&
                                     childInstance.component.id == null
-                                -> slide(orientation = Orientation.Vertical) +
-                                    fade()
-
-                                childInstance is RootComponent.Child.ServiceEditor &&
-                                    childInstance.component.editorMode is EditorMode.Create
                                 -> slide(orientation = Orientation.Vertical) +
                                     fade()
 
@@ -71,11 +67,25 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
                                     otherChildInstance.component.id == null
                                 -> fade()
 
+                                // end CarEditor new
+
+                                // RecordEditor new
+                                childInstance is RootComponent.Child.ServiceEditor &&
+                                    childInstance.component.editorMode is EditorMode.Create
+                                -> slide(orientation = Orientation.Vertical) +
+                                    fade()
+
                                 otherChildInstance is RootComponent.Child.ServiceEditor &&
                                     otherChildInstance.component.editorMode is EditorMode.Create
                                 -> fade()
 
-                                else -> slide() + fade()
+                                // end RecordEditor new
+
+                                childInstance is RootComponent.Child.ServiceEditor ||
+                                    otherChildInstance is RootComponent.Child.ServiceEditor
+                                -> fade()
+
+                                else -> fade()
                             }
                         }
                     ),

@@ -2,7 +2,6 @@ package ru.haykor.carmanager.core.ui
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
@@ -11,11 +10,11 @@ val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { nu
 val LocalAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
 
 @Composable
-fun Modifier.sharedImage(key: Any): Modifier {
+fun Modifier.sharedElement(key: Any): Modifier {
     val sts = LocalSharedTransitionScope.current ?: return this
     val avs = LocalAnimatedVisibilityScope.current ?: return this
     return with(sts) {
-        this@sharedImage.sharedElement(
+        this@sharedElement.sharedElement(
             sharedContentState = rememberSharedContentState(key),
             animatedVisibilityScope = avs
         )
@@ -33,4 +32,10 @@ fun Modifier.sharedBounds(key: Any): Modifier {
             resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds
         )
     }
+}
+
+@Composable
+fun Modifier.aboveSharedElements(zIndex: Float = 1f): Modifier {
+    val sts = LocalSharedTransitionScope.current ?: return this
+    return with(sts) { renderInSharedTransitionScopeOverlay(zIndexInOverlay = zIndex) }
 }

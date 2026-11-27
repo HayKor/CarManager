@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -41,11 +40,8 @@ import ru.haykor.carmanager.core.domain.model.ServiceCategory
 import ru.haykor.carmanager.core.domain.model.ServiceRecord
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
-import ru.haykor.carmanager.core.ui.ServiceRecordRow
-import ru.haykor.carmanager.core.ui.formatNumber
+import ru.haykor.carmanager.core.ui.*
 import ru.haykor.carmanager.core.ui.theme.AppTheme
-import ru.haykor.carmanager.core.ui.title
-import ru.haykor.carmanager.core.ui.toUiText
 import ru.haykor.carmanager.feature.car.component.*
 
 // region composables
@@ -61,7 +57,6 @@ fun CarScreen(component: CarComponent, modifier: Modifier = Modifier) {
             }
         }
     }
-
     CarContent(
         state = state,
         onIntent = component::accept,
@@ -226,7 +221,9 @@ fun LazyListScope.recordsDetails(recordsSection: RecordsSection, onRecordClick: 
                         record = record,
                         shape = cmSegmentShape(index, recordsSection.records.size),
                         onClick = { onRecordClick(record.record.id) },
-                        modifier = Modifier.padding(bottom = CmSegmentedGap)
+                        modifier = Modifier
+                            .sharedBounds(key = record.record.id.value)
+                            .padding(bottom = CmSegmentedGap)
                     )
                 }
             }

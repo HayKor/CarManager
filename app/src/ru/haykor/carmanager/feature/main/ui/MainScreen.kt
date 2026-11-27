@@ -16,6 +16,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.Res
+import ru.haykor.carmanager.core.ui.aboveSharedElements
 import ru.haykor.carmanager.feature.garage.ui.GarageScreen
 import ru.haykor.carmanager.feature.main.component.MainComponent
 import ru.haykor.carmanager.feature.main.component.MainTab
