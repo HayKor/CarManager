@@ -122,7 +122,7 @@ Rules:
 - Do not put events in state; do not collect events in `LaunchedEffect` directly.
 - Search/debounce: internal `MutableStateFlow` + `debounce(300.milliseconds)` + `distinctUntilChanged()` + `flatMapLatest`.
 - Component scope: `createComponentScope()` = `SupervisorJob + Dispatchers.Main.immediate`, cancelled on destroy.
-- Back handling: `BackCallback`, register in `init`, unregister via `lifecycle.doOnDestroy`. Dirty + not busy -> dialog; busy -> leave.
+- Back handling: `BackCallback`, register in `init`, unregister via `lifecycle.doOnDestroy`. Dirty + not busy -> dialog; busy -> leave. `SearchBar` consumes back while focused or while the query is non-empty: it clears query/focus first. This applies on every screen using it (Garage, Search).
 - `exit()` must be idempotent: `isExitHandled` + `lifecycle.state == DESTROYED` guard; prevents double pop after async save.
 - Forms: keep `initialInput`, `touched`, `errors`; validate on change/blur; `AllFieldsTouched` on save; parser returns `Valid` / `Invalid`.
 - UI is stateless: `Screen(component)` adapter + `Content(state, onIntent)`; previews call `Content` with fake state.
@@ -274,12 +274,13 @@ internal fun FooContent(state: FooState, onIntent: (FooIntent) -> Unit, modifier
 - Room3 + `BundledSQLiteDriver`; DB file `app.db`; query context `Dispatchers.IO`.
 - Repository implementations: `@Inject @ContributesBinding(AppScope::class)`, map entities to domain models.
 - `safeCall { }` wraps writes: rethrows `CancellationException`, maps `SQLiteException` to `DataError.Local.Unknown`.
-- Observing reads return `Flow<T>` without `DataResult`; the DB is the source of truth. Writes return `DataResult`.
+- Observing model reads return `Flow<T>` without `DataResult`; the DB is the source of truth. Writes return `DataResult`. Search is the exception: `SearchRepository` returns `Flow<DataResult<List<CarSearchResult>, DataError>>` because FTS/DB failures must reach the UI.
 - Entities use domain value-class IDs directly; mappers live in `core/data/mapper`.
 - Partial updates: `@Update(entity = XEntity::class)` + `CarUpdate` / `ServiceRecordUpdate`; do not hand-build `ContentValues`.
 - Multi-write invariants: `@Transaction` methods on an `abstract class` DAO (see `ServiceRecordDao`).
-- Schema: `AppDatabase` version 1, `exportSchema = true`, `room.schemaLocation = ./schemas`. Change schema -> bump version + migration; never rely on destructive fallback.
-- FTS5: `CarFtsEntity(contentEntity = CarEntity::class)`, table `cars_fts`; search query must be sanitized in domain (`SearchCarsUseCase`: keep letters/digits, `token*`), not in UI.
+- Schema: `AppDatabase` version 2, `exportSchema = true`, `room.schemaLocation = ./schemas`. Change schema -> bump version + migration; never rely on destructive fallback.
+- FTS5: `CarFtsEntity` (`cars_fts`) over brand/model/plate/note; `ServiceRecordFtsEntity` (`records_fts`) over `service_records.note`, synced by Room triggers.
+- Search sanitization lives in domain (`SearchQuery.sanitizeWords`): keep letters/digits, split words, max 4 in `SearchCarsRecordsUseCase`; the repository appends `*`. Garage's `SearchCarsUseCase` keeps no 4-word cap.
 - Foreign keys: car -> records `CASCADE`; category -> records `RESTRICT`.
 - `ServiceRecordDao.mileageBounds` / `latestDate` provide the SQL facts; mileage ordering rules belong in use cases, not UI.
 
@@ -292,7 +293,7 @@ internal fun FooContent(state: FooState, onIntent: (FooIntent) -> Unit, modifier
 
 - `AppTheme` = `MaterialExpressiveTheme` + `MotionScheme.expressive()`; wrap screens/previews.
 - Design system first: `FormTextField`, `CmNavRow`, `CmSectionHeader`, `UnsavedChangesDialog`, `LicensePlate`, `cmSegmentShape`, `CmSegmentedGap`.
-- `core/ui` for app-specific pieces: `CarCard`, theme, `formatNumber`, `formatDate`, `Car.title`, `DataError.toUiText()`.
+- `core/ui` for app-specific pieces: `CarCard`, `ServiceRecordRow`, theme, `formatNumber`, `formatDate`, `Car.title`, `DataError.toUiText()`.
 - Field errors are mapped to strings in the feature UI (`CarFieldError.message`, `RecordFieldError.message`).
 - Icons are Compose resources (`Res.drawable.*`), not `material-icons`.
 - Lists: `LazyColumn` + stable `key`; segmented shapes via `cmSegmentShape(index, count)`.
@@ -303,8 +304,8 @@ internal fun FooContent(state: FooState, onIntent: (FooIntent) -> Unit, modifier
 
 ## Product scope
 
-- Implemented: Garage list/search, car details, car create/edit/delete, service-record create/edit/delete, mileage sequence validation, category defaults.
-- Not implemented yet: reminders, reports, documents, photo picker, multi-tab navigation beyond Garage, cloud sync, accounts/roles.
+- Implemented: Garage list/search, car details, car create/edit/delete, service-record create/edit/delete, mileage sequence validation, category defaults, search over car fields and record notes with records grouped by car.
+- Not implemented yet: reminders, reports, documents, photo picker, cloud sync, accounts/roles.
 - `photoUri` fields and DB columns exist, but no picker/upload flow. Do not claim photo support.
 - Local-only MVP: no backend, no auth, no network layer. Do not add Retrofit/Ktor without an explicit request.
 
@@ -316,6 +317,7 @@ internal fun FooContent(state: FooState, onIntent: (FooIntent) -> Unit, modifier
 - Reducer tests: pure state-in/state-out, one behavior per test.
 - Use-case tests: fakes for repositories, assert `DataResult.Failure` type and that nothing was persisted.
 - Room/FTS tests: JVM tests in `app-debug/test`, in-memory DB + `BundledSQLiteDriver`; call `BundledSqliteNative.install()` in `@Before` so the Android driver loads the host native library (`sqlite-bundled-jvm` provides it in `test-dependencies`).
+- Search DAO/repository tests and `Migration1To2Test` (v1→v2, `records_fts`) live in `app-debug/test`; app-level Search tests live in `app/test`.
 - Add a regression test at the lowest layer that can express the bug; no UI-only coverage for domain rules.
 - `./kotlin check` runs `tests` + `ktlintCheck`; a failing check blocks done.
 
