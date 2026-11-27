@@ -1,6 +1,7 @@
 package ru.haykor.carmanager.feature.search.ui
 
 import android.widget.Toast
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -171,13 +172,12 @@ private fun SearchCarHeader(car: Car, hasRecords: Boolean, onClick: () -> Unit, 
         car.plate
     ).joinToString(" · ")
 
+    val bottomDp by animateDpAsState(targetValue = if (hasRecords) 0.dp else 24.dp)
+
     Surface(
         onClick = onClick,
-        shape = if (hasRecords) {
-            RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-        } else {
-            RoundedCornerShape(24.dp)
-        },
+        shape =
+            RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomEnd = bottomDp, bottomStart = bottomDp),
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         modifier = modifier.fillMaxWidth()
     ) {
