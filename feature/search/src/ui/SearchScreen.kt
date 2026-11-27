@@ -6,9 +6,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -25,18 +27,10 @@ import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
 import ru.haykor.carmanager.core.domain.ServiceRecordId
-import ru.haykor.carmanager.core.domain.model.Car
-import ru.haykor.carmanager.core.domain.model.CarSearchResult
-import ru.haykor.carmanager.core.domain.model.ServiceCategory
-import ru.haykor.carmanager.core.domain.model.ServiceRecord
-import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
+import ru.haykor.carmanager.core.domain.model.*
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
-import ru.haykor.carmanager.core.ui.SearchBar
-import ru.haykor.carmanager.core.ui.ServiceRecordRow
-import ru.haykor.carmanager.core.ui.formatNumber
+import ru.haykor.carmanager.core.ui.*
 import ru.haykor.carmanager.core.ui.theme.AppTheme
-import ru.haykor.carmanager.core.ui.title
-import ru.haykor.carmanager.core.ui.toUiText
 import ru.haykor.carmanager.feature.search.component.SearchComponent
 import ru.haykor.carmanager.feature.search.component.SearchEvent
 import ru.haykor.carmanager.feature.search.component.SearchIntent
@@ -155,13 +149,19 @@ private fun SearchBody(
                 ) { index, record ->
                     ServiceRecordRow(
                         record = record,
-                        shape = if (index == group.records.lastIndex) {
-                            RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
-                        } else {
-                            RectangleShape
-                        },
+                        shape = RectangleShape,
                         onClick = { onIntent(SearchIntent.RecordClicked(record.record.id)) },
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .then(
+                                if (index == group.records.lastIndex) {
+                                    Modifier.clip(
+                                        RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+                                    )
+                                } else {
+                                    Modifier
+                                }
+                            )
                     )
                 }
             }
