@@ -11,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -22,7 +21,9 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import ru.haykor.carmanager.Res
+import ru.haykor.carmanager.*
+import ru.haykor.carmanager.core.designsystem.CmSegmentedGap
+import ru.haykor.carmanager.core.designsystem.cmSegmentShape
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
@@ -36,11 +37,6 @@ import ru.haykor.carmanager.feature.search.component.SearchEvent
 import ru.haykor.carmanager.feature.search.component.SearchIntent
 import ru.haykor.carmanager.feature.search.component.SearchState
 import ru.haykor.carmanager.feature.search.component.SearchState.Content
-import ru.haykor.carmanager.keyboard_arrow_right
-import ru.haykor.carmanager.mileage_km
-import ru.haykor.carmanager.search_empty_history
-import ru.haykor.carmanager.search_empty_on_query
-import ru.haykor.carmanager.search_hint
 
 // region composables
 @Composable
@@ -124,7 +120,10 @@ private fun SearchBody(
         )
 
         else -> LazyColumn(
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
             contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
         ) {
             groups.forEachIndexed { groupIndex, group ->
@@ -139,7 +138,7 @@ private fun SearchBody(
                         car = group.car,
                         hasRecords = group.records.isNotEmpty(),
                         onClick = { onIntent(SearchIntent.CarClicked(group.car.id)) },
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(bottom = CmSegmentedGap / 2)
                     )
                 }
 
@@ -149,19 +148,9 @@ private fun SearchBody(
                 ) { index, record ->
                     ServiceRecordRow(
                         record = record,
-                        shape = RectangleShape,
+                        shape = cmSegmentShape(index + 1, group.records.size + 1),
                         onClick = { onIntent(SearchIntent.RecordClicked(record.record.id)) },
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .then(
-                                if (index == group.records.lastIndex) {
-                                    Modifier.clip(
-                                        RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
-                                    )
-                                } else {
-                                    Modifier
-                                }
-                            )
+                        modifier = Modifier.padding(vertical = CmSegmentedGap / 2)
                     )
                 }
             }
@@ -183,7 +172,7 @@ private fun SearchCarHeader(car: Car, hasRecords: Boolean, onClick: () -> Unit, 
         } else {
             RoundedCornerShape(24.dp)
         },
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
         modifier = modifier.fillMaxWidth()
     ) {
         Row(
