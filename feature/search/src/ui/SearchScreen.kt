@@ -23,6 +23,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
 import ru.haykor.carmanager.core.designsystem.CmSegmentedGap
+import ru.haykor.carmanager.core.designsystem.cmAnimateItem
 import ru.haykor.carmanager.core.designsystem.cmSegmentShape
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
@@ -138,7 +139,9 @@ private fun SearchBody(
                         car = group.car,
                         hasRecords = group.records.isNotEmpty(),
                         onClick = { onIntent(SearchIntent.CarClicked(group.car.id)) },
-                        modifier = Modifier.padding(bottom = CmSegmentedGap / 2)
+                        modifier = cmAnimateItem(
+                            Modifier.padding(bottom = CmSegmentedGap / 2)
+                        )
                     )
                 }
 
@@ -150,7 +153,9 @@ private fun SearchBody(
                         record = record,
                         shape = cmSegmentShape(index + 1, group.records.size + 1),
                         onClick = { onIntent(SearchIntent.RecordClicked(record.record.id)) },
-                        modifier = Modifier.padding(vertical = CmSegmentedGap / 2)
+                        modifier = cmAnimateItem(
+                            Modifier.padding(vertical = CmSegmentedGap / 2)
+                        )
                     )
                 }
             }

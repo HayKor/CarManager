@@ -1,7 +1,5 @@
 package ru.haykor.carmanager.feature.garage.ui
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -17,6 +15,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
 import ru.haykor.carmanager.core.designsystem.CmSegmentedGap
+import ru.haykor.carmanager.core.designsystem.cmAnimateItem
 import ru.haykor.carmanager.core.designsystem.cmSegmentShape
 import ru.haykor.carmanager.core.ui.CarCard
 import ru.haykor.carmanager.core.ui.SearchBar
@@ -124,16 +123,9 @@ private fun GarageBody(
                         car = car,
                         shape = cmSegmentShape(index, content.items.size),
                         onClick = { onIntent(GarageIntent.CarClicked(car.id)) },
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .animateItem(
-                                fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                                fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                                placementSpec = spring(
-                                    dampingRatio = Spring.DampingRatioLowBouncy,
-                                    stiffness = Spring.StiffnessMediumLow
-                                )
-                            )
+                        modifier = cmAnimateItem(
+                            Modifier.padding(horizontal = 16.dp)
+                        )
                     )
                 }
             }
