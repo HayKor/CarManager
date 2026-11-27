@@ -4,21 +4,23 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.Res
-import ru.haykor.carmanager.core.designsystem.CmSegmentedGap
-import ru.haykor.carmanager.core.designsystem.cmSegmentShape
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
@@ -29,16 +31,19 @@ import ru.haykor.carmanager.core.domain.model.ServiceCategory
 import ru.haykor.carmanager.core.domain.model.ServiceRecord
 import ru.haykor.carmanager.core.domain.model.ServiceRecordDetails
 import ru.haykor.carmanager.core.presentation.coroutines.ObserveAsEvents
-import ru.haykor.carmanager.core.ui.CarCard
 import ru.haykor.carmanager.core.ui.SearchBar
 import ru.haykor.carmanager.core.ui.ServiceRecordRow
+import ru.haykor.carmanager.core.ui.formatNumber
 import ru.haykor.carmanager.core.ui.theme.AppTheme
+import ru.haykor.carmanager.core.ui.title
 import ru.haykor.carmanager.core.ui.toUiText
 import ru.haykor.carmanager.feature.search.component.SearchComponent
 import ru.haykor.carmanager.feature.search.component.SearchEvent
 import ru.haykor.carmanager.feature.search.component.SearchIntent
 import ru.haykor.carmanager.feature.search.component.SearchState
 import ru.haykor.carmanager.feature.search.component.SearchState.Content
+import ru.haykor.carmanager.keyboard_arrow_right
+import ru.haykor.carmanager.mileage_km
 import ru.haykor.carmanager.search_empty_history
 import ru.haykor.carmanager.search_empty_on_query
 import ru.haykor.carmanager.search_hint
@@ -81,7 +86,8 @@ internal fun SearchContent(state: SearchState, onIntent: (SearchIntent) -> Unit,
                         query = state.query,
                         onQueryChange = { onIntent(SearchIntent.QueryChanged(it)) },
                         onClearQuery = { onIntent(SearchIntent.ClearQueryClicked) },
-                        placeholder = stringResource(Res.string.search_hint)
+                        placeholder = stringResource(Res.string.search_hint),
+                        handleBack = false
                     )
                 }
             )
@@ -124,24 +130,87 @@ private fun SearchBody(
             modifier = modifier
         )
 
-        else -> LazyColumn(modifier = modifier.fillMaxSize()) {
-            groups.forEach { group ->
-                item(key = "car_${group.car.id.value}") {
-                    CarCard(
+        else -> LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
+        ) {
+            groups.forEachIndexed { groupIndex, group ->
+                if (groupIndex > 0) {
+                    item(key = "gap_${group.car.id.value}") {
+                        Spacer(Modifier.height(24.dp))
+                    }
+                }
+
+                stickyHeader(key = "car_${group.car.id.value}") {
+                    SearchCarHeader(
                         car = group.car,
                         onClick = { onIntent(SearchIntent.CarClicked(group.car.id)) },
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
-                itemsIndexed(group.records, key = { _, record -> record.record.id.value }) { index, record ->
+
+                itemsIndexed(
+                    items = group.records,
+                    key = { _, record -> record.record.id.value }
+                ) { index, record ->
                     ServiceRecordRow(
                         record = record,
-                        shape = cmSegmentShape(index, group.records.size),
+                        shape = if (index == group.records.lastIndex) {
+                            RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+                        } else {
+                            RectangleShape
+                        },
                         onClick = { onIntent(SearchIntent.RecordClicked(record.record.id)) },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = CmSegmentedGap / 2)
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SearchCarHeader(car: Car, hasRecords: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val subtitle = listOfNotNull(
+        stringResource(Res.string.mileage_km, formatNumber(car.mileage)),
+        car.plate
+    ).joinToString(" · ")
+
+    Surface(
+        onClick = onClick,
+        shape = if (hasRecords) {
+            RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        } else {
+            RoundedCornerShape(24.dp)
+        },
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = car.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                painter = painterResource(Res.drawable.keyboard_arrow_right),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

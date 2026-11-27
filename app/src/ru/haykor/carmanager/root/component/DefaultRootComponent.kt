@@ -1,8 +1,11 @@
 package ru.haykor.carmanager.root.component
 
+import com.arkivanov.decompose.Cancellation
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.*
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -13,6 +16,7 @@ import ru.haykor.carmanager.feature.car.component.CarComponent
 import ru.haykor.carmanager.feature.carEditor.component.CarEditorComponent
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.main.component.MainComponent
+import ru.haykor.carmanager.feature.main.component.MainTab
 import ru.haykor.carmanager.feature.search.component.SearchComponent
 import ru.haykor.carmanager.feature.serviceEditor.component.ServiceEditorComponent
 import ru.haykor.carmanager.photoviewer.component.PhotoViewerComponent
@@ -31,6 +35,13 @@ class DefaultRootComponent(
 
     private val navigation = StackNavigation<Config>()
 
+    private val searchTabBackCallback = BackCallback(isEnabled = false) {
+        activeMain()?.onTabSelected(MainTab.Garage)
+    }
+
+    private var pagesSubscription: Cancellation? = null
+    private var stackSubscription: Cancellation? = null
+
     override val childStack: Value<ChildStack<*, RootComponent.Child>> =
         childStack(
             source = navigation,
@@ -40,8 +51,28 @@ class DefaultRootComponent(
             childFactory = ::createChild
         )
 
+    init {
+        backHandler.register(searchTabBackCallback)
+        pagesSubscription = activeMain()?.pages?.subscribe { updateSearchTabBackCallback() }
+        stackSubscription = childStack.subscribe { updateSearchTabBackCallback() }
+        updateSearchTabBackCallback()
+        lifecycle.doOnDestroy {
+            pagesSubscription?.cancel()
+            stackSubscription?.cancel()
+            backHandler.unregister(searchTabBackCallback)
+        }
+    }
+
     override fun onBack() {
         navigation.pop()
+    }
+
+    private fun activeMain(): MainComponent? =
+        (childStack.value.active.instance as? RootComponent.Child.Main)?.component
+
+    private fun updateSearchTabBackCallback() {
+        searchTabBackCallback.isEnabled =
+            activeMain()?.pages?.value?.selectedIndex == MainTab.Search.ordinal
     }
 
     private fun createChild(config: Config, ctx: ComponentContext) = when (config) {
