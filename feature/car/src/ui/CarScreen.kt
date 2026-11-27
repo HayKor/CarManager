@@ -28,7 +28,10 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.haykor.carmanager.*
-import ru.haykor.carmanager.core.designsystem.*
+import ru.haykor.carmanager.core.designsystem.CmSectionHeader
+import ru.haykor.carmanager.core.designsystem.CmSegmentedGap
+import ru.haykor.carmanager.core.designsystem.LicensePlate
+import ru.haykor.carmanager.core.designsystem.cmSegmentShape
 import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.PlateCountry
 import ru.haykor.carmanager.core.domain.ServiceCategoryId
@@ -522,22 +525,3 @@ private fun CarNotFoundPreview() = AppTheme {
 }
 
 // endregion
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Composable
-private fun Segmented() = AppTheme {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
-    ) {
-        val count = 5
-        repeat(count) { index ->
-            SegmentedListItem(
-                shapes = ListItemDefaults.segmentedShapes(index, count),
-                onClick = {}
-            ) {
-                Text("Card No. $index")
-            }
-        }
-    }
-}
