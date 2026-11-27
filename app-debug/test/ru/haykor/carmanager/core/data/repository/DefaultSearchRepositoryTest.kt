@@ -76,6 +76,7 @@ class DefaultSearchRepositoryTest {
 
         assertEquals(listOf(civic.id), groups.map { it.car.id })
         assertEquals(listOf(oilChange.id), groups.single().records.map { it.record.id })
+        assertEquals("Maintenance", groups.single().records.single().category.name)
     }
 
     @Test
@@ -88,6 +89,25 @@ class DefaultSearchRepositoryTest {
 
         assertEquals(camry.id, groups.single().car.id)
         assertEquals(emptyList(), groups.single().records)
+    }
+
+    @Test
+    fun fourWordsReachTheDaoAsStarredTokens() = runBlocking {
+        val camry = car(brand = "Toyota", model = "Camry")
+        database.carDao().insert(camry)
+        record(camry.id, note = "oil change", date = 10)
+        record(camry.id, note = "brake pad data", date = 20)
+
+        val exactWords = repository.search(listOf("camry", "oil", "pad", "data")).first().requireSuccess()
+
+        assertEquals(listOf(camry.id), exactWords.map { it.car.id })
+        assertEquals(listOf(20L, 10L), exactWords.single().records.map { it.record.date })
+
+        // Whole-word matches would also succeed without the appended '*'; prefixes pin the suffix.
+        val prefixes = repository.search(listOf("cam", "oi", "pa", "dat")).first().requireSuccess()
+
+        assertEquals(listOf(camry.id), prefixes.map { it.car.id })
+        assertEquals(listOf(20L, 10L), prefixes.single().records.map { it.record.date })
     }
 
     private fun DataResult<List<CarSearchResult>, DataError>.requireSuccess(): List<CarSearchResult> =

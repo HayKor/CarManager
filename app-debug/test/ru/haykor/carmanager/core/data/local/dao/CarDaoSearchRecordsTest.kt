@@ -123,6 +123,36 @@ class CarDaoSearchRecordsTest {
     }
 
     @Test
+    fun fourTokensMatchCarsAndAttachEveryMatchedRecord() = runBlocking {
+        val camry = car(brand = "Toyota", model = "Camry")
+        dao.insert(camry)
+        record(camry.id, note = "oil change", date = 10)
+        record(camry.id, note = "brake pad data", date = 20)
+
+        val rows = dao.searchCarsAndRecords("cam*", "oil*", "pad*", "data*").first()
+
+        assertEquals(listOf(camry.id, camry.id), rows.map { it.car.id })
+        assertEquals(listOf(20L, 10L), rows.map { it.date })
+    }
+
+    @Test
+    fun searchOrdersCarsByCreatedAtNotInsertionOrder() = runBlocking {
+        val later = car(brand = "Toyota", model = "Camry", createdAt = 5)
+        val earlier = car(brand = "Toyota", model = "Camry", createdAt = 1)
+        dao.insert(later)
+        dao.insert(earlier)
+        record(earlier.id, note = "camry oil", date = 30)
+        record(earlier.id, note = "camry brake", date = 10)
+        record(later.id, note = "camry tires", date = 20)
+
+        val rows = dao.searchCarsAndRecords("cam*", null, null, null).first()
+
+        assertEquals(listOf(earlier.id, earlier.id, later.id), rows.map { it.car.id })
+        assertEquals(listOf(30L, 10L), rows.filter { it.car.id == earlier.id }.map { it.date })
+        assertEquals(listOf(20L), rows.filter { it.car.id == later.id }.map { it.date })
+    }
+
+    @Test
     fun recordFtsFollowsInsertUpdateAndDelete() = runBlocking {
         val corolla = car(brand = "Toyota", model = "Corolla")
         dao.insert(corolla)
