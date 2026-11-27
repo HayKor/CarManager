@@ -28,8 +28,7 @@ fun SearchBar(
     onQueryChange: (String) -> Unit,
     onClearQuery: () -> Unit,
     placeholder: String,
-    modifier: Modifier = Modifier,
-    handleBack: Boolean = true
+    modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
     var isFocused by remember { mutableStateOf(false) }
@@ -41,7 +40,7 @@ fun SearchBar(
         label = "SearchBarInset"
     )
 
-    BackHandler(enabled = handleBack && isActive) {
+    BackHandler(enabled = isActive) {
         if (!isFocused && query.isNotEmpty()) {
             onClearQuery()
         }

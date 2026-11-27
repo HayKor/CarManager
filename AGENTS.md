@@ -122,7 +122,7 @@ Rules:
 - Do not put events in state; do not collect events in `LaunchedEffect` directly.
 - Search/debounce: internal `MutableStateFlow` + `debounce(300.milliseconds)` + `distinctUntilChanged()` + `flatMapLatest`.
 - Component scope: `createComponentScope()` = `SupervisorJob + Dispatchers.Main.immediate`, cancelled on destroy.
-- Back handling: `BackCallback`, register in `init`, unregister via `lifecycle.doOnDestroy`. Dirty + not busy -> dialog; busy -> leave. `SearchBar` consumes back while focused or while the query is non-empty when `handleBack = true` (Garage), clearing query/focus first; Search passes `handleBack = false`. `DefaultRootComponent` registers a back callback that, when Main is active and the Search tab is selected, switches to Garage and preserves the query.
+- Back handling: `BackCallback`, register in `init`, unregister via `lifecycle.doOnDestroy`. Dirty + not busy -> dialog; busy -> leave. `SearchBar` consumes back while focused or while the query is non-empty, clearing query/focus first. `DefaultRootComponent` registers a back callback that, when Main is active and any tab other than Garage is selected, switches to Garage; the `SearchBar` handler wins first while the query is active.
 - `exit()` must be idempotent: `isExitHandled` + `lifecycle.state == DESTROYED` guard; prevents double pop after async save.
 - Forms: keep `initialInput`, `touched`, `errors`; validate on change/blur; `AllFieldsTouched` on save; parser returns `Valid` / `Invalid`.
 - UI is stateless: `Screen(component)` adapter + `Content(state, onIntent)`; previews call `Content` with fake state.

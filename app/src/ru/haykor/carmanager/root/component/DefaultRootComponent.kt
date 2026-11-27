@@ -35,7 +35,7 @@ class DefaultRootComponent(
 
     private val navigation = StackNavigation<Config>()
 
-    private val searchTabBackCallback = BackCallback(isEnabled = false) {
+    private val tabBackCallback = BackCallback(isEnabled = false) {
         activeMain()?.onTabSelected(MainTab.Garage)
     }
 
@@ -52,14 +52,14 @@ class DefaultRootComponent(
         )
 
     init {
-        backHandler.register(searchTabBackCallback)
-        pagesSubscription = activeMain()?.pages?.subscribe { updateSearchTabBackCallback() }
-        stackSubscription = childStack.subscribe { updateSearchTabBackCallback() }
-        updateSearchTabBackCallback()
+        backHandler.register(tabBackCallback)
+        pagesSubscription = activeMain()?.pages?.subscribe { updateTabBackCallback() }
+        stackSubscription = childStack.subscribe { updateTabBackCallback() }
+        updateTabBackCallback()
         lifecycle.doOnDestroy {
             pagesSubscription?.cancel()
             stackSubscription?.cancel()
-            backHandler.unregister(searchTabBackCallback)
+            backHandler.unregister(tabBackCallback)
         }
     }
 
@@ -70,9 +70,9 @@ class DefaultRootComponent(
     private fun activeMain(): MainComponent? =
         (childStack.value.active.instance as? RootComponent.Child.Main)?.component
 
-    private fun updateSearchTabBackCallback() {
-        searchTabBackCallback.isEnabled =
-            activeMain()?.pages?.value?.selectedIndex == MainTab.Search.ordinal
+    private fun updateTabBackCallback() {
+        tabBackCallback.isEnabled =
+            activeMain()?.pages?.value?.selectedIndex?.let { it != MainTab.Garage.ordinal } == true
     }
 
     private fun createChild(config: Config, ctx: ComponentContext) = when (config) {

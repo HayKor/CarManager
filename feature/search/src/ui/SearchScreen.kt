@@ -86,8 +86,7 @@ internal fun SearchContent(state: SearchState, onIntent: (SearchIntent) -> Unit,
                         query = state.query,
                         onQueryChange = { onIntent(SearchIntent.QueryChanged(it)) },
                         onClearQuery = { onIntent(SearchIntent.ClearQueryClicked) },
-                        placeholder = stringResource(Res.string.search_hint),
-                        handleBack = false
+                        placeholder = stringResource(Res.string.search_hint)
                     )
                 }
             )
