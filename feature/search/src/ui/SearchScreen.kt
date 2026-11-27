@@ -144,6 +144,7 @@ private fun SearchBody(
                 stickyHeader(key = "car_${group.car.id.value}") {
                     SearchCarHeader(
                         car = group.car,
+                        hasRecords = group.records.isNotEmpty(),
                         onClick = { onIntent(SearchIntent.CarClicked(group.car.id)) },
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
@@ -161,7 +162,7 @@ private fun SearchBody(
                             RectangleShape
                         },
                         onClick = { onIntent(SearchIntent.RecordClicked(record.record.id)) },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = CmSegmentedGap / 2)
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             }
