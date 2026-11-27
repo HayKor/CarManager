@@ -23,6 +23,8 @@
     <!-- Search -->
     <string name="title_search">Search</string>
     <string name="search_hint">Search</string>
+    <string name="search_empty_history">No cars or records yet</string>
+    <string name="search_empty_on_query">Nothing found for "%1$s"</string>
 
     <!-- Car editor -->
     <string name="car_editor_title">Create or edit</string>

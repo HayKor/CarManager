@@ -60,7 +60,7 @@ fun MainScreen(component: MainComponent, modifier: Modifier = Modifier) {
                 }
 
                 is MainComponent.Child.Search -> {
-                    SearchScreen()
+                    SearchScreen(child.component)
                 }
             }
         }
