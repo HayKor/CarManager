@@ -20,6 +20,7 @@ import ru.haykor.carmanager.core.designsystem.cmAnimateItem
 import ru.haykor.carmanager.core.designsystem.cmSegmentShape
 import ru.haykor.carmanager.core.ui.CarCard
 import ru.haykor.carmanager.core.ui.SearchBar
+import ru.haykor.carmanager.core.ui.sharedBounds
 import ru.haykor.carmanager.core.ui.theme.AppTheme
 import ru.haykor.carmanager.feature.garage.component.GarageComponent
 import ru.haykor.carmanager.feature.garage.component.GarageIntent
@@ -125,6 +126,7 @@ private fun GarageBody(
                         shape = cmSegmentShape(index, content.items.size),
                         onClick = { onIntent(GarageIntent.CarClicked(car.id)) },
                         modifier = Modifier
+                            .sharedBounds(key = car.id.value)
                             .padding(horizontal = 16.dp)
                             .cmAnimateItem()
                     )

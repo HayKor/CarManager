@@ -7,6 +7,7 @@ import ru.haykor.carmanager.core.domain.CarId
 import ru.haykor.carmanager.core.domain.ServiceRecordId
 
 interface CarComponent {
+    val id: CarId
     val state: Value<CarState>
     val events: Flow<CarEvent>
 

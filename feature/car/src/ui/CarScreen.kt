@@ -58,6 +58,7 @@ fun CarScreen(component: CarComponent, modifier: Modifier = Modifier) {
         }
     }
     CarContent(
+        carId = component.id,
         state = state,
         onIntent = component::accept,
         modifier = modifier
@@ -65,7 +66,7 @@ fun CarScreen(component: CarComponent, modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun CarContent(state: CarState, onIntent: (CarIntent) -> Unit, modifier: Modifier = Modifier) {
+internal fun CarContent(carId: CarId, state: CarState, onIntent: (CarIntent) -> Unit, modifier: Modifier = Modifier) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -145,6 +146,7 @@ internal fun CarContent(state: CarState, onIntent: (CarIntent) -> Unit, modifier
             )
         },
         modifier = modifier
+            .sharedBounds(key = carId.value)
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { innerPadding ->
@@ -492,6 +494,7 @@ private val previewRecordOther = ServiceRecordDetails(
 @Composable
 private fun CarContentPreview() = AppTheme {
     CarContent(
+        carId = previewCar.id,
         state = CarState(
             carSection = CarSection.Loaded(previewCar),
             recordsSection = RecordsSection.Loaded(listOf(previewRecord, previewRecordOther))
@@ -503,13 +506,18 @@ private fun CarContentPreview() = AppTheme {
 @Preview(name = "Delete dialog", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun CarContentDeleteDialogPreview() = AppTheme {
-    CarContent(state = CarState(carSection = CarSection.Loaded(previewCar), isShowDialog = true), onIntent = {})
+    CarContent(
+        carId = previewCar.id,
+        state = CarState(carSection = CarSection.Loaded(previewCar), isShowDialog = true),
+        onIntent = {}
+    )
 }
 
 @Preview(name = "Optional fields missing", showBackground = true)
 @Composable
 private fun CarContentMinimalPreview() = AppTheme {
     CarContent(
+        carId = previewCar.id,
         state = CarState(carSection = CarSection.Loaded(previewCar.copy(vin = null, plate = null))),
         onIntent = {}
     )
@@ -518,7 +526,7 @@ private fun CarContentMinimalPreview() = AppTheme {
 @Preview(name = "Not found", showBackground = true)
 @Composable
 private fun CarNotFoundPreview() = AppTheme {
-    CarContent(state = CarState(carSection = CarSection.NotFound), onIntent = {})
+    CarContent(carId = previewCar.id, state = CarState(carSection = CarSection.NotFound), onIntent = {})
 }
 
 // endregion
