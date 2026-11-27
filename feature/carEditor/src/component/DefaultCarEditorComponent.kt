@@ -25,7 +25,7 @@ import ru.haykor.carmanager.core.result.DataResult
 
 class DefaultCarEditorComponent(
     componentContext: ComponentContext,
-    private val id: CarId?,
+    override val id: CarId?,
     private val carRepository: CarRepository,
     private val parser: CarDraftParser,
     private val onBack: () -> Unit
