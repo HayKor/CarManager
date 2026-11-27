@@ -8,6 +8,7 @@ apply:
   - //ktlint.module-template.yaml
 
 dependencies: 
+  - //core/design-system
   - //core/ui
   - //core/resources
   - //core/domain
